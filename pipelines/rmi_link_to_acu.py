@@ -6,13 +6,13 @@ class RMILinkToAcu(Pipeline):
     ---
     <hr>
 
-    Pipeline to update Aftership data if found to be outdated compared to what is extracted from Acumatica
+    Pipeline to populate Shipment attributes in Acumatica through the database, allowing for updates after the UI has disallowed them. Currently updates the AttributeLINK3PL value for RMI shipments that don't have that attribute populated
 
     # Extraction
      - Two data sources are used in extraction:
         - **acu_extract**: Retrieves any shipments from Acumatica that have RMI as the warehouse and a null Link3PL 
             - **RMI_Link3PL** query
-     - Pull all distinct RMAIDs from **rmi_RMAStatus**
+        - **rmi_extract**: Pulls all distinct RMAIDs from **rmi_RMAStatus**
 
     # Transformation
      - Inner join the two extracted DataFrames. This leaves us with just the shipments that don't have a Link3PL attribute value in Acu, but have a record in our RMI status tracking table
@@ -28,7 +28,6 @@ class RMILinkToAcu(Pipeline):
         
     def extract(self):
         acu_extract = self.acudb.query_to_dataframe(self.acudb.queries.RMI_Link3PL)
-        # rmi_extract = self.centralstore.query_db("select distinct RMANumber, concat('https://jhl.returnsmanagement.com/rma/LineItems.asp?rmaid=', RMAID) ValueString from rmi_ClosedShipments")
         rmi_extract = self.centralstore.query_db("select distinct RMANumber, concat('https://jhl.returnsmanagement.com/rma/LineItems.asp?rmaid=', RMAID) ValueString from rmi_RMAStatus")
         
 
@@ -51,6 +50,8 @@ class RMILinkToAcu(Pipeline):
     def load(self, data_transformed):
         if len(data_transformed) > 0:
             self.acudb.checked_upsert_paginated('SOShipmentKvExt', data_transformed)
+        else:
+            self.logger.info(f'No rows to upsert')
         return data_transformed
     
     def log_results(self, data_loaded):

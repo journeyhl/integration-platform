@@ -543,7 +543,7 @@ end
 
 
     def query_to_dataframe(self, query: Query):
-        '''`query_db`(self, query: **_Query_**)
+        '''`query_to_dataframe`(self, query: **_Query_**)
         ---
         <hr>
             

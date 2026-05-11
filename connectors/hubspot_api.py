@@ -165,6 +165,32 @@ class HubSpotAPI:
 
 
     def search_activities(self, object_type: str) -> list[dict]:
+        '''`search_activities`(object_type: *str*, )
+        ---
+        <hr>
+        
+        Method to search activities in hubspot for the ***object_type*** passed to the method
+        
+        ### Downstream Calls 
+         #### :meth:`~search`
+            - Method that actually performs the API call
+        
+        ### Upstream Calls 
+         #### :meth:`~folder.file.class.method`
+            - Description
+            
+        <hr>
+        
+        Parameters
+        ---
+        :param (*str*) `object_type`: _description_
+        
+        <hr>
+        
+        Returns
+        ---
+        :return `variablename` (list[dict]): _description_
+        '''
         self.logger.info(f'Extracting {object_type}...')
         fiscal_year_start_ms = str(int(self.pipeline.fiscal_year_start.timestamp() * 1000))
         filter_groups = [
