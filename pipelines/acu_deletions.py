@@ -55,14 +55,13 @@ class AcumaticaDeletions(Pipeline):
         return data_transformed
     
     def load(self, data_transformed: dict[str, list]):
-        data_loaded = data_transformed
         for item, dict_list in data_transformed.items():
             if len(dict_list) > 0:
                 self.centralstore.checked_upsert(f'_util.{item}', dict_list)
         else:
             self.logger.info(f'_util.{item}: No rows to load to CentralStore')
         self.clean()
-        return data_loaded
+        return data_transformed
     
     def clean(self):
         cleaners = [
