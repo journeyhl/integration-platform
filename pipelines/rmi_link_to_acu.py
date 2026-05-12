@@ -28,7 +28,7 @@ class RMILinkToAcu(Pipeline):
         
     def extract(self):
         acu_extract = self.acudb.query_to_dataframe(self.acudb.queries.RMI_Link3PL)
-        rmi_extract = self.centralstore.query_db("select distinct RMANumber, concat('https://jhl.returnsmanagement.com/rma/LineItems.asp?rmaid=', RMAID) ValueString from rmi_RMAStatus")
+        rmi_extract = self.centralstore.query_db("select distinct RMANumber, RMAID, concat('https://jhl.returnsmanagement.com/rma/LineItems.asp?rmaid=', RMAID) Link3PL from rmi_RMAStatus")
         
 
         data_extract = pl.SQLContext(acu = acu_extract, rmi = rmi_extract)
@@ -38,8 +38,11 @@ class RMILinkToAcu(Pipeline):
         data_transformed = data_extract.execute(
         '''
         select *
+             , case when a.FieldName = 'AttributeLINK3PL' then Link3PL
+                    when a.FieldName = 'AttributeRMAID' then RMAID
+               else null end ValueString
         from acu a
-        inner join rmi r on a.ShipmentNbr = r.RMANumber                                                
+        inner join rmi r on a.ShipmentNbr = r.RMANumber                                              
         ''',
         eager =True
         )
