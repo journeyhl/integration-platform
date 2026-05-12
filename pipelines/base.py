@@ -18,6 +18,33 @@ class MillisecondFormatter(colorlog.ColoredFormatter):
             return new_time
         return time.isoformat()
 
+class LogHistory(logging.Handler):
+    def __init__(self, logs: list):
+        super().__init__()
+        self.logs = logs
+    
+    def emit(self, log_entry):
+        self.logs.append(self.format(log_entry))
+
+    def format(self, log_entry):
+        log_id = len(self.logs) + 1
+        time = datetime.fromtimestamp(log_entry.created, ZoneInfo('America/New_York'))
+        pipeline = log_entry.name if '.' not in log_entry.name else log_entry.name.split('.')[0]
+        new_log_entry = {
+            'Pipeline': pipeline,
+            'LogID': log_id,
+            'PipeLogName': log_entry.name,
+            'FileName': log_entry.filename,
+            'FunctionName': log_entry.funcName,
+            'LineNbr': log_entry.lineno,
+            'PLevel': log_entry.levelno,
+            'Msg': log_entry.msg,
+            'Priority': log_entry.levelname,
+            'Module': log_entry.module,
+            'Timestamp': datetime.now(),
+        }
+        return new_log_entry
+
 class Pipeline(ABC):
     def __init__(self, pipeline_name):
         '''`init`(self, pipeline_name: *str*)
@@ -45,8 +72,8 @@ class Pipeline(ABC):
         self.centralstore: SQLConnector[CentralStoreQueries] = SQLConnector(self, 'db_CentralStore')
         self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(self, 'AcumaticaDb')
         self.logger = logging.getLogger(pipeline_name)
-
-        
+        self.logs = []
+        self.logger.addHandler(LogHistory(self.logs))        
         if not logging.root.handlers:
             handler = colorlog.StreamHandler()
             handler.setFormatter(MillisecondFormatter(
@@ -76,6 +103,7 @@ class Pipeline(ABC):
 
     @abstractmethod
     def log_results(self, data_loaded) -> Any: ...
+        
 
 
     def run(self):
@@ -96,6 +124,10 @@ class Pipeline(ABC):
 
         if self.pipeline_name != 'rmi-status': self.logger.info('Logging...')
         self.log_results(data_loaded)
+        try:
+            self.centralstore.insert_df(pl.DataFrame(self.logs), '_util.Logs')
+        except Exception as e:
+            self.logger.warning("Couldn't insert logs to SQL but pipeline execution was successful")
         return{
             'pipeline': self.pipeline_name,
             'status': 'success',
