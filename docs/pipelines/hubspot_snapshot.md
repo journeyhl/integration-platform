@@ -25,9 +25,18 @@ flowchart TD
     T2 & T3 --> TR_OUT[db_activities + db_deals]
 
     RUN --> LD[load]
-    LD --> CS1[(CentralStore: hs.deal_tracking<br/>checked_upsert_paginated)]
-    LD --> CS2[(CentralStore: hs.deal_snapshots<br/>checked_upsert_paginated)]
-    LD --> CS3[(CentralStore: hs.activity_snapshots<br/>checked_upsert_paginated)]
+    LD --> CS1[(
+        <b><i>CentralStore</i></b>
+        upsert hs.deal_tracking
+    )]
+    LD --> CS2[(
+        <b><i>CentralStore</i></b>
+        insert hs.deal_snapshots
+    )]
+    LD --> CS3[(
+        <b><i>CentralStore</i></b>
+        insert hs.activity_snapshots
+    )]
 
     RUN --> LR[log_results<br/>*Do nothing]
 ```

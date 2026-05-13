@@ -19,8 +19,14 @@ flowchart TD
     T3 --> TR_OUT[aftership_export + aftership_export_detail]
 
     RUN --> LD[load]
-    LD --> CS1[(CentralStore: acu.AftershipExportv2<br/>checked_upsert_paginated)]
-    LD --> CS2[(CentralStore: acu.AftershipExportDetailv2<br/>checked_upsert_paginated)]
+    LD --> CS1[(
+        <b><i>CentralStore</i></b>
+        upsert acu.AftershipExportv2
+    )]
+    LD --> CS2[(
+        <b><i>CentralStore</i></b>
+        upsert acu.AftershipExportDetailv2
+    )]
 
     RUN --> LR[log_results<br/>*Do nothing]
 ```

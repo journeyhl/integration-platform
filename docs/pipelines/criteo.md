@@ -11,7 +11,10 @@ flowchart TD
     RI --> RUN[Pipeline.run]
 
     RUN --> EX[extract]
-    EX --> D1[(CentralStore: criteo.campaign_performance_daily)]
+    EX --> D1[(
+        <b><i>CentralStore</i></b>
+        criteo.campaign_performance_daily
+    )]
     EX --> API[CriteoAPI.fetch_campaign_data]
     API --> D2[(CriteoAPI: statistics/report)]
 
@@ -25,9 +28,15 @@ flowchart TD
 
     RUN --> LD[load]
     LD --> LS1[upsert diff entries]
-    LS1 --> CS1[(CentralStore: criteo.diff_log)]
+    LS1 --> CS1[(
+        <b><i>CentralStore</i></b>
+        upsert criteo.diff_log
+    )]
     LD --> LS2[upsert campaign performance]
-    LS2 --> CS2[(CentralStore: criteo.campaign_performance_daily)]
+    LS2 --> CS2[(
+        <b><i>CentralStore</i></b>
+        upsert criteo.campaign_performance_daily
+    )]
 
     RUN --> LR[log_results<br/>*Do nothing]
 ```

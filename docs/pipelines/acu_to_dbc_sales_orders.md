@@ -18,7 +18,10 @@ flowchart TD
     LD --> L1{rows >= 100?}
     L1 -->|yes| L2[upsert in batches of 100 with LastChecked timestamp]
     L1 -->|no| L3[upsert all at once with LastChecked timestamp]
-    L2 --> CS1[(CentralStore: acu.SalesOrders)]
+    L2 --> CS1[(
+        <b><i>CentralStore</i></b>
+        upsert acu.SalesOrders
+    )]
     L3 --> CS1
 
     RUN --> LR[log_results]

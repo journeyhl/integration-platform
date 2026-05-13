@@ -28,7 +28,7 @@ class RMILinkToAcu(Pipeline):
         
     def extract(self):
         acu_extract = self.acudb.query_to_dataframe(self.acudb.queries.RMI_Link3PL)
-        rmi_extract = self.centralstore.query_db("select distinct RMANumber, RMAID, concat('https://jhl.returnsmanagement.com/rma/LineItems.asp?rmaid=', RMAID) Link3PL from rmi_RMAStatus")
+        rmi_extract = self.centralstore.query_to_dataframe(self.centralstore.queries.RMI_Link3PL_RMAStatus)
         
 
         data_extract = pl.SQLContext(acu = acu_extract, rmi = rmi_extract)

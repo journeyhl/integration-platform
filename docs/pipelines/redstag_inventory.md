@@ -18,9 +18,15 @@ flowchart TD
 
     RUN --> LD[load]
     LD --> LD1[checked_upsert item_summary]
-    LD1 --> CS1[(CentralStore: RedstagInventorySummary)]
+    LD1 --> CS1[(
+        <b><i>CentralStore</i></b>
+        upsert RedstagInventorySummary
+    )]
     LD --> LD2[checked_upsert item_detail]
-    LD2 --> CS2[(CentralStore: RedstagInventoryDetail)]
+    LD2 --> CS2[(
+        <b><i>CentralStore</i></b>
+        upsert RedstagInventoryDetail
+    )]
 
     RUN --> LR[log_results<br/>*Do nothing]
 ```

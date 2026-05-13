@@ -4,7 +4,10 @@ flowchart TD
     A([get_status_from_rmi]) --> ST[StageRMIStatusRetrieval.__init__]
     ST --> STRUN[Pipeline.run]
     STRUN --> STEX[extract: query StatusCheckRMI]
-    STEX --> STDB[(CentralStore: StatusCheckRMI)]
+    STEX --> STDB[(
+        <b><i>CentralStore</i></b>
+        StatusCheckRMI
+    )]
     STRUN --> STTR[transform: to list of RMA numbers]
     STRUN --> STLD[load: pass — return list directly]
     STRUN --> STLR[log_results: pass]
@@ -22,7 +25,10 @@ flowchart TD
     BADREQ -->|yes| GSLR[log_results: pass]
     BADREQ -->|no| GSTRD[transform_status_records: flatten rmaLines]
     GSTRD --> GSLD[load: checked_upsert]
-    GSLD --> GSDB[(CentralStore: rmi_RMAStatus)]
+    GSLD --> GSDB[(
+        <b><i>CentralStore</i></b>
+        upsert rmi_RMAStatus
+    )]
     GSLD --> GSLR
     GSLR --> LOOP
     LOOP -->|done| FINISH([complete])

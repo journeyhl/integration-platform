@@ -34,5 +34,8 @@ flowchart TD
 
     RUN --> LR[log_results]
     LR --> LO[acu_api._logout]
-    LR --> UPS[(CentralStore: upsert _util.acu_api_log)]
+    LR --> UPS[(
+        <b><i>CentralStore</i></b>
+        upsert _util.acu_api_log
+    )]
 ```

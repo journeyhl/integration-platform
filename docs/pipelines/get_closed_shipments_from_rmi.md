@@ -12,7 +12,10 @@ flowchart TD
     RUN --> TR[transform: flatten shipLines per RMA]
 
     RUN --> LD[load: checked_upsert]
-    LD --> CS1[(CentralStore: rmi_ClosedShipments)]
+    LD --> CS1[(
+        <b><i>CentralStore</i></b>
+        upsert rmi_ClosedShipments
+    )]
 
     RUN --> LR[log_results<br/>*Do nothing]
 ```

@@ -10,7 +10,9 @@ flowchart TD
 
     RUN --> EX[extract]
     EX --> D1[(AcuDB: AcuToDbc_Quotes<br/>QT orders modified in last day)]
-    EX --> D2[(CentralStore: acu.Quotes<br/>distinct QuoteNbr where LastChecked not null)]
+    EX --> D2[(
+        <b><i>CentralStore</i></b>
+        acu.Quotes<br/>distinct QuoteNbr where LastChecked not null)]
 
     RUN --> TR[transform]
     TR --> T1[fill null LineNbr with 99]
@@ -20,7 +22,9 @@ flowchart TD
     LD --> L1{rows >= 500?}
     L1 -->|yes| L2[upsert in batches of 500 with LastChecked timestamp]
     L1 -->|no| L3[upsert all at once with LastChecked timestamp]
-    L2 --> CS1[(CentralStore: acu.Quotes)]
+    L2 --> CS1[(
+        <b><i>CentralStore</i></b>
+        upsert acu.Quotes)]
     L3 --> CS1
 
     RUN --> LR[log_results<br/>*Do nothing]
