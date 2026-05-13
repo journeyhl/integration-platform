@@ -12,7 +12,10 @@ flowchart TD
     RUN --> TR[transform: transform_status_records<br/>flatten rmaLines per RMA]
 
     RUN --> LD[load: checked_upsert]
-    LD --> CS1[(CentralStore: rmi_RMAStatus)]
+    LD --> CS1[(
+        <b><i>CentralStore</i></b>
+        upsert rmi_RMAStatus
+    )]
 
     RUN --> LR[log_results<br/>*Do nothing]
 ```

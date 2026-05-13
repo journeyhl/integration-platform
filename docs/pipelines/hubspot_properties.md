@@ -21,7 +21,10 @@ flowchart TD
     TR --> T1[map each property to flat dict/format needed for SQL]
 
     RUN --> LD[load]
-    LD --> CS1[(CentralStore: hs.Properties<br/>checked_upsert_paginated)]
+    LD --> CS1[(
+        <b><i>CentralStore</i></b>
+        upsert hs.Properties
+    )]
 
     RUN --> LR[log_results<br/>*Do nothing]
 ```

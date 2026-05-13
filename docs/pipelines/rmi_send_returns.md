@@ -24,7 +24,12 @@ flowchart TD
     LD5 -->|error| SKIP[skip Acumatica update<br/>log RMI error]
 
     RUN --> LR[log_results]
-    LR --> LR1[(CentralStore: insert _util.rmi_send_log<br/>Type=Return, KeyValue, Lines,<br/>RMI_Response, RMI_Payload,<br/>ACU_Response, Timestamp)]
+    LR --> LR1[(
+        <b><i>CentralStore</i></b>
+        insert _util.rmi_send_log
+    )]
     LR --> LO[AcumaticaAPI._logout]
-    LR --> UPS[(CentralStore: upsert _util.acu_api_log)]
+    LR --> UPS[(
+        <b><i>CentralStore</i></b>
+        upsert _util.acu_api_log)]
 ```

@@ -12,7 +12,10 @@ flowchart TD
     RUN --> TR[transform: map receipt fields]
 
     RUN --> LD[load: checked_upsert]
-    LD --> CS1[(CentralStore: rmi_Receipts)]
+    LD --> CS1[(
+        <b><i>CentralStore</i></b>
+        upsert rmi_Receipts
+    )]
 
     RUN --> LR[log_results<br/>*Do nothing]
 ```

@@ -6,7 +6,10 @@ flowchart TD
     A --> RUN[Pipeline.run]
 
     RUN --> EX[extract]
-    EX --> D1[(CentralStore: acu.SalesOrders<br/>find OrderNumbers with duplicate statuses<br/>via SalesOrderCleaner.sql)]
+    EX --> D1[(
+        <b><i>CentralStore</i></b>
+        acu.SalesOrders<br/>find OrderNumbers with duplicate statuses<br/>via SalesOrderCleaner.sql
+        )]
 
     RUN --> TR[transform]
     TR --> T1[collect distinct OrderNbrs<br/>from duplicates]
@@ -17,7 +20,9 @@ flowchart TD
 
     RUN --> LD[load]
     LD --> LD1{orders out<br/>of sync?}
-    LD1 -->|yes, per status group| LD2[(CentralStore: raw DELETE<br/>acu.SalesOrders rows<br/>not matching AcuDB status)]
+    LD1 -->|yes, per status group| LD2[(
+        <b><i>CentralStore</i></b>
+        raw DELETE<br/>acu.SalesOrders rows<br/>not matching AcuDB status)]
     LD1 -->|no| SKIP[skip]
 
     RUN --> LR[log_results<br/>*Do nothing]

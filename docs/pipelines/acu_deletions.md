@@ -19,10 +19,22 @@ flowchart TD
 
     RUN --> LD[load]
     LD --> LS[checked_upsert each deletion type]
-    LS --> CS1[(CentralStore: _util.SOOrderDeletions)]
-    LS --> CS2[(CentralStore: _util.SOLineDeletions)]
-    LS --> CS3[(CentralStore: _util.SOShipmentDeletions)]
-    LS --> CS4[(CentralStore: _util.SOOrderShipmentDeletions)]
+    LS --> CS1[(
+        <b><i>CentralStore</i></b>
+        upsert _util.SOOrderDeletions
+    )]
+    LS --> CS2[(
+        <b><i>CentralStore</i></b>
+        upsert _util.SOLineDeletions
+    )]
+    LS --> CS3[(
+        <b><i>CentralStore</i></b>
+        upsert _util.SOShipmentDeletions
+    )]
+    LS --> CS4[(
+        <b><i>CentralStore</i></b>
+        upsert _util.SOOrderShipmentDeletions
+    )]
     LS --> CL[clean]
     CL --> CL1[DELETE acu.SalesOrders joined on SOOrderDeletions]
     CL --> CL2[DELETE acu.SalesOrders lines joined on SOLineDeletions]

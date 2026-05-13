@@ -59,6 +59,8 @@ class CentralStoreQueries(Queries):
     '''Pulls all Sales Orders from acu.SalesOrders that have rows with different statuses.'''
     Kustomer_FilteredOutOrders : Query
     ''''''
+    RMI_Link3PL_RMAStatus: Query
+    '''Pulls all distinct Shipments from RMI RMAStatus table in centralstore'''
 
 
 

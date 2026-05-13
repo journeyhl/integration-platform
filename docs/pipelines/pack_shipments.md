@@ -8,9 +8,18 @@ flowchart TD
     A --> RUN[Pipeline.run]
 
     RUN --> EX[extract]
-    EX --> D1[(CentralStore: PackShipmentRedStag)]
-    EX --> D2[(CentralStore: RedStagEvents)]
-    EX --> D3[(CentralStore: PackShipmentRMI)]
+    EX --> D1[(
+        <b><i>CentralStore</i></b>
+        PackShipmentRedStag
+    )]
+    EX --> D2[(
+        <b><i>CentralStore</i></b>
+        RedStagEvents
+    )]
+    EX --> D3[(
+        <b><i>CentralStore</i></b>
+        PackShipmentRMI
+    )]
     EX --> D4[(AcuDB: PackShipment)]
 
     RUN --> TR[transform]
@@ -34,5 +43,8 @@ flowchart TD
 
     RUN --> LR[log_results]
     LR --> LO[acu_api._logout]
-    LR --> UPS[(CentralStore: upsert _util.acu_api_log)]
+    LR --> UPS[(
+        <b><i>CentralStore</i></b>
+        upsert _util.acu_api_log
+    )]
 ```

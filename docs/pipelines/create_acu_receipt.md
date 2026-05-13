@@ -11,7 +11,10 @@ flowchart TD
     A --> RUN[Pipeline.run]
 
     RUN --> EX[extract]
-    EX --> D1[(CentralStore: rmi_RMAStatus<br/>RMAType=3, status CLOSED or RECEIVED)]
+    EX --> D1[(
+        <b><i>CentralStore</i></b>
+        ReturnsPendingReciept: Query
+    )]
     EX --> D2[(AcuDB: OpenRCsNoReceipt<br/>RC orders at RMI warehouse, open, sent to WH, no shipment yet)]
 
     RUN --> TR[transform]
@@ -45,5 +48,8 @@ flowchart TD
 
     RUN --> LR[log_results]
     LR --> LO[acu_api._logout]
-    LR --> UPS[(CentralStore: upsert _util.acu_api_log)]
+    LR --> UPS[(
+        <b><i>CentralStore</i></b>
+        upsert _util.acu_api_log
+    )]
 ```
