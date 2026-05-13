@@ -58,12 +58,8 @@ end
             )
             if last_sent_check.height > 0:
                 data_filtered.append(order)
-                log_str = f'Will send {order['OrderNbr']}.         To send: {len(data_filtered)}'
-
             else:
                 excluding += 1
-                log_str = f'Excluding {order['OrderNbr']}.         Exclude: {excluding}'
-            self.logger.info(log_str)
     
         self.logger.info(f'Total: {len(data_transformed)}')
         self.logger.info(f'Sending: {len(data_filtered)}')
