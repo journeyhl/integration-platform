@@ -19,9 +19,10 @@ class MillisecondFormatter(colorlog.ColoredFormatter):
         return time.isoformat()
 
 class LogHistory(logging.Handler):
-    def __init__(self, logs: list):
+    def __init__(self, logs: list, pipe_start: datetime):
         super().__init__()
         self.logs = logs
+        self.pipe_start = pipe_start
     
     def emit(self, log_entry):
         self.logs.append(self.format(log_entry))
@@ -41,7 +42,8 @@ class LogHistory(logging.Handler):
             'Msg': log_entry.msg,
             'Priority': log_entry.levelname,
             'Module': log_entry.module,
-            'Timestamp': datetime.now(),
+            'Timestamp': datetime.now(ZoneInfo('America/New_York')),
+            'PipeStartTimestamp': self.pipe_start
         }
         return new_log_entry
 
@@ -73,7 +75,8 @@ class Pipeline(ABC):
         self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(self, 'AcumaticaDb')
         self.logger = logging.getLogger(pipeline_name)
         self.logs = []
-        self.logger.addHandler(LogHistory(self.logs))        
+        self.run_timestamp = datetime.now(ZoneInfo('America/New_York'))
+        self.logger.addHandler(LogHistory(self.logs, self.run_timestamp))        
         if not logging.root.handlers:
             handler = colorlog.StreamHandler()
             handler.setFormatter(MillisecondFormatter(
@@ -89,7 +92,6 @@ class Pipeline(ABC):
             ))
             logging.root.setLevel(logging.INFO)
             logging.root.addHandler(handler)
-        self.run_timestamp = None
 
 
     @abstractmethod
