@@ -510,7 +510,7 @@ def kustomer_order_ingest(timer: af.TimerRequest):
 #        Order data to Kustomer
 #           3x/hour (0, 29, 58)
 @app.timer_trigger(
-    schedule = '*/29 * * * *',
+    schedule = '43 * * * *',
     arg_name = 'timer',
     run_on_startup = False
 )
