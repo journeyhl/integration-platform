@@ -40,12 +40,15 @@ class SalesOrderCleaner(Pipeline):
         return data_transformed
     
     def load(self, data_transformed):
-        self.logger.info(f'Cleaning out of sync orders in acu.SalesOrders...')
         data_loaded = data_transformed
-        for status_key, data_dict in data_transformed.items():
-            self.logger.info(f'{data_dict['orders_in_list']} orders out of sync. Deleting any rows not in {status_key} status.')
-            self.centralstore.raw_execute(data_dict['delete_cmd'])
-            bp = 'here'
+        if data_transformed != {}:
+            self.logger.info(f'Cleaning out of sync orders in acu.SalesOrders...')
+            for status_key, data_dict in data_transformed.items():
+                self.logger.info(f'{data_dict['orders_in_list']} orders out of sync. Deleting any rows not in {status_key} status.')
+                self.centralstore.raw_execute(data_dict['delete_cmd'])
+                bp = 'here'
+        else:
+            self.logger.info(f'No rows to clean')
         return data_loaded
     
     def log_results(self, data_loaded):
