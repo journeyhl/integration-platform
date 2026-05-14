@@ -571,7 +571,7 @@ def aftership_send(timer: af.TimerRequest):
 
 #region             aftership_update
 #Update existing Aftership shipments
-#                       1/2hr (:22)
+#                       1x/hr (:22)
 @app.timer_trigger(
     schedule = '2/20 * * * *',
     arg_name = 'timer',
