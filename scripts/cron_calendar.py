@@ -27,8 +27,12 @@ bp = 'here'
 
 schedule = {}
 
+schedule_string = 'function_app_schedule = {'
 for i, line in enumerate(lines):
     if '*' in line: continue
     schedule[line] = lines[i-1]
-
+    schedule_string += f"\n\t'{line}': '{lines[i-1]}',"
+schedule_string += '\n}'
+# import pyperclip
+# pyperclip.copy(schedule_string)
 bp = 'here'
