@@ -3,7 +3,6 @@ from .rmi_send_shipments import SendRMIShipments
 from .rmi_send_returns import SendRMIReturns
 from .get_receipts_from_RMI import GetReceiptsFromRMI
 from .get_closed_shipments_from_RMI import GetClosedShipmentsFromRMI
-from .get_status_from_RMI import GetStatusFromRMI
 from .get_rmas_from_RMI import GetRMAsFromRMI
 from .create_acu_receipt import CreateAcuReceipt
 from .confirm_open_shipments import ShipmentsReadyToConfirm
