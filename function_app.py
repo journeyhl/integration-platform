@@ -78,16 +78,11 @@ def rmi_data_retrieval_pipeline(timer: af.TimerRequest):
     <hr>
 
 
-    GetStatusFromRMI
+    GetRMAsFromRMI
     ===
-    From CentralStore: 
-    * Gets all recently pulled Closed Shipments and Receipts, 
-    * Gets all recently sent Shipments & Returns
-
-    For each row, hits RMI's rma endpoint to determine the status on their end.
+    Pulls all RMAs from RMI's *rmas* endpoint
 
     Upserts results to **RMA_Statuses**
-    Gets **ClosedShipment**, **Receipt** and **Status** information from RedStag and posts to CentralStore
 
     <hr>
 
@@ -95,7 +90,7 @@ def rmi_data_retrieval_pipeline(timer: af.TimerRequest):
     ===
      *Runs at :25 every hour from 4am-11pm*
     '''
-    from pipelines import GetClosedShipmentsFromRMI, GetReceiptsFromRMI, GetRMAsFromRMI, GetStatusFromRMI
+    from pipelines import GetClosedShipmentsFromRMI, GetReceiptsFromRMI, GetRMAsFromRMI
     closed_shipment_pipeline = GetClosedShipmentsFromRMI()
     closed_shipment_pipeline.run()
 
@@ -104,13 +99,6 @@ def rmi_data_retrieval_pipeline(timer: af.TimerRequest):
 
     rma_pipeline = GetRMAsFromRMI()
     rma_pipeline.run()
-    # rma_status_staging_pipeline = StageRMIStatusRetrieval()
-    # rmi_statuses = rma_status_staging_pipeline.run()
-    # rma_numbers = rmi_statuses['loaded']    
-    # status_retrieval_pipeline = GetStatusFromRMI()
-    # for rma_number in rma_numbers:
-    #     status_retrieval_pipeline._re_init(rma_number = rma_number)
-    #     status_retrieval_pipeline.run()
 #endregion rmi_data_retrieval_pipeline
 
 
@@ -504,8 +492,6 @@ def kustomer_order_ingest(timer: af.TimerRequest):
     
     Runs the *ingest* variation of the SendOrderDetailsToKustomer Pipeline
 
-
-
     <hr>
 
     Schedule
@@ -536,9 +522,7 @@ def kustomer_order_backfill(timer: af.TimerRequest):
     kustomer_order_backfill
     ===
     
-    Runs both the  *backfill* variation of the SendOrderDetailsToKustomer Pipeline
-
-
+    Runs the *backfill* variation of the SendOrderDetailsToKustomer Pipeline
 
     <hr>
 
