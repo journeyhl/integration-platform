@@ -555,7 +555,7 @@ def kustomer_order_backfill(timer: af.TimerRequest):
 
 #region             aftership_send
 #   New Shipment data to Aftership
-#                     1x/hour (17)
+#                     1x/hour (:17)
 @app.timer_trigger(
     schedule = '2/15 * * * * ',
     arg_name = 'timer',
@@ -571,7 +571,7 @@ def aftership_send(timer: af.TimerRequest):
 
 #region             aftership_update
 #Update existing Aftership shipments
-#                       1x/hour (22)
+#                       1/2hr (:22)
 @app.timer_trigger(
     schedule = '2/20 * * * *',
     arg_name = 'timer',
