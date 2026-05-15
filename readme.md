@@ -15,8 +15,7 @@
   - [SendRMIReturns](#pipeline---rmi_send_returnspy)
   - [GetClosedShipmentsFromRMI](#pipeline---get_closed_shipments_from_rmipy)
   - [GetReceiptsFromRMI](#pipeline---get_receipts_from_rmipy)
-  - [StageRMIStatusRetrieval](#pipeline---stage_rmi_status_retrievalpy)
-  - [GetStatusFromRMI](#pipeline---get_status_from_rmipy)
+  - [GetRMAsFromRMI](#pipeline---get_rmas_from_rmipy)
   - [CreateAcuReceipt](#pipeline---create_acu_receiptpy)
   - [PackShipments](#pipeline---pack_shipmentspy)
   - [ShipmentsReadyToConfirm](#pipeline---confirm_open_shipmentspy)
@@ -25,11 +24,17 @@
   - [AcumaticaDeletions](#pipeline---acu_deletionspy)
   - [AddressValidator](#pipeline---address_validatorpy)
   - [Criteo](#pipeline---criteopy)
-  - [NotifyFulfillmentOps](#pipeline---notify_fulfillment_opspy)
-  - [SendHubSpotOrderData](#pipeline---hubspot_send_order_datapy)
-  - [AuditFulfillment](#pipeline---audit_fulfillmentpy)
   - [AcuToDbcQuotes](#pipeline---acu_to_dbc_quotespy)
+  - [AcuToDbcSalesOrders](#pipeline---acu_to_dbc_sales_orderspy)
   - [SalesOrderCleaner](#pipeline---sales_order_cleanerpy)
+  - [SendOrderDetailsToKustomer](#pipeline---kustomerpy)
+  - [HubSpotSnapshot](#pipeline---hubspot_snapshotpy)
+  - [HubSpotProperties](#pipeline---hubspot_propertiespy)
+  - [SendToAfterShip](#pipeline---aftership_sendpy)
+  - [UpdateAfterShip](#pipeline---aftership_updatepy)
+  - [AfterShipToDbc](#pipeline---aftership_to_dbcpy)
+  - [RMILinkToAcu](#pipeline---rmi_link_to_acupy)
+  - [Dev / Scaffolded Pipelines](#dev--scaffolded-pipelines)
 - [Connectors](#connectors)
   - [SQLConnector](#sqlconnector)
   - [AcumaticaAPI](#acumaticaapi)
@@ -40,9 +45,16 @@
   - [CriteoAPI](#criteoapi)
   - [AddressVerificationSystem (AVS)](#addressverificationsystem-avs)
   - [HubSpotAPI](#hubspotapi)
+  - [AfterShip](#aftership)
+  - [Kustomer](#kustomer)
+  - [ShopifyAPI](#shopifyapi)
+  - [Teams](#teams)
+  - [Sharepoint](#sharepoint)
   - [TransunionAPI](#transunionapi)
 - [Transforms](#transforms)
+- [Load Helpers](#load-helpers)
 - [Pipeline Base Class](#pipeline-base-class)
+- [Documentation](#documentation)
 
 ---
 
@@ -97,13 +109,32 @@ from pipelines import kustomer
 
 3. For **Azure deployment**, all environment variables listed above must be set as Application Settings on the `logistics-integration-platform` Function App in Azure. The GitHub Actions workflow ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)) deploys only the code package: it does not inject secrets at runtime.
 
-4. The `TABLES` dictionary in [`config/settings.py`](config/settings.py) defines the upsert schema (primary keys, column lists, and update columns) consumed by [`SQLConnector.checked_upsert`](connectors/sql.py). It currently covers the following CentralStore tables:
+4. The `TABLES` dictionary in [`config/settings.py`](config/settings.py) defines the upsert schema (primary keys, column lists, and update columns) consumed by [`SQLConnector.checked_upsert`](connectors/sql.py). It currently covers the following tables:
+
+   **RMI / 3PL inbound:**
    - `rmi_Receipts`, `rmi_ClosedShipments`, `rmi_RMAStatus`
    - `RedstagInventorySummary`, `RedstagInventoryDetail`
-   - `_util.acu_api_log`
+
+   **Acumatica mirror in CentralStore (`acu` schema):**
+   - `acu.SalesOrders`, `acu.Quotes`, `acu.Shipments`
+   - `acu.AftershipExportv2`, `acu.AftershipExportDetailv2`
+
+   **Acumatica deletion-tracking (`_util` schema):**
    - `_util.SOOrderDeletions`, `_util.SOLineDeletions`, `_util.SOShipmentDeletions`, `_util.SOOrderShipmentDeletions`
+   - `_util.acu_api_log`, `_util.AfterShipLog`
+
+   **Acumatica writeback (AcumaticaDb):**
+   - `SOShipmentKvExt` — written by [`RMILinkToAcu`](#pipeline---rmi_link_to_acupy)
+
+   **Ad / marketing data:**
    - `AdDetails`
    - `criteo.campaign_performance_daily`, `criteo.diff_log`
+
+   **HubSpot snapshots:**
+   - `hs.deal_tracking`, `hs.deal_snapshots`, `hs.activity_snapshots`, `hs.Properties`
+
+   **Kustomer ingest:**
+   - `K_OrderIngest`
 
    ### Structure
    ```python
@@ -120,20 +151,32 @@ from pipelines import kustomer
 
 ## Azure Functions
 
-The application runs as ten timer-triggered Azure Functions defined in [`function_app.py`](function_app.py). All cron schedules are evaluated in UTC.
+The application runs as nineteen timer-triggered Azure Functions defined in [`function_app.py`](function_app.py). All cron schedules are evaluated in UTC.
 
 | Function | Pipeline(s) Invoked | Schedule (cron) | Runs At |
 |---|---|---|---|
 | `rmi_send_shipment_return_pipeline` | [`SendRMIShipments`](#pipeline---rmi_send_shipmentspy), [`SendRMIReturns`](#pipeline---rmi_send_returnspy) | `20,10/30 * * * *` | :10, :20, :40 every hour |
-| `rmi_data_retrieval_pipeline` | [`GetClosedShipmentsFromRMI`](#pipeline---get_closed_shipments_from_rmipy), [`GetReceiptsFromRMI`](#pipeline---get_receipts_from_rmipy), [`StageRMIStatusRetrieval`](#pipeline---stage_rmi_status_retrievalpy), [`GetStatusFromRMI`](#pipeline---get_status_from_rmipy) | `25 * * * *` | :25 every hour |
+| `rmi_data_retrieval_pipeline` | [`GetClosedShipmentsFromRMI`](#pipeline---get_closed_shipments_from_rmipy), [`GetReceiptsFromRMI`](#pipeline---get_receipts_from_rmipy), [`GetRMAsFromRMI`](#pipeline---get_rmas_from_rmipy) | `25 * * * *` | :25 every hour |
 | `create_acu_receipts` | [`CreateAcuReceipt`](#pipeline---create_acu_receiptpy) | `50 * * * *` | :50 every hour |
-| `confirm_acu_shipments` | [`ShipmentsReadyToConfirm`](#pipeline---confirm_open_shipmentspy) | `*/20 * * * *` | Every 20 minutes |
-| `pack_shipments` | [`PackShipments`](#pipeline---pack_shipmentspy) | `*/15 * * * *` | Every 15 minutes |
+| `confirm_acu_shipments` | [`ShipmentsReadyToConfirm`](#pipeline---confirm_open_shipmentspy) | `*/20 * * * *` | Every 20 minutes (:00, :20, :40) |
+| `pack_shipments` | [`PackShipments`](#pipeline---pack_shipmentspy) | `*/15 * * * *` | Every 15 minutes (:00, :15, :30, :45) |
 | `redstag_send_shipment_pipeline` | [`SendRedStagShipments`](#pipeline---redstag_send_shipmentspy) | `15,5/30 * * * *` | :05, :15, :35 every hour |
 | `redstag_inventory_retrieval` | [`RedStagInventory`](#pipeline---redstag_inventorypy) | `10 */2 * * *` | :10 every 2 hours |
 | `acu_deletions` | [`AcumaticaDeletions`](#pipeline---acu_deletionspy) | `40 * * * *` | :40 every hour |
 | `address_validator` | [`AddressValidator`](#pipeline---address_validatorpy) | `55 * * * *` | :55 every hour |
 | `criteo_ads` | [`Criteo`](#pipeline---criteopy) | `1 * * * *` | :01 every hour |
+| `acu_to_dbc_sales_orders` | [`AcuToDbcSalesOrders`](#pipeline---acu_to_dbc_sales_orderspy) | `*/10 * * * *` | Every 10 minutes |
+| `acu_to_dbc_quotes` | [`AcuToDbcQuotes`](#pipeline---acu_to_dbc_quotespy) | `*/30 * * * *` | :00, :30 every hour |
+| `kustomer_order_ingest` | [`SendOrderDetailsToKustomer`](#pipeline---kustomerpy) (ingest mode) | `*/12 * * * *` | :00, :12, :24, :36, :48 every hour |
+| `kustomer_order_backfill` | [`SendOrderDetailsToKustomer`](#pipeline---kustomerpy) (backfill mode) | `43 * * * *` | :43 every hour |
+| `aftership_send` | [`SendToAfterShip`](#pipeline---aftership_sendpy) | `2/15 * * * *` | :02, :17, :32, :47 every hour |
+| `aftership_update` | [`UpdateAfterShip`](#pipeline---aftership_updatepy) | `7/20 * * * *` | :07, :27, :47 every hour |
+| `aftership_to_dbc` | [`AfterShipToDbc`](#pipeline---aftership_to_dbcpy) | `38 7/12 * * *` | 7:38 AM and 7:38 PM (UTC) |
+| `hubspot_snapshots` | [`HubSpotSnapshot`](#pipeline---hubspot_snapshotpy) | `0 23 * * *` | 11:00 PM (UTC) daily |
+| `rmi_link_to_acumatica` | [`RMILinkToAcu`](#pipeline---rmi_link_to_acupy) | `30 4/6 * * *` | 4:30, 10:30 AM/PM (UTC) |
+| `sales_order_cleaner` | [`SalesOrderCleaner`](#pipeline---sales_order_cleanerpy) | `5 1 * * *` | 1:05 AM (UTC) daily |
+
+A visual calendar of these cron schedules is generated by [`scripts/cron_calendar.py`](scripts/cron_calendar.py).
 
 Deployment is handled automatically by the GitHub Actions workflow in [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml). Every push to the repository triggers a build and deploy:
 
@@ -148,11 +191,14 @@ Deployment is handled automatically by the GitHub Actions workflow in [`.github/
 Each script in [`scripts/`](scripts/) targets one or more pipelines directly. Run from the project root after completing setup and configuration.
 
 ```bash
-# Send open RMI shipments and return orders to the RMI warehouse
-python scripts/run_send_to_RMI.py
+# RMI - Send shipments / returns to the RMI warehouse
+python scripts/run_send_shipments_to_RMI.py
+python scripts/run_send_returns_to_RMI.py
 
-# Pull closed shipments, receipts, and RMA statuses from RMI into CentralStore
-python scripts/run_get_from_RMI.py
+# RMI - Pull closed shipments, receipts, and RMA statuses into CentralStore
+python scripts/run_get_closed_shipments_from_rmi.py
+python scripts/run_get_receipts_from_rmi.py
+python scripts/run_get_rmas_from_rmi.py
 
 # Match RedStag/RMI tracking events to open Acumatica shipments and add packages
 python scripts/run_pack_shipments.py
@@ -160,8 +206,14 @@ python scripts/run_pack_shipments.py
 # Confirm packed shipments in Acumatica
 python scripts/run_confirm_open_shipments.py
 
-# Sync RedStag inventory and send outbound shipments to RedStag
+# RedStag - Send outbound shipments
 python scripts/run_redstag.py
+
+# RedStag - Sync inventory
+python scripts/run_redstag_inventory.py
+
+# Create receipts in Acumatica for Closed RMA returns
+python scripts/run_create_acu_receipt.py
 
 # Mirror Acumatica row deletions into _util tables in CentralStore
 python scripts/run_acu_deletions.py
@@ -172,20 +224,34 @@ python scripts/run_address_validator.py
 # Pull Criteo ad data and load to criteo.campaign_performance_daily
 python scripts/run_criteo.py
 
-# Notify Fulfillment Ops of stuck RMI returns
-python scripts/run_notify_fulfillment_ops.py
-
-# Run the fulfillment audit pipeline (WIP)
-python scripts/run_audit_fulfillments.py
+# Sync Acumatica Sales Orders to acu.SalesOrders in CentralStore
+python scripts/run_acu_to_dbc_sales_orders.py
 
 # Sync Acumatica Quotes to acu.Quotes in CentralStore
 python scripts/run_acu_to_dbc_quotes.py
 
 # Remove out-of-sync rows from acu.SalesOrders in CentralStore
 python scripts/run_sales_order_cleaner.py
+
+# Send order details to Kustomer (ingest or backfill)
+python scripts/run_kustomer.py
+
+# AfterShip - send new trackings, update existing, sync to CentralStore
+python scripts/run_aftership_send.py
+python scripts/run_aftership_update.py
+python scripts/run_aftership_to_dbc.py
+
+# HubSpot - pull property metadata to hs.Properties
+python scripts/run_hubspot_properties.py
+
+# Write RMI Link3PL + RMAID values back to Acumatica SOShipmentKvExt
+python scripts/run_rmi_link_to_acu.py
+
+# Generate a visual calendar of all timer-trigger cron schedules
+python scripts/cron_calendar.py
 ```
 
-Each pipeline follows the ETL pattern defined in [`pipelines/base.py`](pipelines/base.py): `extract()` → `transform()` → `load()` → `log_results()`. Structured log output goes to stdout via `colorlog` with millisecond timestamps (America/New_York timezone).
+Each pipeline follows the ETL pattern defined in [`pipelines/base.py`](pipelines/base.py): `extract()` → `transform()` → `load()` → `log_results()`. Structured log output goes to stdout via `colorlog` with millisecond timestamps (America/New_York timezone), and the in-memory log buffer is persisted to **`_util.Logs`** at the end of every run.
 
 ---
 
@@ -202,7 +268,8 @@ logistics-integration-platform/
 │
 ├── config/
 │   └── settings.py                       # Loads .env; exports DATABASES, RMI, REDSTAG, ACUMATICA_API,
-│                                         #   AVS, CRITEO, TABLES
+│                                         #   AVS, CRITEO, KUSTOMER, HUBSPOT, SHOPIFY, TEAMS, AFTERSHIP,
+│                                         #   SHAREPOINT, TABLES
 │
 ├── connectors/
 │   ├── __init__.py
@@ -213,36 +280,42 @@ logistics-integration-platform/
 │   │                                     #   send-to-warehouse, address validation
 │   ├── acu_odata.py                      # AcuOData: OData protocol client for Acumatica
 │   ├── rmi_api.py                        # RMIAPI: token-based REST client (api.backtracksrl.com)
-│   │                                     #   Endpoints: ClosedShipmentsV1, Receipts, RMA status
+│   │                                     #   Endpoints: ClosedShipmentsV1, Receipts, RMAs
 │   ├── rmi_xml.py                        # RMIXML: SOAP/XML client (jhl.returnsmanagement.com)
 │   │                                     #   Sends shipment (Type W) and return order (Type 3) payloads
 │   ├── redstag_api.py                    # RedStagAPI: JSON-RPC client (wms.redstagfulfillment.com)
 │   │                                     #   Operations: inventory, orders, shipments
 │   ├── avs.py                            # AddressVerificationSystem: Avalara AVS REST client
 │   ├── criteo_api.py                     # CriteoAPI: OAuth2-authenticated stats client (api.criteo.com)
-│   ├── hubspot_api.py                    # HubSpotAPI: HubSpot CRM client
+│   ├── hubspot_api.py                    # HubSpotAPI: HubSpot CRM client (deals, activities, properties)
+│   ├── aftership.py                      # AfterShip: tracking API (api.aftership.com/tracking/2026-01)
+│   ├── kustomer.py                       # Kustomer: webhook-based customer-data push
+│   ├── shopify.py                        # ShopifyAPI: GraphQL/ShopifyQL client (sales reporting)
+│   ├── teams.py                          # Teams: Microsoft Teams webhook poster
+│   ├── sharepoint.py                     # Sharepoint: Microsoft Graph client (file retrieval)
 │   └── transunion.py                     # TransUnion connector (present; not used in active pipelines)
 │
-├── dags/                                 # Apache Airflow DAGs (alternate orchestration; not the primary runtime)
-│   ├── create_acu_receipts.py
-│   ├── get_from_rmi.py
-│   └── send_to_rmi.py
+├── docs/                                 # Mermaid flowchart documentation per pipeline + function
+│   ├── pipeline_docstring_analysis.md
+│   ├── functions/                        # Per-Azure-Function docs (schedule, pipelines, queries)
+│   └── pipelines/                        # Per-pipeline mermaid diagrams
 │
 ├── load/                                 # Reusable load helpers used by some pipelines
 │   ├── address_validator.py
+│   ├── kustomer.py                       # Load.send_payloads: POST each order to Kustomer + upsert log
 │   ├── load_redstag_send.py              # Load.send_shipments → marks Acumatica ShipToWH after RedStag accepts
 │   └── shipment_api.py                   # Load.load_shipments / load_receipts: shared package + receipt logic
 │
 ├── pipelines/
 │   ├── __init__.py                       # Exports all pipeline classes
 │   ├── base.py                           # Abstract Pipeline base class: extract/transform/load/log_results.
-│   │                                     #   Initializes SQLConnectors; configures colorlog
+│   │                                     #   Initializes SQLConnectors; configures colorlog;
+│   │                                     #   appends every run's log buffer to _util.Logs
 │   ├── rmi_send_shipments.py             # SendRMIShipments: open RMI-bound shipments → RMI SOAP API (Type W)
 │   ├── rmi_send_returns.py               # SendRMIReturns: open RC orders → RMI SOAP API (Type 3)
 │   ├── get_closed_shipments_from_RMI.py  # GetClosedShipmentsFromRMI: ClosedShipmentsV1 → rmi_ClosedShipments
 │   ├── get_receipts_from_RMI.py          # GetReceiptsFromRMI: Receipts endpoint → rmi_Receipts
-│   ├── stage_rmi_status_retrieval.py     # StageRMIStatusRetrieval: distinct RMA list → fan-out for status calls
-│   ├── get_status_from_RMI.py            # GetStatusFromRMI: per-RMA status fetch → rmi_RMAStatus
+│   ├── get_rmas_from_RMI.py              # GetRMAsFromRMI: RMAs endpoint (last 120 days) → rmi_RMAStatus
 │   ├── create_acu_receipt.py             # CreateAcuReceipt: matches RMI closed orders to Acumatica RC orders,
 │   │                                     #   creates/verifies receipts, sets reason codes, confirms shipments
 │   ├── pack_shipments.py                 # PackShipments: matches RedStag/RMI tracking to open Acumatica
@@ -257,54 +330,93 @@ logistics-integration-platform/
 │   │                                     #   validate + remove-hold + create shipment
 │   ├── criteo.py                         # Criteo: incremental Criteo ads → criteo.campaign_performance_daily
 │   │                                     #   and criteo.diff_log
-│   ├── notify_fulfillment_ops.py         # NotifyFulfillmentOps: alerts on stuck RMI returns
-│   ├── hubspot_send_order_data.py        # SendHubSpotOrderData: pushes order data to HubSpot
-│   ├── audit_fulfillment.py              # AuditFulfillment: fulfillment audit pipeline (WIP)
 │   ├── acu_to_dbc_quotes.py              # AcuToDbcQuotes: Acumatica Quotes → acu.Quotes in CentralStore
-│   └── sales_order_cleaner.py            # SalesOrderCleaner: removes out-of-sync rows from acu.SalesOrders
+│   ├── acu_to_dbc_sales_orders.py        # AcuToDbcSalesOrders: Acumatica Sales Orders → acu.SalesOrders
+│   ├── sales_order_cleaner.py            # SalesOrderCleaner: removes out-of-sync rows from acu.SalesOrders
+│   ├── kustomer.py                       # SendOrderDetailsToKustomer: ingest/backfill order data to Kustomer
+│   ├── hubspot_snapshot.py               # HubSpotSnapshot: deals + activity counts → hs.deal_snapshots,
+│   │                                     #   hs.deal_tracking, hs.activity_snapshots
+│   ├── hubspot_properties.py             # HubSpotProperties: HubSpot property metadata → hs.Properties
+│   ├── aftership_send.py                 # SendToAfterShip: new shipments → AfterShip /trackings (POST)
+│   ├── aftership_update.py               # UpdateAfterShip: diff & PATCH existing AfterShip trackings
+│   ├── aftership_to_dbc.py               # AfterShipToDbc: AfterShip trackings + checkpoints → CentralStore
+│   ├── rmi_link_to_acu.py                # RMILinkToAcu: writes Link3PL URL + RMAID back to Acumatica
+│   │                                     #   SOShipmentKvExt
+│   └── dev/                              # Scaffolded / in-progress pipelines
+│       ├── audit_fulfillment.py          #   AuditFulfillment (WIP)
+│       ├── shopify.py                    #   ShopifyGraphQL (WIP)
+│       └── notify_fulfillment_ops.py     #   NotifyFulfillmentOps (WIP)
 │
 ├── scripts/                              # Manual execution entry points; run from project root
-│   ├── run.py                            # Scratch runner used during development
-│   ├── run_send_to_RMI.py                # Runs: SendRMIShipments, SendRMIReturns
-│   ├── run_get_from_RMI.py               # Runs: GetClosedShipmentsFromRMI, GetReceiptsFromRMI, GetStatusFromRMI
+│   ├── run_send_shipments_to_RMI.py      # Runs: SendRMIShipments
+│   ├── run_send_returns_to_RMI.py        # Runs: SendRMIReturns
+│   ├── run_get_closed_shipments_from_rmi.py
+│   ├── run_get_receipts_from_rmi.py
+│   ├── run_get_rmas_from_rmi.py
+│   ├── run_get_status_from_rmi.py        # Legacy GetStatusFromRMI runner
 │   ├── run_pack_shipments.py             # Runs: PackShipments
 │   ├── run_confirm_open_shipments.py     # Runs: ShipmentsReadyToConfirm
-│   ├── run_redstag.py                    # Runs: RedStagInventory, SendRedStagShipments
+│   ├── run_create_acu_receipt.py         # Runs: CreateAcuReceipt
+│   ├── run_redstag.py                    # Runs: SendRedStagShipments
+│   ├── run_redstag_inventory.py          # Runs: RedStagInventory
 │   ├── run_acu_deletions.py              # Runs: AcumaticaDeletions
 │   ├── run_address_validator.py          # Runs: AddressValidator
 │   ├── run_criteo.py                     # Runs: Criteo
-│   ├── run_notify_fulfillment_ops.py     # Runs: NotifyFulfillmentOps
-│   ├── run_audit_fulfillments.py         # Runs: AuditFulfillment
 │   ├── run_acu_to_dbc_quotes.py          # Runs: AcuToDbcQuotes
+│   ├── run_acu_to_dbc_sales_orders.py    # Runs: AcuToDbcSalesOrders
 │   ├── run_sales_order_cleaner.py        # Runs: SalesOrderCleaner
-│   └── query_acu_api.py                  # Ad-hoc Acumatica API query utility
+│   ├── run_kustomer.py                   # Runs: SendOrderDetailsToKustomer (ingest or backfill)
+│   ├── run_aftership_send.py             # Runs: SendToAfterShip
+│   ├── run_aftership_update.py           # Runs: UpdateAfterShip
+│   ├── run_aftership_to_dbc.py           # Runs: AfterShipToDbc
+│   ├── run_hubspot_properties.py         # Runs: HubSpotProperties
+│   ├── run_rmi_link_to_acu.py            # Runs: RMILinkToAcu
+│   ├── run_notify_fulfillment_ops.py     # Runs: NotifyFulfillmentOps (dev)
+│   ├── run_audit_fulfillments.py         # Runs: AuditFulfillment (dev)
+│   ├── connector_executions.py           # Ad-hoc connector test runners
+│   ├── cron_calendar.py                  # Renders a visual calendar of all Azure timer cron schedules
+│   ├── db_table_config_generator.py      # Generates TABLES dict entries from a target table's columns
+│   ├── delete_pycache_folders.py         # Recursively removes __pycache__ folders
+│   ├── generate_azure_env_vars.py        # Bulk-formats .env content for Azure App Settings
+│   ├── mark_sent_to_wh.py                # Manual SentToWH flag setter for stuck shipments
+│   ├── query_acu_api.py                  # Ad-hoc Acumatica API query utility
+│   └── shopify.py                        # Ad-hoc Shopify GraphQL runner
 │
 ├── sql/
 │   ├── queries/
 │   │   ├── AcumaticaDb/                  # SendRMIShipments, SendRMIReturns, SendRedStagShipments,
 │   │   │                                 #   OpenRCsNoReceipt, ShipmentsReadyToConfirm, PackShipment,
 │   │   │                                 #   ValidateAddresses, SOOrderDeletions, SOLineDeletions,
-│   │   │                                 #   SOShipmentDeletions, SOOrderShipmentDeletions, Quotes,
-│   │   │                                 #   AcuToDbc_Quotes
+│   │   │                                 #   SOShipmentDeletions, SOOrderShipmentDeletions,
+│   │   │                                 #   AcuToDbc_Quotes, AcuToDbc_SalesOrders,
+│   │   │                                 #   Kustomer_OrderIngest, Kustomer_OrderIngestBackfill,
+│   │   │                                 #   Kustomer_ShipmentData, Kustomer_FilteredOutOrders,
+│   │   │                                 #   Aftership_Shipments, RMI_Link3PL
 │   │   └── db_CentralStore/              # ReturnsPendingReciept, StatusCheckRMI, PackShipmentRedStag,
 │   │                                     #   PackShipmentRMI, RedStagEvents, AuditFulfillment,
-│   │                                     #   NotifyFulfillmentOpsTeam, SalesOrderCleaner
-│   ├── tables/                           # DDL for CentralStore tables (rmi_*, Redstag*, _util.*, criteo.*)
+│   │                                     #   NotifyFulfillmentOpsTeam, SalesOrderCleaner,
+│   │                                     #   RMI_Link3PL_RMAStatus, aftership_shipments
+│   ├── tables/                           # DDL for CentralStore tables (rmi_*, Redstag*, _util.*, criteo.*,
+│   │                                     #   acu.*, hs.*, K_OrderIngest)
 │   └── triggers/                         # AcumaticaDb triggers that capture row deletions for SOOrder,
 │                                         #   SOLine, SOShipment, SOOrderShipment
 │
 ├── transform/                            # Transformation logic imported by pipeline classes
 │   ├── address_validator.py
+│   ├── aftership.py                      # Used by SendToAfterShip / UpdateAfterShip / AfterShipToDbc
 │   ├── audit_fulfillment.py
+│   ├── cleaner.py
 │   ├── create_acu_receipt.py
 │   ├── criteo.py
+│   ├── hubspot_snapshot.py
+│   ├── kustomer.py
 │   ├── notify_fulfillment_ops.py
 │   ├── pack_shipment.py
 │   ├── redstag_inventory.py
 │   ├── redstag_send.py
+│   ├── rmi_rmas.py                       # Used by GetRMAsFromRMI
 │   ├── rmi_receipt_pull.py
-│   ├── rmi_send.py
-│   └── cleaner.py
+│   └── rmi_send.py
 │
 ├── function_app.py                       # Azure Functions entry point; all timer-triggered functions
 ├── host.json                             # Azure Functions host config
@@ -467,53 +579,26 @@ Hits RMI's *Receipts* endpoint, retrieves all Receipts, and upserts to **`rmi_Re
 
 ---
 
-## Pipeline - [`stage_rmi_status_retrieval.py`](pipelines/stage_rmi_status_retrieval.py)
+## Pipeline - [`get_rmas_from_RMI.py`](pipelines/get_rmas_from_RMI.py)
 
-### `StageRMIStatusRetrieval`
+### `GetRMAsFromRMI`
 
-Stage pipeline that gets every RMA recently sent to / received from RMI, then returns the distinct list of `RMANumber` values for [`GetStatusFromRMI`](#pipeline---get_status_from_rmipy) to fan out over.
+Pulls all RMAs modified in RMI within the last 120 days from RMI's `RMAs` endpoint and upserts to **`rmi_RMAStatus`** in `db_CentralStore`. This is the reference docstring format that the rest of the pipelines have been retrofitted toward (see [`docs/pipeline_docstring_analysis.md`](docs/pipeline_docstring_analysis.md)).
 
-### Execution Behavior
-
-#### Extraction
-- Reads recently sent Shipments & Returns plus recently retrieved ClosedShipments and Receipts from `db_CentralStore` via the [`CentralStoreQueries.StatusCheckRMI`](sql/queries/db_CentralStore/StatusCheckRMI.sql) query
-
-#### Transformation
-- Distincts the extracted data down to a list of `RMANumber` values
-
-#### Load
-- Skipped: the list of RMA numbers is the pipeline output
-
-#### Logging
-- None needed
-
-### Functions
-- `__init__(self)`
-- `extract(self)`
-- `transform(self, data_extract)`
-- `load(self, data_transformed)`
-- `log_results(self, data_loaded)`
-
----
-
-## Pipeline - [`get_status_from_RMI.py`](pipelines/get_status_from_RMI.py)
-
-### `GetStatusFromRMI`
-
-After [`StageRMIStatusRetrieval`](#pipeline---stage_rmi_status_retrievalpy) is run, the runner calls `_re_init` once per `RMANumber` and re-executes this pipeline to pull RMA-level status detail.
+This pipeline replaced the older `StageRMIStatusRetrieval` + per-RMA `GetStatusFromRMI` fan-out — RMI's RMAs endpoint now returns the full status payload directly, so the staging + re-init dance is no longer needed.
 
 ### Execution Behavior
 
 #### Extraction
-- Extracts RMA status data via [`RMIAPI.get_rma`](#rmiapi). Pulls the status for each `RMANumber` we send.
+- Extracts RMA data via [`RMIAPI.target_api`](#rmiapi) against the `RMAs` endpoint with a 120-day lookback window
 
 #### Transformation
-- Transforms extracted data into the shape needed for upsert to **`rmi_RMAStatus`** (driven by `transform/rmi_receipt_pull.py`'s `transform_status_records`)
+- Flattens `rmaLines` per RMA into rows via [`Transform.transform_status_records`](transform/rmi_rmas.py)
 
 #### Load
 - Upserts data to **`rmi_RMAStatus`** via [`SQLConnector.checked_upsert`](#sqlconnector)
 
-#### Logging
+#### Results Logging
 - None needed
 
 ### Functions
@@ -521,7 +606,6 @@ After [`StageRMIStatusRetrieval`](#pipeline---stage_rmi_status_retrievalpy) is r
 - `extract(self)`
 - `transform(self, data_extract)`
 - `load(self, data_transformed)`
-- `_re_init(self, rma_number)`: Resets the active `RMANumber` so the pipeline can be re-run for a new RMA without rebuilding all of its connector state
 - `log_results(self, data_loaded)`
 
 ---
@@ -893,51 +977,6 @@ Upserts data to **`criteo.campaign_performance_daily`** and **`criteo.diff_log`*
 
 ---
 
-## Pipeline - [`notify_fulfillment_ops.py`](pipelines/notify_fulfillment_ops.py)
-
-### `NotifyFulfillmentOps`
-
-Notifies the Fulfillment Operations team about RMI return orders that are stuck with the *"Item does not exist"* error from RMI. Uses the [`CentralStoreQueries.NotifyFulfillmentOpsTeam`](sql/queries/db_CentralStore/NotifyFulfillmentOpsTeam.sql) query, which pulls all Open Return orders from `_util.RMI_Send_Log` matching that error.
-
-### Functions
-- `__init__(self)`
-- `extract(self)`
-- `transform(self, data_extract)`
-- `load(self, data_transformed)`
-- `log_results(self, data_loaded)`
-
----
-
-## Pipeline - [`hubspot_send_order_data.py`](pipelines/hubspot_send_order_data.py)
-
-### `SendHubSpotOrderData`
-
-Pushes order data into HubSpot. Currently scaffolded; uses [`HubSpotAPI`](#hubspotapi).
-
-### Functions
-- `__init__(self)`
-- `extract(self)`
-- `transform(self, data_extract)`
-- `load(self, data_transformed)`
-- `log_results(self, data_loaded)`
-
----
-
-## Pipeline - [`audit_fulfillment.py`](pipelines/audit_fulfillment.py)
-
-### `AuditFulfillment`
-
-Fulfillment audit pipeline (work in progress). Driven by the [`CentralStoreQueries.AuditFulfillment`](sql/queries/db_CentralStore/AuditFulfillment.sql) query.
-
-### Functions
-- `__init__(self)`
-- `extract(self)`
-- `transform(self, data_extract)`
-- `load(self, data_transformed)`
-- `log_results(self, data_loaded)`
-
----
-
 ## Pipeline - [`acu_to_dbc_quotes.py`](pipelines/acu_to_dbc_quotes.py)
 
 ### `AcuToDbcQuotes`
@@ -1000,6 +1039,305 @@ Driven by [`transform/cleaner.py`](transform/cleaner.py)'s `Transform` class:
 - `transform(self, data_extract: pl.DataFrame) → dict`
 - `load(self, data_transformed: dict)`
 - `log_results(self, data_loaded)`
+
+---
+
+## Pipeline - [`acu_to_dbc_sales_orders.py`](pipelines/acu_to_dbc_sales_orders.py)
+
+### `AcuToDbcSalesOrders`
+
+Pipeline to sync Sales Order data from `AcumaticaDb` into **`acu.SalesOrders`** in `db_CentralStore`. Mirrors recent Sales Order changes (last few hours' worth) on the 10-minute cadence.
+
+### Execution Behavior
+
+#### Extraction
+- Queries `AcumaticaDb` for Sales Order data via [`AcumaticaDbQueries.AcuToDbc_SalesOrders`](sql/queries/AcumaticaDb/AcuToDbc_SalesOrders.sql)
+
+#### Transformation
+- Fills null `LineNbr` values with `99`
+- Converts the polars DataFrame to a list of dicts
+
+#### Load
+- Stamps each row with `LastChecked = datetime.now()` (America/New_York)
+- Upserts to **`acu.SalesOrders`** via [`SQLConnector.checked_upsert`](#sqlconnector); batches of 100 when extract returns ≥ 100 rows, otherwise single upsert
+
+#### Results Logging
+- None needed
+
+### Functions
+- `__init__(self)`
+- `extract(self) → pl.DataFrame`
+- `transform(self, data_extract: pl.DataFrame) → list`
+- `load(self, data_transformed: list)`
+- `log_results(self, data_loaded)`
+
+---
+
+## Pipeline - [`kustomer.py`](pipelines/kustomer.py)
+
+### `SendOrderDetailsToKustomer`
+
+Pipeline to ship complete order details (order + lines + shipments + packages) to Kustomer via webhook. Same class is used by the `kustomer_order_ingest` and `kustomer_order_backfill` Azure Functions — only the query bound by `_re_init` differs.
+
+### Execution Behavior
+
+#### `__init__` and `_re_init`
+`__init__(self)` sets:
+```python
+self.transformer = Transform(self)
+self.api         = Kustomer(self)
+self.loader      = Load(self)
+```
+
+`_re_init(self, mode: Literal['ingest', 'backfill'] = 'ingest')` selects between [`AcumaticaDbQueries.Kustomer_OrderIngest`](sql/queries/AcumaticaDb/Kustomer_OrderIngest.sql) (top 120, new orders only) and [`AcumaticaDbQueries.Kustomer_OrderIngestBackfill`](sql/queries/AcumaticaDb/Kustomer_OrderIngestBackfill.sql) (top 250, not checked in 1 hour) before invoking `.run()`.
+
+#### Extraction
+- Queries the chosen ingest query against `AcumaticaDb`
+- Reads existing rows from `K_OrderIngest` (so already-sent orders can be filtered)
+
+#### Transformation
+- `format_data_extract`: normalizes rows to dicts; expands state/country abbreviations
+- Pulls related shipment + package detail via [`AcumaticaDbQueries.Kustomer_ShipmentData`](sql/queries/AcumaticaDb/Kustomer_ShipmentData.sql)
+- `add_shipments_to_orders`: builds order-line, shipment-line, and package DataFrames
+- `smash_orders`: nests packages into shipments into lines into orders
+
+#### Load
+Driven by [`load/kustomer.py`](load/kustomer.py):
+- Filters out orders whose JSON payload exactly matches what's already in `K_OrderIngest`
+- `send_payloads`: POSTs each order JSON to the Kustomer webhook via [`Kustomer.target_api`](#kustomer)
+- Batch-upserts to **`K_OrderIngest`** every 25 orders
+
+#### Results Logging
+- None beyond the standard `_util.Logs` insert
+
+### Functions
+- `__init__(self)`
+- `_re_init(self, mode: Literal['ingest', 'backfill'] = 'ingest')`
+- `extract(self)`
+- `transform(self, data_extract)`
+- `load(self, data_transformed)`
+- `log_results(self, data_loaded)`
+
+---
+
+## Pipeline - [`hubspot_snapshot.py`](pipelines/hubspot_snapshot.py)
+
+### `HubSpotSnapshot`
+
+Daily snapshot pipeline that pulls B2B deals and activity counts (calls, emails, meetings, tasks) from HubSpot and writes them to a tracking table plus dated snapshot tables in `db_CentralStore`.
+
+### Execution Behavior
+
+#### Extraction
+- [`HubSpotAPI`](#hubspotapi) pre-loads `owners` and `deal pipelines` at init
+- [`HubSpotAPI._set_snapshot_windows`](#hubspotapi) sets fiscal-year, month, and week window boundaries (America/New_York)
+- `search_deals`: pulls all B2B deals
+- `search_activities`: pulls calls, emails, meetings, tasks within window
+- Returns `data_extract = { owners, deals, calls, emails, meetings, tasks, timestamp }`
+
+#### Transformation
+Driven by [`transform/hubspot_snapshot.py`](transform/hubspot_snapshot.py):
+- `activity_counts`: sums activity per window per rep
+- `smash_activity_counts`: flattens to SQL-ready rows
+- `deals`: formats each deal for SQL
+
+#### Load
+- Upserts **`hs.deal_tracking`** (current state)
+- Inserts **`hs.deal_snapshots`** (point-in-time history)
+- Inserts **`hs.activity_snapshots`** (point-in-time activity counts)
+
+#### Results Logging
+- None beyond the standard `_util.Logs` insert
+
+### Functions
+- `__init__(self)`
+- `extract(self)`
+- `transform(self, data_extract)`
+- `load(self, data_transformed)`
+- `log_results(self, data_loaded)`
+
+---
+
+## Pipeline - [`hubspot_properties.py`](pipelines/hubspot_properties.py)
+
+### `HubSpotProperties`
+
+Pipeline that mirrors HubSpot property metadata (per object type: contacts, calls, emails, meetings, tasks, leads) into **`hs.Properties`** in `db_CentralStore`. Lets analysts reference the live HubSpot property catalogue from SQL without hitting the API.
+
+### Execution Behavior
+
+#### Extraction
+- For each object type, GETs `/crm/v3/properties/{objectType}` via [`HubSpotAPI`](#hubspotapi); tags each row with `ObjectType` and concatenates into a single list
+
+#### Transformation
+- Maps each property to the flat dict shape required by **`hs.Properties`**
+
+#### Load
+- Upserts to **`hs.Properties`** via [`SQLConnector.checked_upsert`](#sqlconnector)
+
+#### Results Logging
+- None beyond the standard `_util.Logs` insert
+
+### Functions
+- `__init__(self)`
+- `extract(self)`
+- `transform(self, data_extract)`
+- `load(self, data_transformed)`
+- `log_results(self, data_loaded)`
+
+---
+
+## Pipeline - [`aftership_send.py`](pipelines/aftership_send.py)
+
+### `SendToAfterShip`
+
+Sends newly-tracking-able shipments to AfterShip's `POST /tracking/2026-01/trackings` endpoint so they're registered for tracking notifications.
+
+### Execution Behavior
+
+#### Extraction
+- `SlugsAfterShip` query (currently inert — kept for the future slug catalogue)
+- Reads existing log rows from **`_util.AftershipLog`** so already-sent trackings can be filtered
+- [`AcumaticaDbQueries.Aftership_Shipments`](sql/queries/AcumaticaDb/Aftership_Shipments.sql): shipments with tracking data shipped on/after `2026-01-01`
+- Reads existing `acu.AftershipExport*` rows for additional dedup
+
+#### Transformation
+Driven by [`transform/aftership.py`](transform/aftership.py)'s `transform_send`:
+- Anti-joins shipment extract vs. log extract on `ShipmentNbr + OrderNbr + Tracking`
+- Anti-joins vs. existing AfterShip export records on `OrderNbr + Tracking`
+- For each remaining row, builds the AfterShip `tracking` payload
+
+#### Load
+- For each row, POSTs to `tracking_endpoint` via [`AfterShip.post_data`](#aftership)
+- `_parse_good_tracking_response` / `_parse_bad_tracking_response` builds a row for the log table from the API response (or, on 400, from the payload + metadata)
+- Upserts to **`_util.AfterShipLog`**
+
+#### Results Logging
+- Upserts to **`_util.AfterShipLog`** (also serves as the load destination)
+
+### Functions
+- `__init__(self)`
+- `extract(self)`
+- `transform(self, data_extract)`
+- `load(self, data_transformed)`
+- `log_results(self, data_loaded)`
+
+---
+
+## Pipeline - [`aftership_update.py`](pipelines/aftership_update.py)
+
+### `UpdateAfterShip`
+
+Compares existing AfterShip trackings against the current Acumatica shipment state and PATCHes any drift back to AfterShip (e.g. customer phone updates, shipment tags).
+
+### Execution Behavior
+
+#### Extraction
+- `SlugsAfterShip` query (currently inert)
+- [`AcumaticaDbQueries.Aftership_Shipments`](sql/queries/AcumaticaDb/Aftership_Shipments.sql): shipments with tracking data
+- AfterShip `GET /tracking/2026-01/trackings` with a 5-day `updated_window`, paginated via cursor until `has_next_page = false`
+
+#### Transformation
+Driven by `transform/aftership.py`'s `transform_update`:
+- Inner-joins AfterShip data vs. Acumatica shipment data on `tracking_number + order_number ↔ Tracking + OrderNbr`
+- Builds a row payload containing `customers` + `shipment_tags`
+- `filter_update`: compares each field (normalized/lowercased) and keeps only rows where `customer_diff` or `tag_diff` is true
+- Output payload contains only the fields that changed
+
+#### Load
+- For each id → values pair, PUT `tracking_endpoint/{id}` via [`AfterShip.put_data`](#aftership)
+- Builds log row from the response (good) or from response + ShipmentNbr/OrderNbr/Tracking fallback (bad)
+
+#### Results Logging
+- Upserts to **`_util.AfterShipLog`**
+
+### Functions
+- `__init__(self)`
+- `extract(self)`
+- `transform(self, data_extract)`
+- `load(self, data_transformed)`
+- `log_results(self, data_loaded)`
+
+---
+
+## Pipeline - [`aftership_to_dbc.py`](pipelines/aftership_to_dbc.py)
+
+### `AfterShipToDbc`
+
+Pulls recent AfterShip trackings (plus their checkpoint history) back into `db_CentralStore` for analytics. Runs twice a day.
+
+### Execution Behavior
+
+#### Extraction
+- AfterShip `GET /tracking/2026-01/trackings` with `created_at_min = now - 7 days`, paginated via cursor
+
+#### Transformation
+- Skips rows with no customer phone
+- Maps each tracking to an `acu.AftershipExportv2` row, converting `updated_at`/`created_at` to America/New_York time
+- For each checkpoint in `tracking.checkpoints`, maps to an `acu.AftershipExportDetailv2` row
+
+#### Load
+- Upserts **`acu.AftershipExportv2`** (one row per tracking)
+- Upserts **`acu.AftershipExportDetailv2`** (one row per checkpoint)
+
+#### Results Logging
+- None beyond the standard `_util.Logs` insert
+
+### Functions
+- `__init__(self)`
+- `extract(self)`
+- `transform(self, data_extract)`
+- `load(self, data_transformed)`
+- `log_results(self, data_loaded)`
+
+---
+
+## Pipeline - [`rmi_link_to_acu.py`](pipelines/rmi_link_to_acu.py)
+
+### `RMILinkToAcu`
+
+Writes the RMI tracking URL (`Link3PL`) and `RMAID` values back to Acumatica's `SOShipmentKvExt` table so the links are visible directly on the Shipment record. Bridges what we know in `db_CentralStore` (via `rmi_RMAStatus`) into Acumatica without going through the REST API.
+
+### Execution Behavior
+
+#### Extraction
+- [`AcumaticaDbQueries.RMI_Link3PL`](sql/queries/AcumaticaDb/RMI_Link3PL.sql): Shipments that still have a null 3PL link
+- [`CentralStoreQueries.RMI_Link3PL_RMAStatus`](sql/queries/db_CentralStore/RMI_Link3PL_RMAStatus.sql): distinct Shipments from RMI `rmi_RMAStatus`
+
+#### Transformation
+Uses an in-memory `polars.SQLContext`:
+- Registers `acu_extract` and `rmi_extract` as `acu` and `rmi` respectively
+- Inner-joins on `a.ShipmentNbr = r.RMANumber`
+- Derives `ValueString`:
+  - `FieldName = 'AttributeLINK3PL'` → Link3PL URL
+  - `FieldName = 'AttributeRMAID'`   → RMAID
+  - otherwise NULL
+- Converts to a list of dicts
+
+#### Load
+- Writes directly to `AcumaticaDb.SOShipmentKvExt` via paginated `checked_upsert` (note: this is the rare pipeline that writes back to Acumatica's database, not via the API)
+
+#### Results Logging
+- None beyond the standard `_util.Logs` insert
+
+### Functions
+- `__init__(self)`
+- `extract(self)`
+- `transform(self, data_extract)`
+- `load(self, data_transformed)`
+- `log_results(self, data_loaded)`
+
+---
+
+## Dev / Scaffolded Pipelines
+
+These live under [`pipelines/dev/`](pipelines/dev/) and are not wired into any Azure Function timer. They're imported from `pipelines.__init__.py` so manual scripts can still exercise them.
+
+| Class | File | Purpose |
+|---|---|---|
+| `AuditFulfillment` | [`pipelines/dev/audit_fulfillment.py`](pipelines/dev/audit_fulfillment.py) | Fulfillment audit pipeline (WIP). Driven by the [`CentralStoreQueries.AuditFulfillment`](sql/queries/db_CentralStore/AuditFulfillment.sql) query |
+| `NotifyFulfillmentOps` | [`pipelines/dev/notify_fulfillment_ops.py`](pipelines/dev/notify_fulfillment_ops.py) | Notifies the Fulfillment Operations team about RMI return orders stuck with the *"Item does not exist"* error. Driven by [`CentralStoreQueries.NotifyFulfillmentOpsTeam`](sql/queries/db_CentralStore/NotifyFulfillmentOpsTeam.sql) |
+| `ShopifyGraphQL` | [`pipelines/dev/shopify.py`](pipelines/dev/shopify.py) | Pulls daily sales data from Shopify via GraphQL/ShopifyQL. Uses [`ShopifyAPI`](#shopifyapi) |
 
 ---
 
@@ -1075,6 +1413,8 @@ Queries to be executed within `db_CentralStore` ([`sql/queries/db_CentralStore/`
 | [`RedStagEvents`](sql/queries/db_CentralStore/RedStagEvents.sql) | More robust version of `PackShipment`. Uses **`json.RedStagEvents`** to get all rows where `json_value(jsonData, '$.topic') = 'shipment:packed'` |
 | [`NotifyFulfillmentOpsTeam`](sql/queries/db_CentralStore/NotifyFulfillmentOpsTeam.sql) | Pulls all Open Return orders from `_util.RMI_Send_Log` stuck with the *"Item does not exist"* error from RMI |
 | [`SalesOrderCleaner`](sql/queries/db_CentralStore/SalesOrderCleaner.sql) | Pulls rows from `acu.SalesOrders` that have conflicting status values (self-join on `OrderNumber` where `Status != Status`) |
+| [`RMI_Link3PL_RMAStatus`](sql/queries/db_CentralStore/RMI_Link3PL_RMAStatus.sql) | Pulls all distinct Shipments from `rmi_RMAStatus`, used by [`RMILinkToAcu`](#pipeline---rmi_link_to_acupy) to build the join against Acumatica |
+| [`aftership_shipments`](sql/queries/db_CentralStore/aftership_shipments.sql) | Helper view used by AfterShip dedup logic |
 
 #### AcumaticaDbQueries
 Queries to be executed within `AcumaticaDb` ([`sql/queries/AcumaticaDb/`](sql/queries/AcumaticaDb/)):
@@ -1093,6 +1433,13 @@ Queries to be executed within `AcumaticaDb` ([`sql/queries/AcumaticaDb/`](sql/qu
 | [`SOShipmentDeletions`](sql/queries/AcumaticaDb/SOShipmentDeletions.sql) | Pulls records from `SOShipment` that have been deleted in Acumatica for transfer to `db_CentralStore` |
 | [`SOOrderShipmentDeletions`](sql/queries/AcumaticaDb/SOOrderShipmentDeletions.sql) | Pulls records from `SOOrderShipment` that have been deleted in Acumatica for transfer to `db_CentralStore` |
 | [`AcuToDbc_Quotes`](sql/queries/AcumaticaDb/AcuToDbc_Quotes.sql) | Pulls Quote data from `AcumaticaDb` for sync to `acu.Quotes` in `db_CentralStore` |
+| [`AcuToDbc_SalesOrders`](sql/queries/AcumaticaDb/AcuToDbc_SalesOrders.sql) | Pulls Sales Order data for sync to `acu.SalesOrders` in `db_CentralStore` |
+| [`Kustomer_OrderIngest`](sql/queries/AcumaticaDb/Kustomer_OrderIngest.sql) | Top 120 new orders for Kustomer **ingest** mode |
+| [`Kustomer_OrderIngestBackfill`](sql/queries/AcumaticaDb/Kustomer_OrderIngestBackfill.sql) | Top 250 orders not checked in 1 hour for Kustomer **backfill** mode |
+| [`Kustomer_ShipmentData`](sql/queries/AcumaticaDb/Kustomer_ShipmentData.sql) | Shipment + package detail for the orders selected by `Kustomer_OrderIngest*` |
+| [`Kustomer_FilteredOutOrders`](sql/queries/AcumaticaDb/Kustomer_FilteredOutOrders.sql) | Orders explicitly excluded from the Kustomer push |
+| [`Aftership_Shipments`](sql/queries/AcumaticaDb/Aftership_Shipments.sql) | Shipments with tracking data eligible to be sent to / updated in AfterShip |
+| [`RMI_Link3PL`](sql/queries/AcumaticaDb/RMI_Link3PL.sql) | Shipments that have a null 3PL link value at RMI, used by [`RMILinkToAcu`](#pipeline---rmi_link_to_acupy) |
 
 ---
 
@@ -1263,13 +1610,16 @@ Initializes the RMIAPI connector and authenticates using credentials from [`RMI`
 Logs into RMI's API. On success, retrieves a token and sets `self.token`.
 
 #### `closed_shipments(self)`
-Hits the `ClosedShipmentsV1` endpoint and returns Closed Shipments.
+Hits the `ClosedShipmentsV1` endpoint and returns Closed Shipments from the last 21 days.
 
 #### `get_receipts(self)`
-Hits the `Receipts` endpoint.
+Hits the `Receipts` endpoint and returns Receipts from the last 21 days.
+
+#### `target_api(self, endpoint: str, ...)`
+Generic dispatcher. Used by [`GetRMAsFromRMI`](#pipeline---get_rmas_from_rmipy) against the `RMAs` endpoint to pull RMA status records from the last 120 days in one call.
 
 #### `get_rma(self, rma_number)`
-Hits RMI's RMA endpoint for a single `rma_number` and returns its current status.
+Legacy single-RMA status fetch; superseded by `target_api` against `RMAs`, but kept for ad-hoc lookups.
 
 ---
 
@@ -1422,10 +1772,106 @@ Given a response from AVS, adds the validated address to `order_data` and return
 
 **File:** [`connectors/hubspot_api.py`](connectors/hubspot_api.py)
 
-HubSpot CRM client used by [`SendHubSpotOrderData`](#pipeline---hubspot_send_order_datapy).
+HubSpot CRM client used by [`HubSpotSnapshot`](#pipeline---hubspot_snapshotpy) and [`HubSpotProperties`](#pipeline---hubspot_propertiespy). Authenticates via Bearer token from [`HUBSPOT`](config/settings.py); pre-loads owners and deal pipelines at init.
 
 ### Methods
-- `__init__(self, pipeline: SendHubSpotOrderData)`
+
+#### `__init__(self, pipeline: HubSpotSnapshot | HubSpotProperties)`
+Initializes the connector, sets `Authorization: Bearer {HUBSPOT["access_token"]}`, and calls `_get_deal_pipelines` + `_get_owners`.
+
+#### `_set_snapshot_windows(self)`
+Computes `fiscal_year_start`, `week_start`, `month_start` (America/New_York) for [`HubSpotSnapshot`](#pipeline---hubspot_snapshotpy).
+
+#### `_request(self, method, path, **kwargs) → dict`
+Generic JSON HTTP wrapper around `self.session`.
+
+#### Search / catalog helpers
+- `search_deals(self, ...)`: paginated deal search
+- `search_activities(self, ...)`: paginated activity search (calls, emails, meetings, tasks)
+- `_get_owners(self)` / `_get_deal_pipelines(self)`: catalog preload
+- `_get_properties(self, object_type)`: GET `/crm/v3/properties/{object_type}` (used by [`HubSpotProperties`](#pipeline---hubspot_propertiespy))
+
+---
+
+## AfterShip
+
+**File:** [`connectors/aftership.py`](connectors/aftership.py)
+
+REST client for AfterShip's tracking API (`https://api.aftership.com/tracking/2026-01/trackings`). Authenticates with the `as-api-key` header from [`AFTERSHIP`](config/settings.py).
+
+### Methods
+
+#### `__init__(self, pipeline: SendToAfterShip | UpdateAfterShip | AfterShipToDbc)`
+Sets `self.tracking_endpoint`, initializes a `requests.Session`, and prepares the `trackings` buffer used by paginated reads.
+
+#### `get_data(self, endpoint, params={}) → dict`
+GET wrapper around `self.session`. Used by `retrieve_trackings` and `paginate_tracking`.
+
+#### `retrieve_trackings(self, pipeline_name: str, updated_window: timedelta = timedelta(hours=2))`
+Drives tracking retrieval: calls `get_data`, then recursively calls `paginate_tracking` until `has_next_page = false`. Extends `self.trackings`.
+
+#### `paginate_tracking(self, ...)`
+Recursive paginator that walks `next_cursor` until exhausted.
+
+#### `post_data(self, endpoint, payload)`
+POSTs a new tracking to `/trackings`. Used by [`SendToAfterShip`](#pipeline---aftership_sendpy).
+
+#### `put_data(self, endpoint, payload)`
+PUT/PATCHes an existing tracking by id. Used by [`UpdateAfterShip`](#pipeline---aftership_updatepy).
+
+---
+
+## Kustomer
+
+**File:** [`connectors/kustomer.py`](connectors/kustomer.py)
+
+Webhook-based push client for Kustomer. Authenticates via the webhook URL from [`KUSTOMER`](config/settings.py); no bearer token because Kustomer's incoming webhook embeds the secret in the URL.
+
+### Methods
+
+#### `__init__(self, pipeline: SendOrderDetailsToKustomer)`
+Sets `self.webhook` and initializes a `requests.Session`.
+
+#### `target_api(self, payload_data: dict, operation: str = 'post', descr: str = None)`
+Single dispatcher used by [`load/kustomer.py`](load/kustomer.py)'s `Load.send_payloads`. POSTs `payload_data['execution_payload']` to the webhook and logs `log_update_success` or `log_update_error` based on response status. Returns the raw `requests.Response`.
+
+---
+
+## ShopifyAPI
+
+**File:** [`connectors/shopify.py`](connectors/shopify.py)
+
+GraphQL/ShopifyQL client for Shopify Admin (`https://{domain}/admin/api/{version}/graphql.json`). Currently used by the scaffolded [`ShopifyGraphQL`](#dev--scaffolded-pipelines) dev pipeline.
+
+### Methods
+- `__init__(self, pipeline)`: Loads credentials from [`SHOPIFY`](config/settings.py); auto-builds a default ShopifyQL sales-utm-report query via `_set_shopql`
+- `post(self, url='', headers={}, payload={})`: POST wrapper that defaults to the configured GraphQL endpoint and the auto-built ShopifyQL payload
+- `_set_shopql(self)`: Sets `self.shopifyql` and `self.graphql_query`
+
+---
+
+## Teams
+
+**File:** [`connectors/teams.py`](connectors/teams.py)
+
+Minimal Microsoft Teams webhook poster used for ad-hoc alerting. Credentials from [`TEAMS`](config/settings.py).
+
+### Methods
+- `__init__(self, pipeline)`: Loads webhook URL plus tenant / client / object identifiers; raises `ValueError` if `TEAMS_WEBHOOK_URL` is unset
+- `send_message(self, message: str)`: POSTs `{'text': message}` to the configured webhook
+
+---
+
+## Sharepoint
+
+**File:** [`connectors/sharepoint.py`](connectors/sharepoint.py)
+
+Microsoft Graph client for SharePoint file retrieval. Authenticates via the OAuth2 client-credentials flow against `https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token`, then resolves the SharePoint site ID. Credentials from [`SHAREPOINT`](config/settings.py).
+
+### Methods
+- `__init__(self, pipeline)`: Sets default sites (`marketing = …/sites/Marketing`) and calls `_auth`
+- `_auth(self)`: Obtains an access token and stores `self.site_id`
+- `get_file(self, server_relative_path: str) → bytes`: GET the binary content of a SharePoint file via Graph
 
 ---
 
@@ -1447,16 +1893,20 @@ The [`transform/`](transform/) modules contain the data-shaping logic each pipel
 | Module | Pipeline | Key methods |
 |---|---|---|
 | [`transform/rmi_send.py`](transform/rmi_send.py) | [`SendRMIShipments`](#pipeline---rmi_send_shipmentspy), [`SendRMIReturns`](#pipeline---rmi_send_returnspy) | `transform(data_extract: pl.DataFrame)` |
-| [`transform/rmi_receipt_pull.py`](transform/rmi_receipt_pull.py) | [`GetReceiptsFromRMI`](#pipeline---get_receipts_from_rmipy), [`GetClosedShipmentsFromRMI`](#pipeline---get_closed_shipments_from_rmipy), [`GetStatusFromRMI`](#pipeline---get_status_from_rmipy) | `transform_receipts`, `transform_closed_shipments`, `transform_status_records` |
+| [`transform/rmi_receipt_pull.py`](transform/rmi_receipt_pull.py) | [`GetReceiptsFromRMI`](#pipeline---get_receipts_from_rmipy), [`GetClosedShipmentsFromRMI`](#pipeline---get_closed_shipments_from_rmipy) | `transform_receipts`, `transform_closed_shipments` |
+| [`transform/rmi_rmas.py`](transform/rmi_rmas.py) | [`GetRMAsFromRMI`](#pipeline---get_rmas_from_rmipy) | `transform_status_records` |
 | [`transform/create_acu_receipt.py`](transform/create_acu_receipt.py) | [`CreateAcuReceipt`](#pipeline---create_acu_receiptpy) | `transform(data_extract: dict[str, pl.DataFrame])` |
 | [`transform/pack_shipment.py`](transform/pack_shipment.py) | [`PackShipments`](#pipeline---pack_shipmentspy) | `transform`, `group_tracking`, `_format_package`, `_format_friendly_package_payload`, `transform_redstag_events` |
 | [`transform/redstag_inventory.py`](transform/redstag_inventory.py) | [`RedStagInventory`](#pipeline---redstag_inventorypy) | `transform_inventory` |
 | [`transform/redstag_send.py`](transform/redstag_send.py) | [`SendRedStagShipments`](#pipeline---redstag_send_shipmentspy) | `transform`, `transform_lookup_payload`, `transform_lookup_response`, `transform_order_create_payload`, `transform_acu_attribute_payload`, `_check_shipvia`, `_determine_shipvia` |
 | [`transform/criteo.py`](transform/criteo.py) | [`Criteo`](#pipeline---criteopy) | `landing`, `transform_criteo`, `find_differences`, `_format_table` |
 | [`transform/address_validator.py`](transform/address_validator.py) | [`AddressValidator`](#pipeline---address_validatorpy) | `transform`, `format_order_address_payload`, `format_acu_api_log_update_override`, `format_acu_api_log_validate`, `_log_differences` |
-| [`transform/notify_fulfillment_ops.py`](transform/notify_fulfillment_ops.py) | [`NotifyFulfillmentOps`](#pipeline---notify_fulfillment_opspy) | `transform(data_extract: pl.DataFrame)` |
-| [`transform/audit_fulfillment.py`](transform/audit_fulfillment.py) | [`AuditFulfillment`](#pipeline---audit_fulfillmentpy) | `transform` (WIP) |
 | [`transform/cleaner.py`](transform/cleaner.py) | [`SalesOrderCleaner`](#pipeline---sales_order_cleanerpy) | `transform`, `clean`, `parse_orders` |
+| [`transform/kustomer.py`](transform/kustomer.py) | [`SendOrderDetailsToKustomer`](#pipeline---kustomerpy) | `format_data_extract`, `add_shipments_to_orders`, `smash_orders` |
+| [`transform/hubspot_snapshot.py`](transform/hubspot_snapshot.py) | [`HubSpotSnapshot`](#pipeline---hubspot_snapshotpy) | `activity_counts`, `smash_activity_counts`, `deals` |
+| [`transform/aftership.py`](transform/aftership.py) | [`SendToAfterShip`](#pipeline---aftership_sendpy), [`UpdateAfterShip`](#pipeline---aftership_updatepy), [`AfterShipToDbc`](#pipeline---aftership_to_dbcpy) | `transform_send`, `transform_update`, `filter_update`, `_lander`, `_parse_good_tracking_response`, `_parse_bad_tracking_response` |
+| [`transform/notify_fulfillment_ops.py`](transform/notify_fulfillment_ops.py) | [`NotifyFulfillmentOps`](#dev--scaffolded-pipelines) (dev) | `transform(data_extract: pl.DataFrame)` |
+| [`transform/audit_fulfillment.py`](transform/audit_fulfillment.py) | [`AuditFulfillment`](#dev--scaffolded-pipelines) (dev) | `transform` (WIP) |
 
 ### Notable transform docstrings
 
@@ -1522,6 +1972,17 @@ Class for smart handling of Acumatica API interactions, used by [`SendRedStagShi
 
 - `send_shipments(data_transformed)`: Once the `order_id` (`rsOrderID`) is known from RedStag, marks the shipment as Sent to WH.
 
+## `load/kustomer.py`: `Load`
+Class used by [`SendOrderDetailsToKustomer`](#pipeline---kustomerpy) to orchestrate Kustomer pushes.
+
+- `send_payloads(data_transformed)`: For each order, POSTs the formatted payload via [`Kustomer.target_api`](#kustomer), batches `format_db_row` results, and upserts to **`K_OrderIngest`** every 25 orders
+- `format_db_row(order, response)`: Formats a single `K_OrderIngest` row from the order payload and Kustomer response
+
+## `load/address_validator.py`: `Load`
+Class used by [`AddressValidator`](#pipeline---address_validatorpy).
+
+- `landing(data_transformed)`: Per-order orchestrator that drives the override/update → validate → remove-hold → create-shipment chain via the Acumatica API
+
 ---
 
 # Pipeline Base Class
@@ -1532,6 +1993,7 @@ Every pipeline subclasses `Pipeline`. The base class:
 
 - Initializes both [`SQLConnector`](#sqlconnector) instances (`self.centralstore`, `self.acudb`) so subclasses get authenticated database access for free
 - Names a per-pipeline `logging.Logger` (`self.logger`) and configures `colorlog` with millisecond-precision timestamps (America/New_York) the first time any pipeline runs
+- Attaches a `LogHistory` handler so every log emit is captured in `self.logs` for later persistence
 - Stamps `self.run_timestamp` at the start of every `run()`
 - Drives the lifecycle in [`Pipeline.run`](pipelines/base.py):
 
@@ -1539,10 +2001,25 @@ Every pipeline subclasses `Pipeline`. The base class:
   def run(self):
       self.run_timestamp = datetime.now(ZoneInfo('America/New_York'))
       self.logger.info(f'Starting {self.pipeline_name}')
+
+      self.logger.info('Extracting...')
       data_extract     = self.extract()
+
+      self.logger.info('Transforming...')
       data_transformed = self.transform(data_extract)
+
+      self.logger.info('Loading...')
       data_loaded      = self.load(data_transformed)
+
+      self.logger.info('Logging...')
       self.log_results(data_loaded)
+
+      # Persist the in-memory log buffer to _util.Logs
+      try:
+          self.centralstore.insert_df(pl.DataFrame(self.logs), '_util.Logs')
+      except Exception:
+          self.logger.warning("Couldn't insert logs to SQL but pipeline execution was successful")
+
       return {
           'pipeline':    self.pipeline_name,
           'status':      'success',
@@ -1553,3 +2030,19 @@ Every pipeline subclasses `Pipeline`. The base class:
   ```
 
 `extract`, `transform`, `load`, and `log_results` are all `@abstractmethod`: every concrete pipeline must implement them.
+
+---
+
+# Documentation
+
+In addition to this README, the [`docs/`](docs/) folder contains per-pipeline and per-Azure-Function reference material:
+
+- [`docs/pipelines/`](docs/pipelines/) — one mermaid flowchart per pipeline, showing the `__init__` → `extract` → `transform` → `load` → `log_results` path with all SQL queries, API calls, and downstream tables labeled in-line
+- [`docs/functions/`](docs/functions/) — one document per Azure Function in [`function_app.py`](function_app.py). Each includes:
+  - the cron schedule
+  - which pipeline(s) it invokes
+  - the embedded pipeline flowchart(s)
+  - the SQL queries each pipeline depends on, with relative links to the `.sql` files
+- [`docs/pipeline_docstring_analysis.md`](docs/pipeline_docstring_analysis.md) — conformance report comparing every pipeline's class-level docstring against the reference format used by [`GetRMAsFromRMI`](#pipeline---get_rmas_from_rmipy). Useful when adding a new pipeline so the docstring matches the rest of the repo
+
+The mermaid diagrams in `docs/` render directly in GitHub's web UI and in most Markdown previewers.
