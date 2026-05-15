@@ -113,37 +113,40 @@ class RMIXML:
         line_str = f'1 line' if len(shipment) == 1 else f'{len(shipment)} lines'
         self.logger.info(f'Preparing {shipment[0]['RMANumber']} - {line_str}')
         row_text = self._format_w_lines(shipment)
-
-        send_str = f'''<?xml version="1.0" encoding="utf-8"?>
-<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-  <soap:Body>
-    <CreateNew xmlns="http://bactracs.bactracksrl.com/rmaservice">
-      <sGuid>{self.session_id}</sGuid>
-      <NewRMA>
-        <RMANumber>{shipment[0]['RMANumber']}</RMANumber>
-        <RMATypeName>{shipment[0]['RMAType']}</RMATypeName>
-        <ShipMethod>{'LTL' if shipment[0]['ShipVia'] == 'LTL' else shipment[0]['ShipVia']}</ShipMethod>
-        <CustomerRef>{shipment[0]['OrderNbr']}</CustomerRef>
-        <Customer>
-          <ShipTo>
-            <CompanyName>{shipment[0]['CompanyName'][:25].replace('&', '&amp;')}</CompanyName>
-            <Contact>{shipment[0]['ShipToName'][:25].replace('&', '&amp;')}</Contact>
-            <ContactEmail>{shipment[0]['ShipToEmailContact']}</ContactEmail>
-            <Address1>{shipment[0]['ShipToAddress1'].replace('&', '&amp;')}</Address1>
-            <Address2>{shipment[0]['ShipToAddress2']}</Address2>
-            <City>{shipment[0]['ShipToCity']}</City>
-            <State>{shipment[0]['ShipToState']}</State>
-            <Zip>{shipment[0]['ShipToZip']}</Zip>
-            <Phone>{shipment[0]['ShipToPhone']}</Phone>
-            <Country>{shipment[0]['ShipToCountry']}</Country>
-          </ShipTo>
-        </Customer>
-        <RMALines>{row_text}
-        </RMALines>
-      </NewRMA>
-    </CreateNew>
-  </soap:Body>
-</soap:Envelope>'''
+        ship_to_name = shipment[0]['ShipToName'][:25].replace('&', '&amp;') if shipment[0].get('ShipToName') else shipment[0]['CompanyName'][:25].replace('&', '&amp;')
+        try:
+            send_str = f'''<?xml version="1.0" encoding="utf-8"?>
+    <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+    <soap:Body>
+        <CreateNew xmlns="http://bactracs.bactracksrl.com/rmaservice">
+        <sGuid>{self.session_id}</sGuid>
+        <NewRMA>
+            <RMANumber>{shipment[0]['RMANumber']}</RMANumber>
+            <RMATypeName>{shipment[0]['RMAType']}</RMATypeName>
+            <ShipMethod>{'LTL' if shipment[0]['ShipVia'] == 'LTL' else shipment[0]['ShipVia']}</ShipMethod>
+            <CustomerRef>{shipment[0]['OrderNbr']}</CustomerRef>
+            <Customer>
+            <ShipTo>
+                <CompanyName>{shipment[0]['CompanyName'][:25].replace('&', '&amp;')}</CompanyName>
+                <Contact>{ship_to_name}</Contact>
+                <ContactEmail>{shipment[0]['ShipToEmailContact']}</ContactEmail>
+                <Address1>{shipment[0]['ShipToAddress1'].replace('&', '&amp;')}</Address1>
+                <Address2>{shipment[0]['ShipToAddress2']}</Address2>
+                <City>{shipment[0]['ShipToCity']}</City>
+                <State>{shipment[0]['ShipToState']}</State>
+                <Zip>{shipment[0]['ShipToZip']}</Zip>
+                <Phone>{shipment[0]['ShipToPhone']}</Phone>
+                <Country>{shipment[0]['ShipToCountry']}</Country>
+            </ShipTo>
+            </Customer>
+            <RMALines>{row_text}
+            </RMALines>
+        </NewRMA>
+        </CreateNew>
+    </soap:Body>
+    </soap:Envelope>'''
+        except Exception as e:
+            self.logger.error(f"Couldn't format Shipment payload! {e}")
         # print(send_str)
         acu_response, acu_payload = None, None
         try:
@@ -213,37 +216,39 @@ class RMIXML:
         line_str = f'1 line' if len(return_order) == 1 else f'{len(return_order)} lines'
         self.logger.info(f'Preparing {return_order[0]['ReturnNbr']} - {line_str}')
         row_text = self._format_3_lines(return_order)
-
-        send_str = f'''<?xml version="1.0" encoding="utf-8"?>
-<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-  <soap:Body>
-    <CreateNew xmlns="http://bactracs.bactracksrl.com/rmaservice">
-      <sGuid>{self.session_id}</sGuid>
-      <NewRMA>
-        <RMANumber>{return_order[0]['ReturnNbr']}</RMANumber>
-        <RMATypeName>{return_order[0]['RMAType']}</RMATypeName>
-        <ShipMethod>{'LTL' if return_order[0]['ShipVia'] == 'LTL' else return_order[0]['ShipVia']}</ShipMethod>
-        <CustomerRef>{return_order[0]['OriginalOrderNbr']}</CustomerRef>
-        <Customer>
-          <ShipTo>
-            <CompanyName>{return_order[0]['CompanyName'].replace('&', '&amp;')}</CompanyName>
-            <Contact>{return_order[0]['ShipToName'].replace('&', '&amp;')}</Contact>
-            <ContactEmail>{return_order[0]['ShipToEmailContact']}</ContactEmail>
-            <Address1>{return_order[0]['ShipToAddress1']}</Address1>
-            <Address2>{return_order[0]['ShipToAddress2']}</Address2>
-            <City>{return_order[0]['ShipToCity']}</City>
-            <State>{return_order[0]['ShipToState']}</State>
-            <Zip>{return_order[0]['ShipToZip']}</Zip>
-            <Phone>{return_order[0]['ShipToPhone']}</Phone>
-            <Country>{return_order[0]['ShipToCountry']}</Country>
-          </ShipTo>
-        </Customer>
-        <RMALines>{row_text}
-        </RMALines>
-      </NewRMA>
-    </CreateNew>
-  </soap:Body>
-</soap:Envelope>'''
+        try:
+            send_str = f'''<?xml version="1.0" encoding="utf-8"?>
+    <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+    <soap:Body>
+        <CreateNew xmlns="http://bactracs.bactracksrl.com/rmaservice">
+        <sGuid>{self.session_id}</sGuid>
+        <NewRMA>
+            <RMANumber>{return_order[0]['ReturnNbr']}</RMANumber>
+            <RMATypeName>{return_order[0]['RMAType']}</RMATypeName>
+            <ShipMethod>{'LTL' if return_order[0]['ShipVia'] == 'LTL' else return_order[0]['ShipVia']}</ShipMethod>
+            <CustomerRef>{return_order[0]['OriginalOrderNbr']}</CustomerRef>
+            <Customer>
+            <ShipTo>
+                <CompanyName>{return_order[0]['CompanyName'].replace('&', '&amp;')}</CompanyName>
+                <Contact>{return_order[0]['ShipToName'].replace('&', '&amp;')}</Contact>
+                <ContactEmail>{return_order[0]['ShipToEmailContact']}</ContactEmail>
+                <Address1>{return_order[0]['ShipToAddress1']}</Address1>
+                <Address2>{return_order[0]['ShipToAddress2']}</Address2>
+                <City>{return_order[0]['ShipToCity']}</City>
+                <State>{return_order[0]['ShipToState']}</State>
+                <Zip>{return_order[0]['ShipToZip']}</Zip>
+                <Phone>{return_order[0]['ShipToPhone']}</Phone>
+                <Country>{return_order[0]['ShipToCountry']}</Country>
+            </ShipTo>
+            </Customer>
+            <RMALines>{row_text}
+            </RMALines>
+        </NewRMA>
+        </CreateNew>
+    </soap:Body>
+    </soap:Envelope>'''
+        except Exception as e:
+            self.logger.error(f"Couldn't format Return payload! {e}")
         # print(send_str)
         msg = ''
         result = ''
