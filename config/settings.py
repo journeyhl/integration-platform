@@ -1024,6 +1024,36 @@ TABLES = {
             'UpdatedAt',
         ],
     },
+    'acu.PhoneRevByMonth': {
+        'keys': [
+            'AcctCD',
+            'OrderNbr',
+            'LineNbr',
+        ],
+        'columns': [
+            'AcctCD',
+            'Name',
+            'Phone',
+            'OrderNbr',
+            'LineNbr',
+            'OrderDate',
+            'OrderStatus',
+            'InventoryCD',
+            'Descr',
+            'LineAmt',
+            'Agent',
+        ],
+        'update_columns': [
+            'Name',
+            'Phone',
+            'OrderDate',
+            'OrderStatus',
+            'InventoryCD',
+            'Descr',
+            'LineAmt',
+            'Agent',
+        ],
+    },
 }
 
 '''# Tables

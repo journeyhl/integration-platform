@@ -630,3 +630,18 @@ def sales_order_cleaner(timer: af.TimerRequest):
     sales_order_cleaner = SalesOrderCleaner()
     sales_order_cleaner.run()
 #endregion          sales_order_cleaner
+
+
+#region          acu_to_dbc_phone_revenue
+#           Upsert to acu.PhoneRevByMonth
+#         3x/day (1:40am, 9:40am, 5:40pm)
+@app.timer_trigger(
+    schedule = '40 1/8 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def acu_to_dbc_phone_revenue(timer: af.TimerRequest):
+    from pipelines import AcuToDbcPhoneRevenue
+    phone_revenue = AcuToDbcPhoneRevenue()
+    phone_revenue.run()
+#endregion       acu_to_dbc_phone_revenue

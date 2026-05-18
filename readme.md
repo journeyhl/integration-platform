@@ -26,6 +26,7 @@
   - [Criteo](#pipeline---criteopy)
   - [AcuToDbcQuotes](#pipeline---acu_to_dbc_quotespy)
   - [AcuToDbcSalesOrders](#pipeline---acu_to_dbc_sales_orderspy)
+  - [AcuToDbcPhoneRevenue](#pipeline---acu_to_dbc_phone_revenuepy)
   - [SalesOrderCleaner](#pipeline---sales_order_cleanerpy)
   - [SendOrderDetailsToKustomer](#pipeline---kustomerpy)
   - [HubSpotSnapshot](#pipeline---hubspot_snapshotpy)
@@ -151,7 +152,7 @@ from pipelines import kustomer
 
 ## Azure Functions
 
-The application runs as nineteen timer-triggered Azure Functions defined in [`function_app.py`](function_app.py). All cron schedules are evaluated in UTC.
+The application runs as twenty timer-triggered Azure Functions defined in [`function_app.py`](function_app.py). All cron schedules are evaluated in UTC.
 
 | Function | Pipeline(s) Invoked | Schedule (cron) | Runs At |
 |---|---|---|---|
@@ -167,6 +168,7 @@ The application runs as nineteen timer-triggered Azure Functions defined in [`fu
 | `criteo_ads` | [`Criteo`](#pipeline---criteopy) | `1 * * * *` | :01 every hour |
 | `acu_to_dbc_sales_orders` | [`AcuToDbcSalesOrders`](#pipeline---acu_to_dbc_sales_orderspy) | `*/10 * * * *` | Every 10 minutes |
 | `acu_to_dbc_quotes` | [`AcuToDbcQuotes`](#pipeline---acu_to_dbc_quotespy) | `*/30 * * * *` | :00, :30 every hour |
+| `acu_to_dbc_phone_revenue` | [`AcuToDbcPhoneRevenue`](#pipeline---acu_to_dbc_phone_revenuepy) | `40 1/8 * * *` | 1:40, 9:40, 17:40 (UTC) |
 | `kustomer_order_ingest` | [`SendOrderDetailsToKustomer`](#pipeline---kustomerpy) (ingest mode) | `*/12 * * * *` | :00, :12, :24, :36, :48 every hour |
 | `kustomer_order_backfill` | [`SendOrderDetailsToKustomer`](#pipeline---kustomerpy) (backfill mode) | `43 * * * *` | :43 every hour |
 | `aftership_send` | [`SendToAfterShip`](#pipeline---aftership_sendpy) | `2/15 * * * *` | :02, :17, :32, :47 every hour |
@@ -229,6 +231,9 @@ python scripts/run_acu_to_dbc_sales_orders.py
 
 # Sync Acumatica Quotes to acu.Quotes in CentralStore
 python scripts/run_acu_to_dbc_quotes.py
+
+# Sync Acumatica PH/BF order phone revenue to acu.PhoneRevByMonth in CentralStore
+python scripts/run_acu_to_dbc_phone_revenue.py
 
 # Remove out-of-sync rows from acu.SalesOrders in CentralStore
 python scripts/run_sales_order_cleaner.py
@@ -332,6 +337,7 @@ logistics-integration-platform/
 │   │                                     #   and criteo.diff_log
 │   ├── acu_to_dbc_quotes.py              # AcuToDbcQuotes: Acumatica Quotes → acu.Quotes in CentralStore
 │   ├── acu_to_dbc_sales_orders.py        # AcuToDbcSalesOrders: Acumatica Sales Orders → acu.SalesOrders
+│   ├── acu_to_dbc_phone_revenue.py       # AcuToDbcPhoneRevenue: PH/BF orders → acu.PhoneRevByMonth
 │   ├── sales_order_cleaner.py            # SalesOrderCleaner: removes out-of-sync rows from acu.SalesOrders
 │   ├── kustomer.py                       # SendOrderDetailsToKustomer: ingest/backfill order data to Kustomer
 │   ├── hubspot_snapshot.py               # HubSpotSnapshot: deals + activity counts → hs.deal_snapshots,
@@ -353,7 +359,6 @@ logistics-integration-platform/
 │   ├── run_get_closed_shipments_from_rmi.py
 │   ├── run_get_receipts_from_rmi.py
 │   ├── run_get_rmas_from_rmi.py
-│   ├── run_get_status_from_rmi.py        # Legacy GetStatusFromRMI runner
 │   ├── run_pack_shipments.py             # Runs: PackShipments
 │   ├── run_confirm_open_shipments.py     # Runs: ShipmentsReadyToConfirm
 │   ├── run_create_acu_receipt.py         # Runs: CreateAcuReceipt
@@ -364,6 +369,7 @@ logistics-integration-platform/
 │   ├── run_criteo.py                     # Runs: Criteo
 │   ├── run_acu_to_dbc_quotes.py          # Runs: AcuToDbcQuotes
 │   ├── run_acu_to_dbc_sales_orders.py    # Runs: AcuToDbcSalesOrders
+│   ├── run_acu_to_dbc_phone_revenue.py   # Runs: AcuToDbcPhoneRevenue
 │   ├── run_sales_order_cleaner.py        # Runs: SalesOrderCleaner
 │   ├── run_kustomer.py                   # Runs: SendOrderDetailsToKustomer (ingest or backfill)
 │   ├── run_aftership_send.py             # Runs: SendToAfterShip
@@ -389,6 +395,7 @@ logistics-integration-platform/
 │   │   │                                 #   ValidateAddresses, SOOrderDeletions, SOLineDeletions,
 │   │   │                                 #   SOShipmentDeletions, SOOrderShipmentDeletions,
 │   │   │                                 #   AcuToDbc_Quotes, AcuToDbc_SalesOrders,
+│   │   │                                 #   AcuToDbc_PhoneRevByMonth,
 │   │   │                                 #   Kustomer_OrderIngest, Kustomer_OrderIngestBackfill,
 │   │   │                                 #   Kustomer_ShipmentData, Kustomer_FilteredOutOrders,
 │   │   │                                 #   Aftership_Shipments, RMI_Link3PL
@@ -584,8 +591,6 @@ Hits RMI's *Receipts* endpoint, retrieves all Receipts, and upserts to **`rmi_Re
 ### `GetRMAsFromRMI`
 
 Pulls all RMAs modified in RMI within the last 120 days from RMI's `RMAs` endpoint and upserts to **`rmi_RMAStatus`** in `db_CentralStore`. This is the reference docstring format that the rest of the pipelines have been retrofitted toward (see [`docs/pipeline_docstring_analysis.md`](docs/pipeline_docstring_analysis.md)).
-
-This pipeline replaced the older `StageRMIStatusRetrieval` + per-RMA `GetStatusFromRMI` fan-out — RMI's RMAs endpoint now returns the full status payload directly, so the staging + re-init dance is no longer needed.
 
 ### Execution Behavior
 
@@ -1060,6 +1065,35 @@ Pipeline to sync Sales Order data from `AcumaticaDb` into **`acu.SalesOrders`** 
 #### Load
 - Stamps each row with `LastChecked = datetime.now()` (America/New_York)
 - Upserts to **`acu.SalesOrders`** via [`SQLConnector.checked_upsert`](#sqlconnector); batches of 100 when extract returns ≥ 100 rows, otherwise single upsert
+
+#### Results Logging
+- None needed
+
+### Functions
+- `__init__(self)`
+- `extract(self) → pl.DataFrame`
+- `transform(self, data_extract: pl.DataFrame) → list`
+- `load(self, data_transformed: list)`
+- `log_results(self, data_loaded)`
+
+---
+
+## Pipeline - [`acu_to_dbc_phone_revenue.py`](pipelines/acu_to_dbc_phone_revenue.py)
+
+### `AcuToDbcPhoneRevenue`
+
+Pipeline to sync phone-channel revenue line items (`OrderType` of **`PH`** or **`BF`**) from `AcumaticaDb` into **`acu.PhoneRevByMonth`** in `db_CentralStore`. Limited to orders created or modified within the last day with a non-null shipping contact phone number; rows with warranty inventory (`InventoryCD like '%NSG-%'`) are excluded.
+
+### Execution Behavior
+
+#### Extraction
+- Queries `AcumaticaDb` for PH/BF order lines via [`AcumaticaDbQueries.AcuToDbc_PhoneRevByMonth`](sql/queries/AcumaticaDb/AcuToDbc_PhoneRevByMonth.sql)
+
+#### Transformation
+- Converts the polars DataFrame to a list of dicts (already in target table shape)
+
+#### Load
+- Upserts to **`acu.PhoneRevByMonth`** via [`SQLConnector.checked_upsert_paginated`](#sqlconnector) in batches of 100
 
 #### Results Logging
 - None needed
