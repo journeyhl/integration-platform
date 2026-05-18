@@ -17,6 +17,7 @@ from .sales_order_cleaner import SalesOrderCleaner
 from .kustomer import SendOrderDetailsToKustomer
 from .acu_to_dbc_quotes import AcuToDbcQuotes
 from .acu_to_dbc_sales_orders import AcuToDbcSalesOrders
+from .acu_to_dbc_phone_revenue import AcuToDbcPhoneRevenue
 from .hubspot_snapshot import HubSpotSnapshot
 from .aftership_send import SendToAfterShip
 from .aftership_update import UpdateAfterShip

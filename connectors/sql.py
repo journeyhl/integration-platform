@@ -206,6 +206,8 @@ class AcumaticaDbQueries(Queries):
     '''Pulls Shipments that have tracking data to be sent to Aftership'''
     RMI_Link3PL: Query
     '''Pulls Shipments that have a null 3PL link value at RMI'''
+    AcuToDbc_PhoneRevByMonth: Query
+    '''Populates acu.PhoneRevByMonth table in db_CentralStore'''
 
 _QUERY_CLASSES: dict[str, type[Queries]] = {
     'db_CentralStore': CentralStoreQueries,
