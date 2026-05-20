@@ -50,15 +50,6 @@ class Load:
                 shipment_data = self.pipeline.acu_api.add_package_v2(shipment_data)
             else:
                 shipment_data = self.pipeline.acu_api.get_package_details(shipment_data)
-            #TODO Finish implementing matching logic below
-            #region matching logic work in progress            
-            # if(line_match):
-            #     shipment_data = self.pipeline.acu_api.add_package_v2(shipment_data)
-            # if(full_match):
-            #     self.pipeline.acu_api.confirm_shipment(shipment_data)
-            # else:
-            #     shipment_data = self.pipeline.acu_api.get_package_details(shipment_data, 'put')
-            #endregion
             bp = 'here'
 
 
