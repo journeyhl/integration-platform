@@ -17,7 +17,7 @@ class Transform:
         rmi_extract = data_extract['rmi_extract']
         acu_transformed = data_extract['acu_extract']
         data_transformed = []
-        for acu_shipment in acu_transformed.iter_rows(named=True):
+        for i, acu_shipment in enumerate(acu_transformed.iter_rows(named=True)):
             matches = [cs_shipment for cs_shipment in central_transformed.iter_rows(named=True)
                     if acu_shipment['ShipmentNbr'] == cs_shipment['ShipmentNbr'].replace('-1', '').replace('-2', '').replace('-3', '')
                     and acu_shipment['ShipmentLineNbr'] == cs_shipment['ShipLineNbr']
@@ -28,9 +28,9 @@ class Transform:
                     if acu_shipment['ShipmentNbr'] == rs_shipment['ShipmentNbr'].replace('-1', '').replace('-2', '').replace('-3', '')
                     and acu_shipment['InventoryCD'] == rs_shipment['InventoryCD']                
             ]
-            matches_rmi = [rmi_shipment for rmi_shipment in rmi_extract.iter_rows(named=True)
+            matches_rmi = [rmi_shipment for j, rmi_shipment in enumerate(rmi_extract.iter_rows(named=True))
                     if acu_shipment['ShipmentNbr'] == rmi_shipment['RMANumber']
-                    and acu_shipment['InventoryCD'] == rmi_shipment['InventoryCD']                
+                    and acu_shipment['InventoryCD'] == rmi_shipment['InventoryCD']
             ]
             self.shipment_formatted = {
                     'ShipmentNbr': acu_shipment['ShipmentNbr'],
@@ -132,7 +132,8 @@ class Transform:
             }]
             return shipment_formatted
         formatted_matches = []
-        for match in matches:
+        for i, match in enumerate(matches):
+            dupe_items = [mat['InventoryCD'] for j, mat in enumerate(matches) if i != j]
             formatted_matches.append({
                 **self.shipment_formatted,
                 'InventoryCD_3pl': match['InventoryCD'],
@@ -141,6 +142,8 @@ class Transform:
                 'ItemsOnPackage_3pl': match['Lines'],
                 'Courier_3pl': match['CarrierCode'],
             })
+            if len(dupe_items) + 1 == len(matches):
+                break
             bp = 'here'
         return formatted_matches
 
