@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING,  Any, Iterator
 if TYPE_CHECKING:
-    from pipelines import HubSpotSnapshot, HubSpotProperties
+    from pipelines import HubSpotSnapshot, HubSpotProperties, HubSpotContacts
 from config.settings import HUBSPOT
 from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo
@@ -11,7 +11,7 @@ import time
 
 
 class HubSpotAPI:
-    def __init__(self, pipeline: HubSpotSnapshot | HubSpotProperties):
+    def __init__(self, pipeline: HubSpotSnapshot | HubSpotProperties | HubSpotContacts):
         self.pipeline = pipeline
         if type(pipeline) == str:
             self.logger = logging.getLogger(f'{pipeline}.hubspot_api')
@@ -25,6 +25,7 @@ class HubSpotAPI:
         })
         self._get_deal_pipelines()
         self._get_owners()
+        self._set_snapshot_windows()
         self.lists = f'{self.base_url}/crm/v3/lists/'
 
 
@@ -52,10 +53,12 @@ class HubSpotAPI:
         - #### self.:attr:`~week_start`
         - #### self.:attr:`~month_start`
         '''
-        self.fiscal_year_start = datetime(datetime.now(ZoneInfo('America/New_York')).year, datetime.now(ZoneInfo('America/New_York')).month, datetime.now(ZoneInfo('America/New_York')).day)
+        self.fiscal_year_start = datetime(year=datetime.now(ZoneInfo('America/New_York')).year, month=1, day=1)
+        self.fiscal_year_start_ms = str(int(self.fiscal_year_start.timestamp() * 1000))
         self.week_start = datetime.now(ZoneInfo('America/New_York')).date() - timedelta(datetime.now(ZoneInfo('America/New_York')).date().weekday())
         self.month_start = datetime.now(ZoneInfo('America/New_York')).date() - timedelta(days=datetime.now(ZoneInfo('America/New_York')).date().day - 1)
         
+        self.contact_searching = str(int((self.fiscal_year_start.timestamp() + 100000) * 1000))
 
     def _request(self, method: str, path: str, **kwargs) -> dict[str, Any]:
         '''`_request`(method: *str*, path: *str*, )
@@ -247,6 +250,7 @@ class HubSpotAPI:
         path = f'/crm/v3/objects/{object_type}/search'
         after: str | None = None
         total = 0
+        results = []
         while True:
             body: dict[str, Any] = {
                 'filterGroups': filter_groups,
@@ -256,9 +260,15 @@ class HubSpotAPI:
             if after:
                 body['after'] = after
             data = self._request('POST', path, json=body)
+            full_total = data['total']
+            if total == 0:
+                self.logger.info(f'{full_total} records found')
             for record in data.get('results', []):
                 yield record
-                total += 1
+                results.append(record)
+                total += 1                
+                if full_total and total % max(1, full_total // 10) == 0:
+                    self.logger.info(f'{total} records extracted')
             after = data.get('paging', {}).get('next', {}).get('after')
             if not after:
                 break
@@ -269,6 +279,8 @@ class HubSpotAPI:
                     f'narrow the date range and re-query. Stopping pagination.'
                 )
                 break
+            bp = 'here'
+        bp = 'here'
 
 
     def search_deals(self) -> list[dict]:
@@ -294,7 +306,6 @@ class HubSpotAPI:
         '''
         now = datetime.now(timezone.utc)
         two_years_ago_ms = str(int((now - timedelta(days=730)).timestamp() * 1000))
-        fiscal_year_start_ms = str(int(self.fiscal_year_start.timestamp() * 1000))
 
         filter_groups = [
             {
@@ -307,7 +318,7 @@ class HubSpotAPI:
             {
                 "filters": [
                     {"propertyName": "pipeline",   "operator": "EQ",  "value": self.b2b_pipeline['id']},
-                    {"propertyName": "createdate", "operator": "GTE", "value": fiscal_year_start_ms},
+                    {"propertyName": "createdate", "operator": "GTE", "value": self.fiscal_year_start_ms},
                     {"propertyName": "dealstage",  "operator": "IN",  "values": [self.b2b_closed_won['id'], self.b2b_closed_lost['id']]},
                 ]
             },
@@ -356,11 +367,11 @@ class HubSpotAPI:
         self.logger.info(f'Extracting {object_type}...')
         fiscal_year_start_ms = str(int(self.fiscal_year_start.timestamp() * 1000))
         filter_groups = [
-            {"filters": [{"propertyName": "hs_timestamp", "operator": "GTE", "value": fiscal_year_start_ms}]}
+            {"filters": [{"propertyName": "hs_timestamp", "operator": "GTE", "value": self.fiscal_year_start_ms}]}
         ]
         return list(self.search(object_type, filter_groups=filter_groups, properties=["hs_timestamp", "hubspot_owner_id"]))
 
-    def search_new_contacts(self) -> list[dict]:
+    def search_new_contacts(self, properties: list = ["createdate", "hubspot_owner_id"]) -> list[dict]:
         '''`search_new_contacts`(self)
         ---
         <hr>
@@ -375,9 +386,31 @@ class HubSpotAPI:
         '''
         fiscal_year_start_ms = str(int(self.fiscal_year_start.timestamp() * 1000))
         filter_groups = [
-            {"filters": [{"propertyName": "createdate", "operator": "GTE", "value": fiscal_year_start_ms}]}
+            {"filters": [{"propertyName": "createdate", "operator": "GTE", "value": self.fiscal_year_start_ms}]}
         ]
-        return list(self.search('contacts', filter_groups=filter_groups, properties=["createdate", "hubspot_owner_id"]))
+        results = list(self.search('contacts', filter_groups=filter_groups, properties=properties))
+        return results
+    
+
+    def search_contacts(self, filter_groups: list = [], properties: list = ["createdate", "hubspot_owner_id"]) -> list[dict]:
+        '''`search_new_contacts`(self)
+        ---
+        <hr>
+        
+        Method to search Contacts in HubSpot specifically 
+            
+        <hr>
+        
+        Returns
+        ---
+        :return `variablename` (list[dict]): Response from :meth:`~search` containing the contacts found with the Hubspot API
+        '''
+        if filter_groups == []:
+            filter_groups = [
+                {"filters": [{"propertyName": "createdate", "operator": "GTE", "value": self.contact_searching}]}
+            ]
+        results = list(self.search('contacts', filter_groups=filter_groups, properties=properties))
+        return results
     
 
 

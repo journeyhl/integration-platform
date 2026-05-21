@@ -37,9 +37,27 @@ class Load:
             bp = 'here'
             # order_avs['validate_address'] = self.pipeline.acu_api.update_customer_address(order_avs['update_address_payload'])
             if order_avs['validate_address']:
-                self.pipeline.acu_api.validate_order_address(order_avs)
-                time.sleep(1)
-                self.pipeline.acu_api.order_remove_hold(order_avs)
-                time.sleep(1)
-                self.pipeline.acu_api.order_create_shipment(order_avs)
+                self.validate_remove_hold_create(order_avs)
                 bp = 'here'
+
+
+    def validate_remove_hold_create(self, order_avs):
+        iterations = 0
+        order_avs = self.pipeline.acu_api.get_order_details(order_avs)
+        while order_avs['ShippingValidated'] != True or order_avs['BillingValidated'] != True and iterations < 5:
+            self.pipeline.acu_api.validate_order_address(order_avs)
+            time.sleep(1)
+            order_avs = self.pipeline.acu_api.get_order_details(order_avs)
+            time.sleep(1)
+            iterations += 1
+        if iterations == 5:
+            self.logger.warning(f"Couldn't validate address for {order_avs['OrderNbr']}")
+            bp = 'here'
+        else:
+            self.pipeline.acu_api.order_remove_hold(order_avs)
+            time.sleep(1)
+            self.pipeline.acu_api.order_create_shipment(order_avs)
+            bp = 'here'
+        bp = 'here'
+        
+        

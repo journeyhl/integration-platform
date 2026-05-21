@@ -19,6 +19,7 @@ from .acu_to_dbc_quotes import AcuToDbcQuotes
 from .acu_to_dbc_sales_orders import AcuToDbcSalesOrders
 from .acu_to_dbc_phone_revenue import AcuToDbcPhoneRevenue
 from .hubspot_snapshot import HubSpotSnapshot
+from .hubspot_contacts import HubSpotContacts
 from .aftership_send import SendToAfterShip
 from .aftership_update import UpdateAfterShip
 from .aftership_to_dbc import AfterShipToDbc

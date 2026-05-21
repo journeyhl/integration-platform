@@ -80,7 +80,8 @@ class Transform:
             return shipment_formatted
         
         formatted_matches = []
-        for match in matches: 
+        for i, match in enumerate(matches): 
+            dupe_items = [mat['InventoryCD'] for j, mat in enumerate(matches) if i != j and mat['InventoryCD'] == match['InventoryCD'] and mat['TrackingNbr'] == match['TrackingNbr'] ]
             formatted_matches.append({
                 **self.shipment_formatted,
                 'InventoryCD_3pl': match['InventoryCD'],
@@ -91,6 +92,8 @@ class Transform:
                 'Courier_3pl': match['CourierName'],
                 'Instructions_3pl': match['Complete'],
             })
+            if len(dupe_items) + 1 == len(matches):
+                break
             bp = 'here'
         return formatted_matches
 
@@ -107,7 +110,8 @@ class Transform:
             }]
             return shipment_formatted
         formatted_matches = []
-        for match in matches:
+        for i, match in enumerate(matches):
+            dupe_items = [mat['InventoryCD'] for j, mat in enumerate(matches) if i != j and mat['InventoryCD'] == match['InventoryCD'] and mat['TrackingNbr'] == match['TrackingNbr'] ]
             formatted_matches.append({
                 **self.shipment_formatted,
                 'InventoryCD_3pl': match['InventoryCD'],
@@ -116,7 +120,8 @@ class Transform:
                 'ItemsOnPackage_3pl': match['order_item_qty'],
                 'Courier_3pl': match['Courier'],
             })
-            bp = 'here'
+            if len(dupe_items) + 1 == len(matches):
+                break
         return formatted_matches
 
     def smash_rmi_matches(self, acu_shipment: dict, matches: list):
@@ -133,7 +138,7 @@ class Transform:
             return shipment_formatted
         formatted_matches = []
         for i, match in enumerate(matches):
-            dupe_items = [mat['InventoryCD'] for j, mat in enumerate(matches) if i != j]
+            dupe_items = [mat['InventoryCD'] for j, mat in enumerate(matches) if i != j and mat['InventoryCD'] == match['InventoryCD'] and mat['Tracking'] == match['Tracking']]
             formatted_matches.append({
                 **self.shipment_formatted,
                 'InventoryCD_3pl': match['InventoryCD'],
@@ -248,21 +253,25 @@ class Transform:
         bp = 'here'
         packages = []
 
-        if shipment_line_data['ShipmentNbr'] == '079754':
+        if shipment_line_data['ShipmentNbr'] == '082690':
             bp = 'here'
         for i, line in enumerate(matched_shipment_data):
             if self.package_contents.get((line['ShipmentNbr'], line['TrackingNbr_3pl'])) == None:
                 distinct_items = len({line['InventoryCD'] for line in matched_shipment_data})
                 lines = len(matched_shipment_data)
-                
-                self.package_contents[(line['ShipmentNbr'], line['TrackingNbr_3pl'])] = [{
-                        "InventoryID": { "value": pkg_line_data['InventoryCD'] },
-                        "Quantity": { "value": pkg_line_data['Qty_3pl'] },
-                        "UOM": { "value": "EA" },
-                        "ShipmentSplitLineNbr": { "value": pkg_line_data['SplitLineNbr']}
-                    }
-                    for j, pkg_line_data in enumerate(matched_shipment_data) if line['TrackingNbr_3pl'] == pkg_line_data['TrackingNbr_3pl'] and line['ShipmentNbr'] == pkg_line_data['ShipmentNbr']
-                ]
+                self.package_contents[(line['ShipmentNbr'], line['TrackingNbr_3pl'])] = []
+                for j, pkg_line_data in enumerate(matched_shipment_data):
+                    if line['TrackingNbr_3pl'] == pkg_line_data['TrackingNbr_3pl'] and line['ShipmentNbr'] == pkg_line_data['ShipmentNbr']:
+                        qty = None
+                        if int(pkg_line_data['Qty_3pl']) != pkg_line_data['OrderQty']:
+                            qty = pkg_line_data['OrderQty']
+                        self.package_contents[(line['ShipmentNbr'], line['TrackingNbr_3pl'])].append({
+                            "InventoryID": { "value": pkg_line_data['InventoryCD'] },
+                            "Quantity": { "value": qty if qty else int(pkg_line_data['Qty_3pl'])},
+                            "UOM": { "value": "EA" },
+                            "ShipmentSplitLineNbr": {  "value": pkg_line_data['SplitLineNbr']}
+                        })
+                        bp = 'here'
                 package = {
                     "BoxID": { "value": "DEFAULT BOX" },
                     "TrackingNbr": { "value": f"{line['TrackingNbr_3pl']}" },
@@ -338,9 +347,9 @@ class Transform:
                     redstag_row = {
                         'ShipmentNbr': row['ShipmentNbr_3pl'],
                         'InventoryCD': item['sku'],
-                        'TrackingNbr': tracking_nbrs[0] if len(tracking_nbrs) == 1 else tracking_nbrs[i],
+                        'TrackingNbr': tracking_nbrs[0] if len(tracking_nbrs) == 1 else tracking_nbrs[i] if i < len(tracking_nbrs) else tracking_nbrs[1],
                         'Qty': item['quantity'],
-                        'Courier': packages[0]['manifest_courier'] if len(packages) == 1 else packages[i]['manifest_courier'],
+                        'Courier': packages[0]['manifest_courier'] if len(packages) == 1 else packages[i]['manifest_courier'] if i < len(packages) else packages[1]['manifest_courier'],
                         'order_item_qty': item['order_item_qty']
                     }
                     redstag_events.append(redstag_row)
