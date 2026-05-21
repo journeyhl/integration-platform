@@ -372,8 +372,58 @@ class AcumaticaAPI:
             })
             return return_bool
         
+    def get_order_details(self, order_data: dict, additional_details: str = '') -> dict:
+        '''`get_order_details`(order_data: *dict*, )
+        ---
+        <hr>
+        
+        Retrieves order details from Acumatica via API
+        
+        
+        ### Upstream Calls 
+         #### :meth:`~folder.file.class.method`
+            - Description
+            
+        <hr>
+        
+        Parameters
+        ---
+        :param (*dict*) `order_data`:  dictionary containing at least OrderType and OrderNbr
+        :param (*str*) `additional_details`: Additional data to get from API, for example, pass `?$expand=Shipments` to get Shipment details with response
+        
+        <hr>
+        
+        Returns
+        ---
+        :return `order_data` (dict): order_data dict that was parameter, but with BillingValidated and ShippingValidated added
+        '''
+        try:
+            response = self.session.get(f'{self.base_uri}/SalesOrder/{order_data['OrderType']}/{order_data['OrderNbr']}{additional_details}')
+            order_info = response.json()
+            order_data['ShippingValidated'] = order_info['ShipToAddressValidated']['value']
+            order_data['BillingValidated'] = order_info['BillToAddressOverride']['value']
+        except Exception as e:
+            order_info = None
+            self.logger.error(f'Error getting {order_data['OrderNbr']}')
+        bp = 'here'
+        return order_data
 
     def order_remove_hold(self, order_data: dict):
+        '''`order_remove_hold`(self, order_data: *dict*, )
+        ---
+        <hr>
+        
+        Given a dictionary containing OrderType and OrderNbr, removes an Order from hold
+        
+        ### Upstream Calls 
+         #### Address Validator - :class:`~load.address_validator.Load`.:meth:`~load.address_validator.Load.landing`
+            
+        <hr>
+        
+        Parameters
+        ---
+        :param (*dict*) `order_data`: dictionary containing at least OrderType and OrderNbr
+        '''
         self.logger.info(f'{order_data['OrderNbr']}: Removing Order from hold')
         bp = 'here'   
         payload = {

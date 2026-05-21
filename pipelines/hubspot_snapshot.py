@@ -35,7 +35,6 @@ class HubSpotSnapshot(Pipeline):
         super().__init__('hubspot-snapshot', function)
         self.hubapi = HubSpotAPI(self)
         self.transformer = Transform(self)
-        self.hubapi._set_snapshot_windows()
         pass
 
 
