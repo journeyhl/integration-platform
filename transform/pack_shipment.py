@@ -253,7 +253,7 @@ class Transform:
         bp = 'here'
         packages = []
 
-        if shipment_line_data['ShipmentNbr'] == '082690':
+        if shipment_line_data['ShipmentNbr'] == '082732':
             bp = 'here'
         for i, line in enumerate(matched_shipment_data):
             if self.package_contents.get((line['ShipmentNbr'], line['TrackingNbr_3pl'])) == None:
@@ -264,7 +264,7 @@ class Transform:
                     if line['TrackingNbr_3pl'] == pkg_line_data['TrackingNbr_3pl'] and line['ShipmentNbr'] == pkg_line_data['ShipmentNbr']:
                         qty = None
                         if int(pkg_line_data['Qty_3pl']) != pkg_line_data['OrderQty']:
-                            qty = pkg_line_data['OrderQty']
+                            qty = min(pkg_line_data['OrderQty'], int(pkg_line_data['Qty_3pl']))
                         self.package_contents[(line['ShipmentNbr'], line['TrackingNbr_3pl'])].append({
                             "InventoryID": { "value": pkg_line_data['InventoryCD'] },
                             "Quantity": { "value": qty if qty else int(pkg_line_data['Qty_3pl'])},
