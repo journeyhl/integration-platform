@@ -166,20 +166,39 @@ class Transform:
          
          self.order_create_payload
         '''
-        
-        item_payload =  [
-				{
-					"sku": shipment_line['InventoryCD'],
-					"qty": shipment_line['ShippedQty'],
-					"item_ref": shipment_line['InventoryCD'],
-					"shipVia": shipment_line['rsShipVia']
-				}
-                for shipment_line in data_extract.iter_rows(named=True)
-            if shipment['ShipmentNbr'] == shipment_line['ShipmentNbr']
-        ]
-        if len(item_payload) == 2 and item_payload[0]['item_ref'] == item_payload[1]['item_ref']:
-            item_payload[0]['qty'] += item_payload[1]['qty']
-            item_payload = item_payload[:1]
+        item_payload = []
+        for shipment_line in data_extract.iter_rows(named=True) :
+            if shipment['ShipmentNbr'] == shipment_line['ShipmentNbr']:
+                duplicate_items = [item['sku'] for item in item_payload if shipment_line['InventoryCD'] == item['sku']]
+                if shipment_line['InventoryCD'] not in duplicate_items or len(duplicate_items) == 0:
+                    item_payload.append(
+                        {
+                            "sku": shipment_line['InventoryCD'],
+                            "qty": shipment_line['ShippedQty'],
+                            "item_ref": shipment_line['InventoryCD'],
+                            "shipVia": shipment_line['rsShipVia']
+                        }
+                    )
+                else:
+                    duplicate_item_palyload = next((item for item in item_payload if shipment_line['InventoryCD'] == item['sku']), {})
+                    existing_index = item_payload.index(duplicate_item_palyload)
+                    item_payload[existing_index]['qty'] += shipment_line['ShippedQty']
+                    bp = 'here'
+
+
+        # item_payload =  [
+		# 		{
+		# 			"sku": shipment_line['InventoryCD'],
+		# 			"qty": shipment_line['ShippedQty'],
+		# 			"item_ref": shipment_line['InventoryCD'],
+		# 			"shipVia": shipment_line['rsShipVia']
+		# 		}
+        #         for shipment_line in data_extract.iter_rows(named=True)
+        #     if shipment['ShipmentNbr'] == shipment_line['ShipmentNbr']
+        # ]
+        # if len(item_payload) == 2 and item_payload[0]['item_ref'] == item_payload[1]['item_ref']:
+        #     item_payload[0]['qty'] += item_payload[1]['qty']
+        #     item_payload = item_payload[:1]
         item_payload, ship_via = self._determine_shipvia(shipment=shipment, item_payload=item_payload)
         reference_numbers = {} if shipment['OrigOrderType'] != 'RT' else shipment['CustomerOrderNbr']
 
