@@ -53,5 +53,5 @@ left(isi.SiteCD, 7) = 'RedStag' and sl.OrigOrderType != 'RC'
 and s.Status not in('C', 'L', 'F', 'I')
 and k.ValueNumeric = 0
 -- s.ShipmentNbr = '077252' and sl.LineNbr = 1		--This line is to send one offs
--- and s.ShipmentNbr = '078974'
+-- and s.ShipmentNbr != '083252'
 order by ShipmentNbr, LineNumber
