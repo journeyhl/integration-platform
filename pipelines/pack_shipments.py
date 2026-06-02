@@ -50,13 +50,13 @@ class PackShipments(Pipeline):
         redstag_event_extract = self.centralstore.query_to_dataframe(query=self.centralstore.queries.RedStagEvents)
         rmi_extract = self.centralstore.query_to_dataframe(query=self.centralstore.queries.PackShipmentRMI)
         acu_extract = self.acudb.query_to_dataframe(query=self.acudb.queries.PackShipment)
-        alternate_redstag_event_extract = pl.DataFrame(self.alt_extract.run_as_extract())
+        # alternate_redstag_event_extract = pl.DataFrame(self.alt_extract.run_as_extract())
         data_extract = {
             'central_extract': central_extract,
             'redstag_event_extract': redstag_event_extract,
             'rmi_extract': rmi_extract,
             'acu_extract': acu_extract,
-            'alt_redstag_event_extract': alternate_redstag_event_extract,
+            # 'alt_redstag_event_extract': alternate_redstag_event_extract,
         }
         return data_extract
 

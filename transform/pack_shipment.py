@@ -14,11 +14,12 @@ class Transform:
     def transform(self, data_extract: dict[str, pl.DataFrame]):
         central_transformed = data_extract['central_extract']
         redstag_transformed = self.transform_redstag_events(data_extract['redstag_event_extract'])
-        alt_redstag_transformed = self.transform_redstag_events(data_extract['alt_redstag_event_extract'], 'alt')
-        alt_filtered = [alt for alt in alt_redstag_transformed if alt not in redstag_transformed]
-        for alt in alt_redstag_transformed:
-            if alt not in redstag_transformed:
-                redstag_transformed.append(alt)
+        # alt_redstag_transformed = self.transform_redstag_events(data_extract['alt_redstag_event_extract'], 'alt')
+        # alt_filtered = [alt for alt in alt_redstag_transformed if alt not in redstag_transformed]
+        # keys = [rs['key'] for rs in redstag_transformed if rs['ShipmentNbr'] == '083418']
+        # for alt in alt_redstag_transformed:
+        #     if alt['key'] not in keys:
+        #         redstag_transformed.append(alt)
         rmi_extract = data_extract['rmi_extract']
         acu_transformed = data_extract['acu_extract']
         data_transformed = []
@@ -324,8 +325,9 @@ class Transform:
 
     def transform_redstag_events(self, redstag_extract: pl.DataFrame, sender: str = ''):
         redstag_events = []
-        multiples = 0
         for row in redstag_extract.iter_rows(named=True):
+            if row['ShipmentNbr_3pl'] == '083418':
+                bp = 'here'
             try:
                 tracking_nbrs = json.loads(row['TrackingNumbers'])
             except TypeError as t:
@@ -352,7 +354,8 @@ class Transform:
                     'TrackingNbr': tracking_nbrs[0],
                     'Qty': int(float(items[0]['quantity'])) if items[0].get('quantity') else int(float(items[0]['qty_ordered'])),
                     'Courier': packages[0]['manifest_courier'] if packages[0].get('manifest_courier') else packages[0]['manifest_courier_name'],
-                    'order_item_qty': int(float(items[0]['order_item_qty'])) if items[0].get('order_item_qty') else int(float(items[0]['qty_ordered']))
+                    'order_item_qty': int(float(items[0]['order_item_qty'])) if items[0].get('order_item_qty') else int(float(items[0]['qty_ordered'])),
+                    'key': f'{row['ShipmentNbr_3pl']}-{items[0]['sku']}-{tracking_nbrs[0]}'
                 }
                 redstag_events.append(redstag_row)
             else:
@@ -364,13 +367,15 @@ class Transform:
                     else:
                         courier = packages[1]['manifest_courier'] if packages[1].get('manifest_courier') else packages[1]['manifest_courier_name']
 
+                    tracking = tracking_nbrs[0] if len(tracking_nbrs) == 1 or (tracking_nbrs[0][0] == '3' and tracking_nbrs[1][0] == '9' and len(tracking_nbrs) == 2) else tracking_nbrs[i] if i < len(tracking_nbrs) else tracking_nbrs[1]
                     redstag_row = {
                         'ShipmentNbr': row['ShipmentNbr_3pl'],
                         'InventoryCD': item['sku'],
-                        'TrackingNbr': tracking_nbrs[0] if len(tracking_nbrs) == 1 else tracking_nbrs[i] if i < len(tracking_nbrs) else tracking_nbrs[1],
+                        'TrackingNbr': tracking,
                         'Qty': int(float(item['quantity'])) if item.get('quantity') else int(float(item['qty_ordered'])),
                         'Courier': courier,
-                        'order_item_qty': int(float(item['order_item_qty'])) if item.get('order_item_qty') else int(float(item['qty_ordered']))
+                        'order_item_qty': int(float(item['order_item_qty'])) if item.get('order_item_qty') else int(float(item['qty_ordered'])),
+                        'key': f'{row['ShipmentNbr_3pl']}-{item['sku']}-{tracking}'
                     }
                     redstag_events.append(redstag_row)
                     bp = 'here'
