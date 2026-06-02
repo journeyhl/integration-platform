@@ -495,7 +495,7 @@ class AcumaticaAPI:
             # if response_details['package_count'] == 0:
             return response_details
         except Exception as e:
-            self.logger.error(f'Error getting packages for {shipment_data['ShipmentNbr']} ({shipment_data['OrderNbr']})')
+            self.logger.error(f'Error getting packages for {shipment_data['ShipmentNbr']}')
             return {}
 
     def shipment_details_attr(self, shipment_data: dict):

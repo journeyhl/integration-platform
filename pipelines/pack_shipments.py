@@ -2,7 +2,9 @@ from pipelines import Pipeline
 from connectors import AcumaticaAPI
 from transform.pack_shipment import Transform
 from load.shipment_api import Load
+from pipelines.redstag_order_search import RedStagOrderSearch
 import json
+import polars as pl
 
 class PackShipments(Pipeline):
     '''`PackShipments`(Pipeline)
@@ -39,6 +41,7 @@ class PackShipments(Pipeline):
         self.acu_api = AcumaticaAPI(self)
         self.transformer = Transform(self)
         self.loader = Load(self)
+        self.alt_extract = RedStagOrderSearch('pack-shipments')
         
 
 
@@ -47,11 +50,13 @@ class PackShipments(Pipeline):
         redstag_event_extract = self.centralstore.query_to_dataframe(query=self.centralstore.queries.RedStagEvents)
         rmi_extract = self.centralstore.query_to_dataframe(query=self.centralstore.queries.PackShipmentRMI)
         acu_extract = self.acudb.query_to_dataframe(query=self.acudb.queries.PackShipment)
+        alternate_redstag_event_extract = pl.DataFrame(self.alt_extract.run_as_extract())
         data_extract = {
             'central_extract': central_extract,
             'redstag_event_extract': redstag_event_extract,
             'rmi_extract': rmi_extract,
-            'acu_extract': acu_extract
+            'acu_extract': acu_extract,
+            'alt_redstag_event_extract': alternate_redstag_event_extract,
         }
         return data_extract
 
