@@ -9,6 +9,7 @@ from .confirm_open_shipments import ShipmentsReadyToConfirm
 from .pack_shipments import PackShipments
 from .redstag_send_shipments import SendRedStagShipments
 from .redstag_inventory import RedStagInventory
+from .redstag_order_search import RedStagOrderSearch
 from .acu_deletions import AcumaticaDeletions
 from .address_validator import AddressValidator
 from .criteo import Criteo

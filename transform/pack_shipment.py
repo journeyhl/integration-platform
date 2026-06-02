@@ -14,6 +14,11 @@ class Transform:
     def transform(self, data_extract: dict[str, pl.DataFrame]):
         central_transformed = data_extract['central_extract']
         redstag_transformed = self.transform_redstag_events(data_extract['redstag_event_extract'])
+        alt_redstag_transformed = self.transform_redstag_events(data_extract['alt_redstag_event_extract'], 'alt')
+        alt_filtered = [alt for alt in alt_redstag_transformed if alt not in redstag_transformed]
+        for alt in alt_redstag_transformed:
+            if alt not in redstag_transformed:
+                redstag_transformed.append(alt)
         rmi_extract = data_extract['rmi_extract']
         acu_transformed = data_extract['acu_extract']
         data_transformed = []
@@ -263,11 +268,11 @@ class Transform:
                 for j, pkg_line_data in enumerate(matched_shipment_data):
                     if line['TrackingNbr_3pl'] == pkg_line_data['TrackingNbr_3pl'] and line['ShipmentNbr'] == pkg_line_data['ShipmentNbr']:
                         qty = None
-                        if int(pkg_line_data['Qty_3pl']) != pkg_line_data['OrderQty']:
-                            qty = min(pkg_line_data['OrderQty'], int(pkg_line_data['Qty_3pl']))
+                        if pkg_line_data['Qty_3pl'] != pkg_line_data['OrderQty']:
+                            qty = min(pkg_line_data['OrderQty'], pkg_line_data['Qty_3pl'])
                         self.package_contents[(line['ShipmentNbr'], line['TrackingNbr_3pl'])].append({
                             "InventoryID": { "value": pkg_line_data['InventoryCD'] },
-                            "Quantity": { "value": qty if qty else int(pkg_line_data['Qty_3pl'])},
+                            "Quantity": { "value": qty if qty else pkg_line_data['Qty_3pl']},
                             "UOM": { "value": "EA" },
                             "ShipmentSplitLineNbr": {  "value": pkg_line_data['SplitLineNbr']}
                         })
@@ -317,40 +322,55 @@ class Transform:
     
 
 
-    def transform_redstag_events(self, redstag_extract: pl.DataFrame):
+    def transform_redstag_events(self, redstag_extract: pl.DataFrame, sender: str = ''):
         redstag_events = []
         multiples = 0
         for row in redstag_extract.iter_rows(named=True):
             try:
                 tracking_nbrs = json.loads(row['TrackingNumbers'])
-            except:
+            except TypeError as t:
+                tracking_nbrs = row['TrackingNumbers']
+            except Exception as e:
                 tracking_nbrs = []
             if len(tracking_nbrs) == 0:
                 continue
             if len(tracking_nbrs) > 1:
                 bp = 'here'
-            packages = json.loads(row['Packages'])
-            items = json.loads(row['Items'])
-            trackers = json.loads(row['Trackers'])
+            if sender == 'alt':
+                packages = row['Packages']
+                items = row['Items']
+                trackers = row['Trackers']
+                tracking_nbrs = [t['number'] for t in tracking_nbrs]
+            else:
+                packages = json.loads(row['Packages'])
+                items = json.loads(row['Items'])
+                trackers = json.loads(row['Trackers'])
             if len(items) == 1:
                 redstag_row = {
                     'ShipmentNbr': row['ShipmentNbr_3pl'],
                     'InventoryCD': items[0]['sku'],
                     'TrackingNbr': tracking_nbrs[0],
-                    'Qty': items[0]['quantity'],
-                    'Courier': packages[0]['manifest_courier'],
-                    'order_item_qty': items[0]['order_item_qty']
+                    'Qty': int(float(items[0]['quantity'])) if items[0].get('quantity') else int(float(items[0]['qty_ordered'])),
+                    'Courier': packages[0]['manifest_courier'] if packages[0].get('manifest_courier') else packages[0]['manifest_courier_name'],
+                    'order_item_qty': int(float(items[0]['order_item_qty'])) if items[0].get('order_item_qty') else int(float(items[0]['qty_ordered']))
                 }
                 redstag_events.append(redstag_row)
             else:
                 for i, item in enumerate(items):
+                    if len(packages) == 1:                        
+                        courier = packages[0]['manifest_courier'] if packages[0].get('manifest_courier') else packages[0]['manifest_courier_name']
+                    elif i < len(packages):
+                        courier = packages[i]['manifest_courier'] if packages[i].get('manifest_courier') else packages[i]['manifest_courier_name']
+                    else:
+                        courier = packages[1]['manifest_courier'] if packages[1].get('manifest_courier') else packages[1]['manifest_courier_name']
+
                     redstag_row = {
                         'ShipmentNbr': row['ShipmentNbr_3pl'],
                         'InventoryCD': item['sku'],
                         'TrackingNbr': tracking_nbrs[0] if len(tracking_nbrs) == 1 else tracking_nbrs[i] if i < len(tracking_nbrs) else tracking_nbrs[1],
-                        'Qty': item['quantity'],
-                        'Courier': packages[0]['manifest_courier'] if len(packages) == 1 else packages[i]['manifest_courier'] if i < len(packages) else packages[1]['manifest_courier'],
-                        'order_item_qty': item['order_item_qty']
+                        'Qty': int(float(item['quantity'])) if item.get('quantity') else int(float(item['qty_ordered'])),
+                        'Courier': courier,
+                        'order_item_qty': int(float(item['order_item_qty'])) if item.get('order_item_qty') else int(float(item['qty_ordered']))
                     }
                     redstag_events.append(redstag_row)
                     bp = 'here'
