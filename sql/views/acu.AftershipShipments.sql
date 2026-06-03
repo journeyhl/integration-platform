@@ -1,12 +1,4 @@
-/****** Object:  View [acu].[AftershipShipments]    Script Date: 4/28/2026 10:07:02 AM ******/
-SET ANSI_NULLS ON
-GO
-
-SET QUOTED_IDENTIFIER ON
-GO
-
-
-create view [acu].[AftershipShipments]
+create view acu.AftershipShipments
 as
 SELECT s.[ShipmentNbr]
       , s.[ShipLineNbr]
@@ -82,7 +74,5 @@ and (s.ShipLineNbr = 1
 	 or (s.ShipLineNbr != 1 and s.Tracking != (select Tracking from acu.Shipments h where h.ShipmentNbr = s.ShipmentNbr and h.ShipLineNbr = 1))
 	 )
 and s.WarehouseID != 'RLM NEJ HB'
-
-GO
 
 
