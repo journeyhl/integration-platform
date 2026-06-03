@@ -44,10 +44,10 @@ class AcumaticaAPI:
             self.logger = logging.getLogger(f'{pipeline}.acu_api')
         else:
             self.logger = logging.getLogger(f'{pipeline.pipeline_name}.acu_api')
-        self.version = '22.200.001'
+        self.version = '24.200.001'
         self.auth_type = 'Cookie'
         self.uri = 'https://erp.journeyhl.com/entity'
-        self.endpoint_name = 'pyplatform'
+        self.endpoint_name = 'IntegrationPlatform'
         self.base_uri = f'{self.uri}/{self.endpoint_name}/{self.version}'
         self.username = ACUMATICA_API['username']
         self.password = ACUMATICA_API['password']

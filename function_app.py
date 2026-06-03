@@ -652,7 +652,7 @@ def acu_to_dbc_phone_revenue(timer: af.TimerRequest):
 #               Upsert to acu.Shipments
 #                  3x/hour, 5am-11:40pm
 @app.timer_trigger(
-    schedule = '20 5-23 * * *',
+    schedule = '*/20 5-23 * * *',
     arg_name = 'timer',
     run_on_startup = False
 )
