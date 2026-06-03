@@ -650,7 +650,7 @@ def acu_to_dbc_phone_revenue(timer: af.TimerRequest):
 
 #region            acu_to_dbc_shipments
 #               Upsert to acu.Shipments
-#         3x/day (1:40am, 9:40am, 5:40pm)
+#                  3x/hour, 5am-11:40pm
 @app.timer_trigger(
     schedule = '20 5-23 * * *',
     arg_name = 'timer',
