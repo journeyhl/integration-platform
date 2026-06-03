@@ -645,3 +645,35 @@ def acu_to_dbc_phone_revenue(timer: af.TimerRequest):
     phone_revenue = AcuToDbcPhoneRevenue('acu_to_dbc_phone_revenue')
     phone_revenue.run()
 #endregion       acu_to_dbc_phone_revenue
+
+
+
+#region            acu_to_dbc_shipments
+#               Upsert to acu.Shipments
+#         3x/day (1:40am, 9:40am, 5:40pm)
+@app.timer_trigger(
+    schedule = '20 5-23 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def acu_to_dbc_shipments(timer: af.TimerRequest):
+    from pipelines import AcuToDbcShipments #acu-to-dbc-shipments
+    shipments = AcuToDbcShipments('acu_to_dbc_shipments')
+    shipments.run()
+#endregion       acu_to_dbc_shipments
+
+
+
+#region            acu_to_dbc_customers
+#               Upsert to acu.Customers
+#6x/day (3:10am, 7:10am, 11:10pm, 3:10pm, 7:10pm, 11:10pm)
+@app.timer_trigger(
+    schedule = '10 3/4 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def acu_to_dbc_customers(timer: af.TimerRequest):
+    from pipelines import AcuToDbcCustomers #acu-to-dbc-customers
+    customers = AcuToDbcCustomers('acu_to_dbc_customers')
+    customers.run()
+#endregion       acu_to_dbc_customers

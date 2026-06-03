@@ -26,8 +26,8 @@ select s.OrderType									OrderType
 	 , coalesce(sc.Email, bc.Email)					Email
 	 , coalesce(sa.AddressLine1, ba.AddressLine1)	AddressLine1
 	 , case when coalesce(sa.AddressLine2,
-ba.AddressLine2) = ''then null 
-else coalesce(sa.AddressLine2,ba.AddressLine2) end 	AddressLine2
+       ba.AddressLine2) = ''then null 
+       else coalesce(sa.AddressLine2,ba.AddressLine2) end 	AddressLine2
 	 , coalesce(sa.City, ba.City)		 			City
 	 , coalesce(sa.State, ba.State)		 			State
 	 , coalesce(sa.PostalCode, ba.PostalCode)		Zip
@@ -74,7 +74,6 @@ left join BAccount o on s.CompanyID = o.CompanyID and s.OwnerID = o.DefContactID
 left join Contact oc on s.CompanyID = oc.CompanyID and o.DefContactID = oc.ContactID
 left join CustSalesPeople csp on s.CompanyID = csp.CompanyID and s.CustomerID = csp.BAccountID
 left join SalesPerson sp on s.CompanyID = sp.CompanyID and csp.SalesPersonID = sp.SalespersonID
-
 
 left join Users uc on s.CompanyID = uc.CompanyID and s.CreatedByID = uc.PKID
 left join Users um on s.CompanyID = um.CompanyID and s.LastModifiedByID = um.PKID
