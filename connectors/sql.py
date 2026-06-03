@@ -202,6 +202,9 @@ class AcumaticaDbQueries(Queries):
     AcuToDbc_SalesOrders: Query
     '''Pulls Sales Orders for upsert to acu.SalesOrders'''
     AcuToDbc_Shipments: Query
+    '''Pulls Shipments for upsert to acu.Shipments'''
+    AcuToDbc_Customers: Query
+    '''Pulls Customers for upsert to acu.Customers'''
     Aftership_Shipments: Query
     '''Pulls Shipments that have tracking data to be sent to Aftership'''
     RMI_Link3PL: Query
