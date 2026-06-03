@@ -24,7 +24,7 @@ select sh.ShipmentNbr
      , cast(sh.FreightCost as decimal (18,2)) FreightCost
      , cast(k_wh.ValueNumeric as int) SenttoWH
      , cast(k_dt.ValueString as datetime) SentToWHDatetime
-	 , dateadd(hour, -4, b.LastModifiedDateTime) LastModifiedDT
+	 , dateadd(hour, -4, sh.LastModifiedDateTime) LastModifiedDT
      , ltrim(rtrim(p.TrackNumber)) Tracking
      , dateadd(hour, -4, p.CreatedDateTime) TrackingCreatedDate
      , coalesce(sc.Phone1, sc.Phone2) CustomerPhone
@@ -71,7 +71,8 @@ left join SOShipmentKvExt k_cc on sh.CompanyID = k_cc.CompanyID and sh.NoteID = 
 left join SOShipmentKvExt k_cn on sh.CompanyID = k_cn.CompanyID and sh.NoteID = k_cn.RecordID and k_cn.FieldName = 'AttributeCOURNAME'
 left join JJStatusLookup jsh on sh.Status = jsh.CStatus and jsh.Tbl = 'SOShipment'
 where s.CompanyID = 2 
-and dateadd(hour, -4, s.LastModifiedDateTime) >=  dateadd(hour, -2, getdate())
+and dateadd(hour, -4, sh.LastModifiedDateTime) >=  dateadd(hour, -1, getdate())
+-- and dateadd(hour, -4, sh.LastModifiedDateTime) >=  dateadd(day, -120, getdate())
 -- and dateadd(hour, -4, s.LastModifiedDateTime) >=  dateadd(day, -1, getdate())
 -- and s.OrderNbr = 'PH145626'
 -- and s.LastModifiedDateTime >= cast(getdate()-30 as date)
@@ -124,3 +125,4 @@ select t.ShipmentNbr
      , t.CreatedBy
      , t.LastModifiedBy
 from TopLevel t
+order by LastModifiedDT desc

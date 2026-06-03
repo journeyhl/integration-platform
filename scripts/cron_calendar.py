@@ -33,6 +33,6 @@ for i, line in enumerate(lines):
     schedule[line] = lines[i-1]
     schedule_string += f"\n\t'{line}': '{lines[i-1]}',"
 schedule_string += '\n}'
-# import pyperclip
-# pyperclip.copy(schedule_string)
+import pyperclip
+pyperclip.copy(schedule_string)
 bp = 'here'
