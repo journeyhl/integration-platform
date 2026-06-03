@@ -72,7 +72,7 @@ left join SOShipmentKvExt k_cn on sh.CompanyID = k_cn.CompanyID and sh.NoteID = 
 left join JJStatusLookup jsh on sh.Status = jsh.CStatus and jsh.Tbl = 'SOShipment'
 where s.CompanyID = 2 
 and dateadd(hour, -4, sh.LastModifiedDateTime) >=  dateadd(hour, -1, getdate())
--- and dateadd(hour, -4, sh.LastModifiedDateTime) >=  dateadd(day, -120, getdate())
+-- and dateadd(hour, -4, sh.LastModifiedDateTime) >=  dateadd(day, -122, getdate())
 -- and dateadd(hour, -4, s.LastModifiedDateTime) >=  dateadd(day, -1, getdate())
 -- and s.OrderNbr = 'PH145626'
 -- and s.LastModifiedDateTime >= cast(getdate()-30 as date)
