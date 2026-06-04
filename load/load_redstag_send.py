@@ -39,6 +39,10 @@ class Load:
             self.create_response = self.pipeline.redstag.target_api(payload_target=data['execution_payload'], operation=data['execution_operation'])
             if self.create_response.get('results'):
                 self.create_response = self.create_response['results'][0]
+            elif self.create_response.get('error'):
+                self.logger.error(f'{shipment}: Error {self.create_response['error']['code']}! {self.create_response['error']['message']}')
+                self.logger.warning(f'Skipping {shipment}...')
+                continue
             if i % 10 == 0 and i != 0:
                 self.logger.info('Sleeping 3 seconds...')
                 time.sleep(3)

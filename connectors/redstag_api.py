@@ -156,7 +156,7 @@ class RedStagAPI:
             self.logger.info(f'Operation: {operation}: Response parsed successfully')
             if json_response.get('result'):
                 return json_response['result']
-            return json_response['result']
+            return json_response
         except Exception as e:
             self.logger.error(f'Operation: {operation}: Failed to get a response from RedStag API')
             raise
