@@ -176,9 +176,7 @@ class Transform:
                             "sku": shipment_line['InventoryCD'],
                             "qty": shipment_line['ShippedQty'],
                             "item_ref": shipment_line['InventoryCD'],
-                            "shipVia": shipment_line['rsShipVia'],
-                            "unit_customs_value_currency": "USD",
-                            "unit_customs_value": "0",
+                            "shipVia": shipment_line['rsShipVia']
                         }
                     )
                 else:
