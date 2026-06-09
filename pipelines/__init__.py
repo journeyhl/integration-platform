@@ -12,6 +12,7 @@ from .pack_shipments import PackShipments
 from .acu_deletions import AcumaticaDeletions
 from .address_validator import AddressValidator
 from .sales_order_cleaner import SalesOrderCleaner
+from .cosignment_reclassification import ConsignmentReclassification
 
 from .acu_to_dbc_quotes import AcuToDbcQuotes
 from .acu_to_dbc_sales_orders import AcuToDbcSalesOrders
@@ -27,6 +28,7 @@ from .redstag_order_search import RedStagOrderSearch
 
 from .hubspot_snapshot import HubSpotSnapshot
 from .hubspot_contacts import HubSpotContacts
+from .hubspot_company_revenue import HubspotCompanyRevenue
 
 from .criteo import Criteo
 from .hubspot_properties import HubSpotProperties

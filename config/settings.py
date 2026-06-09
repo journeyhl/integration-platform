@@ -1269,6 +1269,12 @@ DATABASES = {
         'database': os.getenv('ACUMATICA_DATABASE'),
         'username': os.getenv('ACUMATICA_USERNAME'),
         'password': os.getenv('ACUMATICA_PASSWORD'),
+    },
+    'AcudevDb': {
+        'server': os.getenv('ACUDEV_SERVER'),
+        'database': os.getenv('ACUDEV_DATABASE'),
+        'username': os.getenv('ACUDEV_USERNAME'),
+        'password': os.getenv('ACUDEV_PASSWORD'),
     }
 }
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING,  Any, Iterator
 if TYPE_CHECKING:
-    from pipelines import HubSpotSnapshot, HubSpotProperties, HubSpotContacts
+    from pipelines import HubSpotSnapshot, HubSpotProperties, HubSpotContacts, HubspotCompanyRevenue
 from config.settings import HUBSPOT
 from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo
@@ -11,12 +11,12 @@ import time
 
 
 class HubSpotAPI:
-    def __init__(self, pipeline: HubSpotSnapshot | HubSpotProperties | HubSpotContacts):
+    def __init__(self, pipeline: HubSpotSnapshot | HubSpotProperties | HubSpotContacts | HubspotCompanyRevenue | str):
         self.pipeline = pipeline
         if type(pipeline) == str:
             self.logger = logging.getLogger(f'{pipeline}.hubspot_api')
         else:
-            self.logger = logging.getLogger(f'{pipeline.pipeline_name}.hubspot_api')
+            self.logger = logging.getLogger(f'{pipeline.pipeline_name}.hubspot_api') #type: ignore
         self.base_url = 'https://api.hubapi.com'
         self.session = requests.Session()
         self.session.headers.update({
@@ -220,8 +220,8 @@ class HubSpotAPI:
 
 
 
-    def search(self, object_type: str, filter_groups: list[dict], properties: list[str], limit: int = 100) -> Iterator[dict]:
-        '''`search`(self, object_type: *str*, filter_groups: *list[dict]*, properties: *list[str]*)
+    def search(self, object_type: str, filter_groups: list[dict], properties: list[str], query: str = '', limit: int = 100) -> Iterator[dict]:
+        '''`search`(self, object_type: *str*, filter_groups: *list[dict]*, properties: *list[str]*, query *str = ''*, limit: *int = 100*)
         ---
         <hr>
         
@@ -246,6 +246,9 @@ class HubSpotAPI:
         :param (*str*) `object_type`: Type of object that we are searching for (deals, calls, emails, meetings, etc)
         :param (*list[dict]*) `filter_groups`: How filtering of records should be performed
         :param (*list[str]*) `properties`: Additional properties that should be included in the response from API
+        :param (*list[str]*) `query`: Value to search for in hubspot
+        :param (*list[str]*) `limit`: Limit of records to return
+
         '''
         path = f'/crm/v3/objects/{object_type}/search'
         after: str | None = None
@@ -257,6 +260,8 @@ class HubSpotAPI:
                 'properties': properties,
                 'limit': limit,
             }
+            if query != '':
+                body['query'] = query
             if after:
                 body['after'] = after
             data = self._request('POST', path, json=body)
@@ -413,9 +418,111 @@ class HubSpotAPI:
         return results
     
 
+    def search_by_phone(self, phone_value: str, object_type: str = 'contacts', filter_groups: list = [], properties: list = ["createdate", "hubspot_owner_id", "email", "phone"]) -> list[dict]:
+        '''`search_new_contacts`(self)
+        ---
+        <hr>
+        
+        Method to search Contacts in HubSpot specifically 
+            
+        <hr>
+        
+        Returns
+        ---
+        :return `variablename` (list[dict]): Response from :meth:`~search` containing the contacts found with the Hubspot API
+        '''
+        # if filter_groups == []:
+        #     filter_groups = [
+        #         {"filters": [{"propertyName": "createdate", "operator": "GTE", "value": self.contact_searching}]}
+        #     ]
+        results = list(self.search(object_type=object_type, filter_groups=filter_groups, properties=properties, query=phone_value))
+        return results
 
     
+    def retrieve_companies(self, limit: int = 100):
+        companies = []
+        after: str | None = None
+        while True:
+            body: dict[str, Any] = {
+                'properties': ['name', 'phone', 'email'],
+                'limit': limit,
+                'sorts': [{'propertyName': 'createdate', 'direction': 'DESCENDING'}],
+                'filterGroups': [],
+            }
+            if after:
+                body['after'] = after
+            self.logger.info('Retrieving companies...')
+            data = self._request('POST', '/crm/v3/objects/companies/search', json=body)
+            for company in data.get('results', []):
+                name = company['properties']['name'].strip()
+                self.prefix = f'{len(companies) + 1}: {name}'
+                self.logger.info(self.prefix)                
+                company_id = company['id']
+                company = {
+                    'id': company['id'],
+                    'name': company['properties'].get('name'),
+                    'phone': company['properties'].get('phone'),
+                    'email': company['properties'].get('email'),
+                    'create_date': company['createdAt'],
+                    'update_data': company['updatedAt']
+                }
+                company = self.get_company_primary_contact(company)
+                companies.append(company)
+            after = data.get('paging', {}).get('next', {}).get('after')
+            if not after: #or len(companies) >= 3000:
+                break
+        return companies
+    
+    def get_company_primary_contact(self, company: dict) -> dict | None:
+        company_addition = {
+            'pc_id': None,
+            'pc_phone': None,
+            'pc_email': None,
+            'pc_fname': None,
+            'pc_lname': None,
+            'pc_name': None,
+            'pc_create_date': None,
+            'pc_update_date': None
+        }
+        self.logger.info(f'{self.prefix}, retrieving primary contact...')
+        data = self._request('GET', f'/crm/v4/objects/companies/{company['id']}/associations/contacts')
+        for result in data.get('results', []):
+            for assoc_type in result.get('associationTypes', []):
+                if assoc_type.get('label') == 'Contact with Primary Company':
+                    contact_id = result['toObjectId']
+                    self.logger.info(f'{self.prefix}, found primary contact, retrieving details...')
+                    contact = self._request('GET', f'/crm/v3/objects/contacts/{contact_id}', params={
+                        'properties': 'firstname,lastname,email,phone,name'
+                    })
+                    name = f"{contact['properties'].get('firstname', '') or ''} {contact['properties'].get('lastname', '') or ''}".strip()
+                    company_addition = {
+                        'pc_id': contact['id'],
+                        'pc_phone': contact['properties'].get('phone'),
+                        'pc_email':contact['properties'].get('email'),
+                        'pc_fname': contact['properties'].get('firstname'),
+                        'pc_lname': contact['properties'].get('lastname'),
+                        'pc_name': name if name != '' else None,
+                        'pc_create_date': contact['createdAt'],
+                        'pc_update_date': contact['updatedAt']
+                    }
+                    self.logger.info(f'{self.prefix}, parsed primary contact successfully!')
+            
+        company = {
+            **company,
+            **company_addition
+        }
+        return company
 
+
+
+    def update_company(self, company: dict, property_payload: dict):
+        path = f'/crm/v3/objects/companies/{company['id']}'
+        url = f'{self.base_url}{path}'
+        browser_link = f'https://app.hubspot.com/contacts/5053729/record/0-2/{company['id']}'
+        response = self.session.patch(url=url,json=property_payload)
+        self.logger.info(f'{self.pipeline.transformer.prefix} updated. {browser_link}') #type: ignore
+        time.sleep(1)
+        bp = 'here'
 
 
     #TODO Pull in data on all the contacts

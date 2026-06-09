@@ -1,29 +1,37 @@
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from connectors import Teams, HubSpotAPI, Sharepoint
+from connectors import Teams, HubSpotAPI
 from pipelines import HubSpotSnapshot
 
 
-sp = Sharepoint('testing')
-test = sp.get_file('/sites/Marketing/Shared Documents/Ad Planning/Ad Plan 2026.xlsx')
+hs = HubSpotAPI('.script')
+test = hs.retrieve_companies()
+hs.search_by_phone(phone_value='+18475731908', object_type='companies',)
 bp = 'here'
 
 
+# sp = Sharepoint('testing')
+# test = sp.get_file('/sites/Marketing/Shared Documents/Ad Planning/Ad Plan 2026.xlsx')
+# bp = 'here'
 
 
-hubsnap = HubSpotSnapshot()
 
-properties = hubsnap.hubapi.get_properties('contacts')
+# acu = AcumaticaAPI('.debug')
+
+# acu.customers()
+
+# bp = 'here'
+# properties = hubsnap.hubapi.get_properties('contacts')
 
 
-hubsnap.centralstore.checked_upsert_paginated('hs.Properties', properties)
+# hubsnap.centralstore.checked_upsert_paginated('hs.Properties', properties)
 
-bp = 'here'
-hubsnap.run()
-teams = Teams('script')
-bp = teams.send_message('test')
-bp = 'here'
+# bp = 'here'
+# hubsnap.run()
+# teams = Teams('script')
+# bp = teams.send_message('test')
+# bp = 'here'
 # files.list_files(files)
 
 

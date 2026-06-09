@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 import time
 class AcumaticaAPI:
-    def __init__(self, pipeline):
+    def __init__(self, pipeline, env: str='prod'):
         """`init`(self, pipeline: *Pipeline | str*)
         ---
         <hr>
@@ -46,7 +46,9 @@ class AcumaticaAPI:
             self.logger = logging.getLogger(f'{pipeline.pipeline_name}.acu_api')
         self.version = '24.200.001'
         self.auth_type = 'Cookie'
-        self.uri = 'https://erp.journeyhl.com/entity'
+        self.uri_env = 'erp' if env == 'prod' else 'acudev'
+        self.uri = f'https://{self.uri_env}.journeyhl.com/entity'
+        self.auth_url = f'https://{self.uri_env}.journeyhl.com/entity/auth/login'
         self.endpoint_name = 'IntegrationPlatform'
         self.base_uri = f'{self.uri}/{self.endpoint_name}/{self.version}'
         self.username = ACUMATICA_API['username']
@@ -60,6 +62,8 @@ class AcumaticaAPI:
         self.session = requests.Session()
         self.login_attempts = 0
         self._auth()
+        if env == 'dev':
+            self.logger.warning(f'Running in dev environment!!!')
 
 #region SalesOrder
     def order_create_receipt(self, order_data: dict):
@@ -294,7 +298,7 @@ class AcumaticaAPI:
         
         Returns
         ---
-        """        
+        """
         payload = {
             "entity": {
                 "Type": {
@@ -341,7 +345,7 @@ class AcumaticaAPI:
         Parameters
         ---
         :param (*str*) `endpoint`: The endpoint to append to the base URI.
-        :param (*dict*) `payload_data`: Dictionary containing **target_api_update_payload**, **log_update_success**, **log_update_error**, **acu_api_data_log**    
+        :param (*dict*) `payload_data`: Dictionary containing **target_api_update_payload**, **log_success**, **log_error**, **acu_api_data_log**    
         :param (*str*) `operation`: API Operation (**PUT**, **POST**, **GET**)
         :param (*str*) `descr`: What the payload will do (**Override & Update**)
 
@@ -360,10 +364,10 @@ class AcumaticaAPI:
         if descr == 'Override & Update':
             try:
                 json_response = response.json()
-                self.logger.info(payload_data['log_update_success'])
+                self.logger.info(payload_data['log_success'])
                 return_bool = True
             except Exception as e:
-                self.logger.info(payload_data['log_update_error'])
+                self.logger.info(payload_data['log_error'])
                 return_bool = False
             self.data_log.append({
                 **payload_data['acu_api_data_log'],
@@ -371,6 +375,20 @@ class AcumaticaAPI:
                 'Timestamp': datetime.now(ZoneInfo('America/New_York'))
             })
             return return_bool
+        elif descr == 'Reclassify Transaction':
+            try:
+                json_response = response.json()
+                self.logger.info(payload_data['log_success'])
+                return_bool = True
+            except Exception as e:
+                self.logger.info(payload_data['log_error'])
+                return_bool = False
+            self.data_log.append({
+                **payload_data['acu_api_data_log'],
+                'Response': response_str,
+                'Timestamp': datetime.now(ZoneInfo('America/New_York'))
+            })
+            bp = 'here'
         
     def get_order_details(self, order_data: dict, additional_details: str = '') -> dict:
         '''`get_order_details`(order_data: *dict*, )
@@ -440,7 +458,7 @@ class AcumaticaAPI:
             }
         }
 
-        response = self.session.post(f'{self.base_uri}/SalesOrder/ReleaseFromHold', json=payload)
+        response = self.session.post(f'{self.base_uri}/SalesOrder/RemoveFromHold', json=payload)
         response_str = f'{response.status_code} {response.reason}'        
         if response_str == '204 No Content':
             self.logger.info(f'{order_data['OrderNbr']} removed from hold successfully!')
@@ -1122,14 +1140,13 @@ class AcumaticaAPI:
 
 #region Authentication/Logout
     def _auth(self):
-        auth_url = 'https://erp.journeyhl.com/entity/auth/login'
         body = {
             "name": self.username,
             "password": self.password,
             "company": self.company
         }
         try:
-            response = self.session.post(url=auth_url, json=body)
+            response = self.session.post(url=self.auth_url, json=body)
             response.raise_for_status()
             self.logger.info('Acumatica API is online. Logged into Acumatica and authenticated successfully')
         except Exception as e:
@@ -1156,11 +1173,9 @@ class AcumaticaAPI:
             self._auth()
 
     def _logout(self):
-        self.session.post('https://erp.journeyhl.com/entity/auth/logout')
+        self.session.post(f'https://{self.uri_env}.journeyhl.com/entity/auth/logout')
         self.logger.info('Logged out of Acumatica API session')
 #endregion Authentication/Logout
-
-
 
 
 #region wip
@@ -1182,43 +1197,46 @@ class AcumaticaAPI:
         })
         bp = 'here'
         return True
+#endregion wip
 
 
 
-
-
-#endregion
-
-
-
-#region Delete?
-
-    def validate_customer_address(self, customer_data: dict):
-        '''**WORK IN PROGRESS**
-        ===
-        '''
+#region Journal Transactions
+    def reclassify_transaction(self, cogs_entry: dict):
+        bp = 'here'
+        batch_nbr = cogs_entry['BatchNbr']
         payload = {
             "entity": {
-                "CustomerID": {
-                    "value": customer_data['AcctCD']
+                "BatchNbr": {
+                    "value": batch_nbr
                 },
+                "Module": {
+                    "value": cogs_entry['Module']
+                },
+                "parameters": {
+                    "NewAccountID": {
+                        "value": "5090"
+                    }
+                }
             }
         }
-
-        response = self.session.post(f'{self.base_uri}/Customer/validateCustomerAddresses', json=payload)
-        response_str = f'{response.status_code}: {response.reason}'
-        if response_str == '204: No Content':
-            self.logger.info(f"{customer_data['AcctCD']}'s address was validated successfully!")
-        else:
-            self.logger.error(f"Issue validating {customer_data['AcctCD']}'s address")
-            bp = 'here'
-        self.data_log.append({
-            'Entity': 'Customer',
-            'KeyValue': customer_data['AcctCD'],
-            'Operation': f'POST - Validate Address',
+        
+        acu_data_log_entry = {            
+            'Entity': 'JournalTransaction',
+            'KeyValue': batch_nbr,
+            'Operation': f'POST - Reclassify Journal Transaction',
             'Payload': payload,
-            'Response': response_str,
-            'Timestamp': datetime.now(ZoneInfo('America/New_York'))
-        })
+        }
+        success_str = f'{batch_nbr} reclassified to 5090 successfully!'
+        error_str = f'Could not reclassify {batch_nbr}!'
+        full_payload = {
+            'target_api_update_payload': payload,
+            'log_success': success_str,
+            'log_error': error_str,
+            'acu_api_data_log': acu_data_log_entry,
+        }
         bp = 'here'
-#endregion Delete?
+        self.target_api(endpoint='/JournalTransaction/ReclassifyCorrections', payload_data=full_payload, operation='post', descr='Reclassify Transaction')
+        bp = 'here'
+
+#endregion
