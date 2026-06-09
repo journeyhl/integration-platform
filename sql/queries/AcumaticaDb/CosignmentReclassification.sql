@@ -1,6 +1,7 @@
+
 select b.Module
 	 , jbt.Status BatchType
-	 , jb.Status
+	 , jb.Status JournalStatus
 	 , b.BatchNbr
 	 , gt.LineNbr
 	 , rtrim(a.AccountCD) AccountCD
@@ -26,6 +27,8 @@ select b.Module
 	 , i.Descr ItemDescr
 	 , sa.Description SubAccount
 	 , rtrim(sa.SubCD) SubCD
+	 , gt.ReclassBatchModule
+	 , gt.ReclassBatchNbr
 	 --, *
 from Batch b
 inner join GLTran gt on b.CompanyID = gt.CompanyID and b.BranchID = gt.BranchID and b.Module = gt.Module and b.BatchNbr = gt.BatchNbr
@@ -38,9 +41,12 @@ inner join SOOrder s on b.CompanyID = s.CompanyID and it.SOOrderType = s.OrderTy
 inner join SOShipment sh on b.CompanyID = sh.CompanyID and it.SOShipmentNbr = sh.ShipmentNbr
 inner join JJStatusLookup jbt on b.BatchType = jbt.CStatus and jbt.Tbl = 'Batch.Type'
 inner join JJStatusLookup jb on b.BatchType = jb.CStatus and jb.Tbl = 'Batch'
-
-where b.CompanyID = 2
---and b.Module = 'IN'
+where gt.CompanyID = 2 
+and b.Module = 'IN'
 --and b.BatchNbr = 'IN187088'
 and s.OrderType = 'CO'
 and it.UnitPrice = .01
+and a.AccountCD = '5000'
+and gt.ReclassBatchNbr is null
+
+order by b.CreatedDateTime desc

@@ -15,6 +15,7 @@ class Query:
 
 class Queries:
     def __init__(self, database_name: str):
+        database_name = 'AcumaticaDb' if database_name == 'AcudevDb' else database_name
         queries_dir = Path(__file__).resolve().parent.parent / 'sql' / 'queries' / database_name
         for sql_file in queries_dir.glob('*.sql'):
             setattr(self, sql_file.stem, Query(name=sql_file.stem, query=sql_file.read_text()))
@@ -61,6 +62,8 @@ class CentralStoreQueries(Queries):
     ''''''
     RMI_Link3PL_RMAStatus: Query
     '''Pulls all distinct Shipments from RMI RMAStatus table in centralstore'''
+    HubSpot_RevenueByCustomer: Query
+    '''Pulls revenue by Company/Customer from acu.SalesOrders for send to Hubspot'''
 
 
 
@@ -213,10 +216,13 @@ class AcumaticaDbQueries(Queries):
     '''Populates acu.PhoneRevByMonth table in db_CentralStore'''
     RedstagOrderSearch: Query
     '''Pulls Open RedStag shipments'''
+    CosignmentReclassification: Query
+    '''Pulls Completed Cosignment orders with an inventory ref document'''
 
 _QUERY_CLASSES: dict[str, type[Queries]] = {
     'db_CentralStore': CentralStoreQueries,
     'AcumaticaDb': AcumaticaDbQueries,
+    'AcudevDb': AcumaticaDbQueries,
 }
 QT = TypeVar('QT', bound=Queries)
 #endregion

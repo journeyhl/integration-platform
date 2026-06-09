@@ -27,8 +27,8 @@ class Load:
             light_payload = {
                 'key': f'{order_avs['OrderNbr']}',
                 'target_api_update_payload': order_avs['update_order_address_payload'],
-                'log_update_error': f"Issue overriding & updating {order_avs['OrderNbr']}'s addresses!",
-                'log_update_success': f"{order_avs['OrderNbr']}'s addresses were overriden & updated successfully!",
+                'log_error': f"Issue overriding & updating {order_avs['OrderNbr']}'s addresses!",
+                'log_success': f"{order_avs['OrderNbr']}'s addresses were overriden & updated successfully!",
                 'log_validation_error': f"Issue validating {order_avs['OrderNbr']}'s addresses",
                 'log_validation_success': f"{order_avs['OrderNbr']}'s addresses were validated successfully!",
                 'acu_api_data_log': order_avs['acu_api_log_update_override'],
