@@ -12,3 +12,4 @@ from .hubspot_api import HubSpotAPI
 from .teams import Teams
 from .aftership import AfterShip
 from .sharepoint import Sharepoint
+from .sftp import SFTP

@@ -23,9 +23,11 @@ class HubSpotAPI:
             'Authorization': f'Bearer {HUBSPOT["access_token"]}',
             'Content-Type': 'application/json',
         })
-        self._get_deal_pipelines()
-        self._get_owners()
-        self._set_snapshot_windows()
+        self.calls = 0
+        if type(pipeline).__name__ != 'HubspotCompanyRevenue':
+            self._get_deal_pipelines()
+            self._get_owners()
+            self._set_snapshot_windows()
         self.lists = f'{self.base_url}/crm/v3/lists/'
 
 
@@ -99,6 +101,7 @@ class HubSpotAPI:
         last_status: int | None = None
         for attempt in range(5):
             response = self.session.request(method, url, timeout=30, **kwargs)
+            self.calls += 1
             last_status = response.status_code
             if response.status_code == 429:
                 retry_after = int(response.headers.get('Retry-After', 10))
@@ -447,69 +450,69 @@ class HubSpotAPI:
                 'properties': ['name', 'phone', 'email'],
                 'limit': limit,
                 'sorts': [{'propertyName': 'createdate', 'direction': 'DESCENDING'}],
+                # 'sorts': [{'propertyName': 'hs_lastmodifieddate', 'direction': 'DESCENDING'}],
                 'filterGroups': [],
             }
             if after:
                 body['after'] = after
-            self.logger.info('Retrieving companies...')
+            self.logger.info(f'Retrieving companies...{self.calls} total hubspot api calls')
             data = self._request('POST', '/crm/v3/objects/companies/search', json=body)
+            last_extracted = datetime.now(ZoneInfo('America/New_York'))
             for company in data.get('results', []):
                 name = company['properties']['name'].strip()
-                self.prefix = f'{len(companies) + 1}: {name}'
+                self.prefix = f'{len(companies) + 1}, {name}: '
                 self.logger.info(self.prefix)                
                 company_id = company['id']
+                if company_id in['9313832804', '7780863589']:
+                    continue
                 company = {
                     'id': company['id'],
                     'name': company['properties'].get('name'),
                     'phone': company['properties'].get('phone'),
                     'email': company['properties'].get('email'),
                     'create_date': company['createdAt'],
-                    'update_data': company['updatedAt']
+                    'update_data': company['updatedAt'],
+                    'LastExtracted': last_extracted
                 }
                 company = self.get_company_primary_contact(company)
                 companies.append(company)
             after = data.get('paging', {}).get('next', {}).get('after')
-            if not after: #or len(companies) >= 3000:
+            if not after: #or len(companies) >= 10:
                 break
+        self.logger.info(f'{self.calls} total hubspot api calls')
         return companies
     
     def get_company_primary_contact(self, company: dict) -> dict | None:
-        company_addition = {
-            'pc_id': None,
-            'pc_phone': None,
-            'pc_email': None,
-            'pc_fname': None,
-            'pc_lname': None,
-            'pc_name': None,
-            'pc_create_date': None,
-            'pc_update_date': None
-        }
-        self.logger.info(f'{self.prefix}, retrieving primary contact...')
+        contacts = []
+        self.logger.info(f'{self.prefix}retrieving primary contact...')
         data = self._request('GET', f'/crm/v4/objects/companies/{company['id']}/associations/contacts')
-        for result in data.get('results', []):
-            for assoc_type in result.get('associationTypes', []):
-                if assoc_type.get('label') == 'Contact with Primary Company':
-                    contact_id = result['toObjectId']
-                    self.logger.info(f'{self.prefix}, found primary contact, retrieving details...')
-                    contact = self._request('GET', f'/crm/v3/objects/contacts/{contact_id}', params={
-                        'properties': 'firstname,lastname,email,phone,name'
-                    })
-                    name = f"{contact['properties'].get('firstname', '') or ''} {contact['properties'].get('lastname', '') or ''}".strip()
-                    company_addition = {
-                        'pc_id': contact['id'],
-                        'pc_phone': contact['properties'].get('phone'),
-                        'pc_email':contact['properties'].get('email'),
-                        'pc_fname': contact['properties'].get('firstname'),
-                        'pc_lname': contact['properties'].get('lastname'),
-                        'pc_name': name if name != '' else None,
-                        'pc_create_date': contact['createdAt'],
-                        'pc_update_date': contact['updatedAt']
-                    }
-                    self.logger.info(f'{self.prefix}, parsed primary contact successfully!')
+        results = data.get('results', [])
+        primary_contacts = [result['toObjectId'] for result in results for assoc_type in result.get('associationTypes', []) if assoc_type.get('label') == 'Contact with Primary Company']
+        count_contacts = len(primary_contacts)
+        self.logger.info(f'{self.prefix}{len(primary_contacts)} primary contacts found')
+        for i, contact_id in enumerate(primary_contacts):
+            self.logger.info(f'{self.prefix}{i+1}/{count_contacts}: found primary contact, retrieving details...')
+            contact = self._request('GET', f'/crm/v3/objects/contacts/{contact_id}', params={
+                'properties': 'firstname,lastname,email,phone,name'
+            })
+            time.sleep(.05)
+            name = f"{contact['properties'].get('firstname', '') or ''} {contact['properties'].get('lastname', '') or ''}".strip()
+            company_addition = {
+                'pc_id': contact['id'],
+                'pc_phone': contact['properties'].get('phone'),
+                'pc_email':contact['properties'].get('email'),
+                'pc_fname': contact['properties'].get('firstname'),
+                'pc_lname': contact['properties'].get('lastname'),
+                'pc_name': name if name != '' else None,
+                'pc_create_date': contact['createdAt'],
+                'pc_update_date': contact['updatedAt']
+            }
+            contacts.append(company_addition)
+            self.logger.info(f'{self.prefix}parsed primary contact successfully!')
             
         company = {
             **company,
-            **company_addition
+            'contacts': contacts
         }
         return company
 
@@ -519,10 +522,21 @@ class HubSpotAPI:
         path = f'/crm/v3/objects/companies/{company['id']}'
         url = f'{self.base_url}{path}'
         browser_link = f'https://app.hubspot.com/contacts/5053729/record/0-2/{company['id']}'
-        response = self.session.patch(url=url,json=property_payload)
+        try:
+            response = self.session.patch(url=url,json=property_payload)
+        except Exception as e:
+            self.logger.error(f"Error! Failed to update {company['name']}. {e}\n{browser_link}")
+            return
+        try:
+            jresponse = response.json()
+        except Exception as e:
+            self.logger.error(f"Error! Couldn't parse response from hubspot api when updating {company['name']}. {e}\n{browser_link}")
+            return
         self.logger.info(f'{self.pipeline.transformer.prefix} updated. {browser_link}') #type: ignore
+        company['LastUpdated'] = datetime.now(ZoneInfo('America/New_York'))
         time.sleep(1)
         bp = 'here'
+        return company
 
 
     #TODO Pull in data on all the contacts

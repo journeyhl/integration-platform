@@ -44,7 +44,7 @@ class Load:
     def validate_remove_hold_create(self, order_avs):
         iterations = 0
         order_avs = self.pipeline.acu_api.get_order_details(order_avs)
-        while order_avs['ShippingValidated'] != True or order_avs['BillingValidated'] != True and iterations < 5:
+        while (order_avs['ShippingValidated'] != True or order_avs['BillingValidated'] != True) and iterations < 5:
             self.pipeline.acu_api.validate_order_address(order_avs)
             time.sleep(1)
             order_avs = self.pipeline.acu_api.get_order_details(order_avs)
