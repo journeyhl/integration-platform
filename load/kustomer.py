@@ -54,7 +54,7 @@ end
                 params=(order['OrderNbr'], order['OrderStatus'], json_order,
                         order['OrderNbr'], order['OrderStatus'], json_order,
                         order['OrderNbr'], order['OrderStatus'],
-                        order['OrderNbr'], order['OrderStatus']), log_str='Log here not there'
+                        order['OrderNbr'], order['OrderStatus'])#, log_str='Log here not there'
             )
             if last_sent_check.height > 0:
                 data_filtered.append(order)
