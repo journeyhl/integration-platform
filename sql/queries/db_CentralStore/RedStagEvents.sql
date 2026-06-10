@@ -6,6 +6,7 @@ with TopLevel as(
 		 , json_query(jsonData, '$.message.packages') Packages
 		 , json_query(jsonData, '$.message.trackers') Trackers
 		 , json_query(jsonData, '$.message') msg
+         , jsonData
 	from json.RedStagEvents
 	where json_value(jsonData, '$.topic') = 'shipment:packed'
 
@@ -25,6 +26,7 @@ select t.Topic
 	 , json_query(t.Packages, '$[*].items') Items
 	 , json_query(t.Packages, '$[*].tracking_numbers') TrackingNumbers
 	 , t.msg
+     , t.jsonData
 from TopLevel t
 inner join acuShipments a on t.ShipmentNbr_3pl = a.ShipmentNbr
 -- where t.ShipmentNbr_3pl = '080584'
