@@ -4,6 +4,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from pipelines import SendOrderDetailsToKustomer
 
 kustomer = SendOrderDetailsToKustomer('.debug')
-kustomer._re_init()
+kustomer._re_init('backfill')
 bp = 'here'
 kustomer._re_init('backfill')

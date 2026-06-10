@@ -66,7 +66,7 @@ inner join JJStatusLookup j on s.Status = j.CStatus and j.tbl = 'SOOrder'
 where s.CompanyID = 2 
 and s.OrderType not in('QT', 'CM', 'ZA')
 -- and (k.LastChecked <= dateadd(hour, -1, getdate()) or k.LastChecked is null)
-and dateadd(hour, -4, s.LastModifiedDateTime) >=  dateadd(hour, -3, getdate())
+and dateadd(hour, -4, s.LastModifiedDateTime) >=  dateadd(hour, -12, getdate())
 -- and (k.LastChecked is null
 -- or k.LastChecked <= getdate() - 14)
 order by s.LastModifiedDatetime desc
