@@ -218,6 +218,8 @@ class AcumaticaDbQueries(Queries):
     '''Pulls Open RedStag shipments'''
     CosignmentReclassification: Query
     '''Pulls Completed Cosignment orders with an inventory ref document'''
+    CreateShipments: Query
+    '''Pulls Open Shipments that are ready to have a shipment created'''
 
 _QUERY_CLASSES: dict[str, type[Queries]] = {
     'db_CentralStore': CentralStoreQueries,

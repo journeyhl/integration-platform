@@ -7,6 +7,7 @@ from .get_rmas_from_RMI import GetRMAsFromRMI
 from .rmi_link_to_acu import RMILinkToAcu
 
 from .create_acu_receipt import CreateAcuReceipt
+from .create_acu_shipment import CreateAcuShipment
 from .confirm_open_shipments import ShipmentsReadyToConfirm
 from .pack_shipments import PackShipments
 from .acu_deletions import AcumaticaDeletions
