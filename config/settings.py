@@ -1409,6 +1409,12 @@ ACUMATICA_API = {
     'password2': os.getenv('ACUMATICA_API_PASSWORD2'),
     'username3': os.getenv('ACUMATICA_API_USERNAME3'),
     'password3': os.getenv('ACUMATICA_API_PASSWORD3'),
+    'username4': os.getenv('ACUMATICA_API_USERNAME4'),
+    'password4': os.getenv('ACUMATICA_API_PASSWORD4'),
+    'username5': os.getenv('ACUMATICA_API_USERNAME5'),
+    'password5': os.getenv('ACUMATICA_API_PASSWORD5'),
+    'username6': os.getenv('ACUMATICA_API_USERNAME6'),
+    'password6': os.getenv('ACUMATICA_API_PASSWORD6'),
 }
 
 CRITEO = {

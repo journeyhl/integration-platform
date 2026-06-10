@@ -71,7 +71,7 @@ left join SOShipmentKvExt k_cc on sh.CompanyID = k_cc.CompanyID and sh.NoteID = 
 left join SOShipmentKvExt k_cn on sh.CompanyID = k_cn.CompanyID and sh.NoteID = k_cn.RecordID and k_cn.FieldName = 'AttributeCOURNAME'
 left join JJStatusLookup jsh on sh.Status = jsh.CStatus and jsh.Tbl = 'SOShipment'
 where s.CompanyID = 2 
-and dateadd(hour, -4, sh.LastModifiedDateTime) >=  dateadd(hour, -1, getdate())
+and dateadd(hour, -4, sh.LastModifiedDateTime) >=  dateadd(hour, -2, getdate())
 -- and dateadd(hour, -4, sh.LastModifiedDateTime) >=  dateadd(day, -122, getdate())
 -- and dateadd(hour, -4, s.LastModifiedDateTime) >=  dateadd(day, -1, getdate())
 -- and s.OrderNbr = 'PH145626'

@@ -126,13 +126,19 @@ class AcumaticaAPI:
         ---
         '''
         self.logger.info(f'Creating Shipment for {order_data['OrderNbr']}')
+
         body = {
             "entity":{
-                "CustomerID": { "value": f"{order_data['AcctCD']}" },
+                "CustomerID": {"value": f"{order_data['AcctCD']}" },
                 "OrderType": {"value": f"{order_data['OrderType']}"},
-                "OrderNbr": { "value": f"{order_data['OrderNbr']}"}
+                "OrderNbr": {"value": f"{order_data['OrderNbr']}"}
             }
         }
+        if order_data.get('properties'):
+            body['properties'] = {
+                "ShipmentDate": {"value": f'{datetime.now()}'}, 
+                "WarehouseID": {"value": order_data['properties']['WarehouseID']}, 
+            }
         try:
             response = self.session.post(f'{self.base_uri}/SalesOrder/SalesOrderCreateShipment', json=body)
             response_str = f'{response.status_code} {response.reason}'
@@ -141,7 +147,7 @@ class AcumaticaAPI:
         if response_str and response_str == '202 Accepted':
             self.logger.info(f'{order_data['OrderNbr']}: Shipment created! {response_str}')
         else:
-            self.logger.warning(response_str)            
+            self.logger.warning(response_str)
         self.data_log.append({
             'Entity': 'SalesOrder',
             'KeyValue': order_data['OrderNbr'],
