@@ -1,8 +1,14 @@
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from connectors import Teams, HubSpotAPI
+from connectors import Teams, HubSpotAPI, SFTP
 from pipelines import HubSpotSnapshot
+
+
+sftp = SFTP('pipeline')
+# sftp.list_directory('/apps/five9/reports')
+call_segments = sftp.get_csv_file_as_dataframe()
+bp = 'here'
 
 
 hs = HubSpotAPI('.script')
