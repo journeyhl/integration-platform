@@ -306,7 +306,7 @@ class Transform:
         '''
         cclass = row['CustomerClass']
         row['formatted'] = {
-            "tracking_number": row['Tracking'] if row.get('Tracking') else row['tracking_number'],
+            "tracking_number": row['Tracking'] if row.get('Tracking') else row.get('tracking_number') if row.get('tracking_number') != None else 'N/A',
             "slug": row['Slug'],
             "order_id": row['ShipmentNbr'],
             "customer_name": row['Customer'],
