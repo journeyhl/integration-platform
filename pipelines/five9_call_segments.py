@@ -1,5 +1,5 @@
-from pipelines import Pipeline
-from connectors import SFTP
+from pipelines.base import Pipeline
+from connectors.sftp import SFTP
 from transform.five9_call_segments import Transform
 
 

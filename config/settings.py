@@ -563,7 +563,12 @@ TABLES = {
             'CreatedDT',
             'CreatedBy',
             'LastModifiedBy',
-            'LastChecked'
+            'LastChecked',
+            'POCreate',
+            'POCreated',
+            'POCreateDate',
+            'POWarehouse',
+            'PONbr',
         ],
         'update_columns': [
             'DatePlaced',
@@ -608,7 +613,12 @@ TABLES = {
             'CreatedDT',
             'CreatedBy',
             'LastModifiedBy',
-            'LastChecked'
+            'LastChecked',
+            'POCreate',
+            'POCreated',
+            'POCreateDate',
+            'POWarehouse',
+            'PONbr',
         ],
     },
     #     'json.K_OrderIngest': {
