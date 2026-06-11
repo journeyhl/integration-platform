@@ -1,6 +1,6 @@
-
 import sys
 import os
+from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from dotenv import load_dotenv
 load_dotenv()
@@ -177,29 +177,77 @@ def compare_azure_vs_local(azure_env_vars: list, local_env_vars: list):
     return new_entries, value_conflicts
 
 
+def read_function_app():
+    dir_path = Path(__file__).parent.parent
+    with open(str(dir_path / 'function_app.py'), 'r') as r:
+        function_app = r.read()
+    lines = function_app.split('\n')
+    # for line in lines:
+    #     bp = 'here'
+    lines = [line.strip().replace(
+                '(timer: af.TimerRequest):', ''
+            ).replace(
+                'def ', ''
+            ).replace(
+                "schedule = '", ''
+            ).replace(
+                "',", ''
+            ).replace(
+                '",', ''
+            )
+    for line in lines if 'def' in line and '(timer: af.TimerRequest)' in line]
+    bp = 'here'
+    functions = [
+        {
+        "name": f"AzureWebJobs.{line}.Disabled",
+        "value": "false",
+        "slotSetting": False
+        } 
+    for line in lines]
+
+    return functions, lines
+
 
 
 def pick_new_entries(new_entries: list):
     filtered_new_entries = []
     print(f'---------------------')
+    prefix = {}
+    for entry in new_entries:
+        if prefix.get(entry['name'].split('_')[0]) != None:
+            prefix[entry['name'].split('_')[0]].append(entry)
+        else:
+            prefix[entry['name'].split('_')[0]] = [entry]
+    
     for i, variable in enumerate(new_entries):
+        if variable in filtered_new_entries:
+            print(f'{variable['name']}:{variable['value']} already added!')
+            continue
         if '-local' in variable['value']:
             print(f'Skipping local acumatica api login: {variable['name']}:{variable['value']}')
             continue
         inp = input(f'''Add {variable['name']}:{variable['value']} to Azure Environment variables?
-press 1 for yes, 2 for no: ''')[0]
+press 1 for yes, 2 for no, 3 to add all with same prefix: ''')[0]
         if inp == 0:
             filtered_new_entries.append(variable)
             print(f'{variable['name']}:{variable['value']} added!')
+        elif inp == 3:
+            filtered_new_entries.extend(entry)
+            print(f'{variable['name']}:{variable['value']} added!')
     return filtered_new_entries
 
+
+
 def driver():
+    deployed_functions, function_names = read_function_app()
     azure_env_vars = read_azure_env()
     if not azure_env_vars:
         return
     local_env_vars = read_local_env()
     new_entries, value_conflicts = compare_azure_vs_local(azure_env_vars=azure_env_vars, local_env_vars=local_env_vars)
     new_entries = pick_new_entries(new_entries)
+    bp = 'here'
+    deployed_functions, function_names = read_function_app()
     bp = 'here'
 
 

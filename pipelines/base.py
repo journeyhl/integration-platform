@@ -3,8 +3,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 import logging
 import polars as pl
-from connectors import SQLConnector, AcumaticaAPI
-from connectors.sql import CentralStoreQueries, AcumaticaDbQueries
+from connectors.sql import SQLConnector, CentralStoreQueries, AcumaticaDbQueries
 import colorlog
 from typing import TypeVar, Generic, Any
 
