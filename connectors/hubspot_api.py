@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING,  Any, Iterator
 if TYPE_CHECKING:
-    from pipelines import HubSpotSnapshot, HubSpotProperties, HubSpotContacts, HubspotCompanyRevenue
+    from pipelines import HubSpotSnapshot, HubSpotProperties, HubSpotContacts, HubspotCompanyRevenue, HubspotPropertyUpdate
 from config.settings import HUBSPOT
 from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo
@@ -11,7 +11,7 @@ import time
 
 
 class HubSpotAPI:
-    def __init__(self, pipeline: HubSpotSnapshot | HubSpotProperties | HubSpotContacts | HubspotCompanyRevenue | str):
+    def __init__(self, pipeline: HubSpotSnapshot | HubSpotProperties | HubSpotContacts | HubspotCompanyRevenue | HubspotPropertyUpdate | str):
         self.pipeline = pipeline
         if type(pipeline) == str:
             self.logger = logging.getLogger(f'{pipeline}.hubspot_api')
@@ -185,7 +185,7 @@ class HubSpotAPI:
         return data.get('results', [])
 
 
-    def get_properties(self, object_type: str) -> list[dict]:
+    def get_properties(self, object_type: str, property_name: str = '') -> list[dict]:
         '''`_get_properties`(self, object_type: *str*)
         ---
         <hr>
@@ -214,6 +214,9 @@ class HubSpotAPI:
         '''
         data = self._request('GET', f'/crm/v3/properties/{object_type}')
         results = data.get('results', [])
+        if property_name != '':
+            results = [r for r in results if r['name'] == property_name]
+            return results
         for result in results:
             result['ObjectType'] = object_type
         # self.logger.info(f'')
@@ -537,6 +540,24 @@ class HubSpotAPI:
         time.sleep(1)
         bp = 'here'
         return company
+
+    def update_property_options(self, property: dict):
+        path = f'/crm/v3/properties/Contact/{property['name']}'
+        url = f'{self.base_url}{path}'
+        try:
+            response = self.session.patch(url=url,json=property)
+        except Exception as e:
+            self.logger.error(f"Error! Failed to update {property['name']}. {e}")
+            return
+        try:
+            jresponse = response.json()
+        except Exception as e:
+            self.logger.error(f"Error! Couldn't parse response from hubspot api when updating {property['name']}. {e}")
+            return
+        self.logger.info(f'{property['name']} updated successfully!') #type: ignore
+        time.sleep(1)
+        bp = 'here'
+        return jresponse
 
 
     #TODO Pull in data on all the contacts

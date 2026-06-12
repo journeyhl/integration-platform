@@ -30,6 +30,7 @@ from .redstag_order_search import RedStagOrderSearch
 from .hubspot_snapshot import HubSpotSnapshot
 from .hubspot_contacts import HubSpotContacts
 from .hubspot_company_revenue import HubspotCompanyRevenue
+from .hubspot_property_update import HubspotPropertyUpdate
 
 from .criteo import Criteo
 from .hubspot_properties import HubSpotProperties
