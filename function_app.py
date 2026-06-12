@@ -600,6 +600,20 @@ def hubspot_snapshots(timer: af.TimerRequest):
     hubspot_snapshot_upsert.run()
 #endregion      hubspot_snapshots
 
+#region       hubspot_property_update
+#    Update acu product list property
+# 4x/day(12:57a, 7:57a, 2:57p, 9:57p)
+@app.timer_trigger(
+    schedule = '57 */7 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def hubspot_property_update(timer: af.TimerRequest):
+    from pipelines import HubspotPropertyUpdate #hubspot-property-update
+    hubspot_property_update = HubspotPropertyUpdate('hubspot_property_update')
+    hubspot_property_update.run()
+#endregion      hubspot_property_update
+
 
 #region             rmi_link_to_acumatica
 # Update RMI shipments with RMA ID & link

@@ -212,27 +212,28 @@ def read_function_app():
 def pick_new_entries(new_entries: list):
     filtered_new_entries = []
     print(f'---------------------')
-    prefix = {}
-    for entry in new_entries:
-        if prefix.get(entry['name'].split('_')[0]) != None:
-            prefix[entry['name'].split('_')[0]].append(entry)
-        else:
-            prefix[entry['name'].split('_')[0]] = [entry]
-    
+    bp = 'here'
     for i, variable in enumerate(new_entries):
         if variable in filtered_new_entries:
             print(f'{variable['name']}:{variable['value']} already added!')
             continue
+        if 'ACUMATICA_API' in new_entries:
+            print(f'skipping ACUMATICA_API vars')
+            continue
+        entry_group = [v for v in new_entries if v['name'].split('_')[0] == variable['name'].split('_')[0]]
+        bp = 'here'
+
+
         if '-local' in variable['value']:
             print(f'Skipping local acumatica api login: {variable['name']}:{variable['value']}')
             continue
         inp = input(f'''Add {variable['name']}:{variable['value']} to Azure Environment variables?
 press 1 for yes, 2 for no, 3 to add all with same prefix: ''')[0]
-        if inp == 0:
+        if inp == '0':
             filtered_new_entries.append(variable)
             print(f'{variable['name']}:{variable['value']} added!')
-        elif inp == 3:
-            filtered_new_entries.extend(entry)
+        elif inp == '3':
+            filtered_new_entries.extend(entry_group)
             print(f'{variable['name']}:{variable['value']} added!')
     return filtered_new_entries
 

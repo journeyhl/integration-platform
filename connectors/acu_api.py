@@ -60,6 +60,11 @@ class AcumaticaAPI:
         self.company = 'JHL'
         self.data_log = []
         self.session = requests.Session()
+        if env == 'dev':
+            self.session.headers.update({
+                'CF-Access-Client-Id': ACUMATICA_API['cf_client_id'] or '',
+                'CF-Access-Client-Secret': ACUMATICA_API['cf_client_secret'] or '',
+            })
         self.login_attempts = 0
         self._auth()
         if env == 'dev':
