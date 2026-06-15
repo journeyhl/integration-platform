@@ -1,7 +1,8 @@
 from pipelines.base import Pipeline
 from connectors.sftp import SFTP
 from transform.five9_call_segments import Transform
-
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 
 
@@ -13,7 +14,13 @@ class Five9CallSegments(Pipeline):
         self.sftp = SFTP(self)
 
     def extract(self):
-        data_extract = self.sftp.get_csv_file_as_dataframe()
+        five9_extract = self.sftp.get_csv_file_as_dataframe()
+        now = datetime.now(ZoneInfo('America/New_York')).strftime('%Y%m%d')
+        db_extract = self.centralstore.query_db(f"""select * from Five9CallSegments f where f.Timestamp >= '{now}'""")
+        data_extract = {
+            'five9_extract': five9_extract,
+            'db_extract': db_extract
+        }
         return data_extract
 
     def transform(self, data_extract):
