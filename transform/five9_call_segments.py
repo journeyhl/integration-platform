@@ -11,8 +11,10 @@ class Transform:
         self.logger = logging.getLogger(f'{pipeline.pipeline_name}.transform')
         pass
     
-    def transform(self, data_extract: pl.DataFrame):
-        formatted = data_extract.with_columns(
+    def transform(self, data_extract: dict[str, pl.DataFrame]):
+        five9_extract = data_extract['five9_extract']
+        db_extract = data_extract['db_extract']
+        formatted = five9_extract.with_columns(
             pl.col('CALL ID').cast(pl.String).alias('CallID'),
             pl.col('TIMESTAMP').str.to_datetime('%a, %d %b %Y %H:%M:%S').alias('Timestamp'),
             pl.col('CALL TYPE').alias('CallType'),
@@ -58,10 +60,13 @@ class Transform:
             'TOTAL QUEUE TIME',
             'SEGMENT TIME'
         ])
-        data_transformed = formatted.to_dicts()
-        return data_transformed
+        
+        five9_transformed = formatted.to_dicts()
+        return five9_transformed
 
 
+    def filter(self, five9_transformed: list[dict], db_extract: list[dict]):
+        bp = 'here'
 
 
 
