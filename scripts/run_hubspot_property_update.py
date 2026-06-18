@@ -1,11 +1,11 @@
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from pipelines import ConsignmentReclassification
+from pipelines import HubspotPropertyUpdate
 
-cosignments = ConsignmentReclassification(function='.debug', env='dev')
+product_list = HubspotPropertyUpdate(function='.debug')
 
-cosignments.run()
+product_list.run()
 
 bp = 'here'
 #IntegrationPlatform_acudev
