@@ -1,7 +1,7 @@
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from pipelines import CreateAcuReceipt
+from integration_platform.pipelines import CreateAcuReceipt
 
 
 acu_receipt_creation = CreateAcuReceipt('.debug')

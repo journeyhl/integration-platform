@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 def rmi_data_retrieval_pipeline():
     @task
     def get_closed_shipments():
-        from pipelines import GetClosedShipmentsFromRMI
+        from integration_platform.pipelines import GetClosedShipmentsFromRMI
         rmi_closed_shipments_pipeline = GetClosedShipmentsFromRMI()
         completed_rmi_closed_shipments_pipeline = rmi_closed_shipments_pipeline.run()
         closed_shipments = completed_rmi_closed_shipments_pipeline['loaded']
@@ -21,7 +21,7 @@ def rmi_data_retrieval_pipeline():
 
     @task
     def get_receipts():
-        from pipelines import GetReceiptsFromRMI
+        from integration_platform.pipelines import GetReceiptsFromRMI
         rmi_receipts_pipeline = GetReceiptsFromRMI()
         completed_rmi_receipts_pipeline = rmi_receipts_pipeline.run()
         receipts = completed_rmi_receipts_pipeline['loaded']
@@ -30,13 +30,13 @@ def rmi_data_retrieval_pipeline():
 
     @task
     def stage_status_retrieval():
-        from pipelines import StageRMIStatusRetrieval
+        from integration_platform.pipelines import StageRMIStatusRetrieval
         stage_status_pipeline = StageRMIStatusRetrieval()
         completed_stage_status_pipeline = stage_status_pipeline.run()
         rma_numbers_to_check = completed_stage_status_pipeline['loaded']
         return rma_numbers_to_check
 
-    from pipelines import GetStatusFromRMI
+    from integration_platform.pipelines import GetStatusFromRMI
     status_retrieval_pipeline = GetStatusFromRMI()
     @task
     def retrieve_status(rma_number: str):

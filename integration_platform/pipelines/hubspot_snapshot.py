@@ -1,0 +1,68 @@
+from integration_platform.pipelines.base import Pipeline
+from integration_platform.transform.hubspot_snapshot import Transform
+from integration_platform.connectors import HubSpotAPI
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
+class HubSpotSnapshot(Pipeline):
+    '''`HubSpotSnapshot`(Pipeline)
+    ---
+    <hr>
+    
+    Pipeline that pulls complete snapshots of B2B deal state and rep activity counts from Hubspot each day, posting to *hs* schema in db_CentralStore
+
+    # Extraction
+     - Pulls all data from HubSpot
+        - Owners: :class:`~connectors.hubspot_api.HubSpotAPI`.:meth:`~connectors.hubspot_api.HubSpotAPI._get_owners`
+        - Deals: :class:`~connectors.hubspot_api.HubSpotAPI`.:meth:`~connectors.hubspot_api.HubSpotAPI.search_deals`
+        - Calls: :class:`~connectors.hubspot_api.HubSpotAPI`.:meth:`~connectors.hubspot_api.HubSpotAPI.search_activities` ('calls')
+        - Emails: :class:`~connectors.hubspot_api.HubSpotAPI`.:meth:`~connectors.hubspot_api.HubSpotAPI.search_activities` ('emails')
+        - Meetings: :class:`~connectors.hubspot_api.HubSpotAPI`.:meth:`~connectors.hubspot_api.HubSpotAPI.search_activities` ('meetings')
+        - Tasks: :class:`~connectors.hubspot_api.HubSpotAPI`.:meth:`~connectors.hubspot_api.HubSpotAPI.search_activities` ('tasks')
+
+    # Transformation
+     - Transforms Hubspot API response into format required for **hs.deal_snapshots**, **hs.activity_snapshots**, and **hs.deal_tracking**
+        
+    # Load
+     - Inserts a new row for each pipeline execution to **hs.deal_snapshots** and **hs.activity_snapshots**
+     - Upserts to **hs.deal_tracking**
+
+    # Results Logging
+     - None needed
+    '''
+
+    def __init__(self, function: str):
+        super().__init__('hubspot-snapshot', function)
+        self.hubapi = HubSpotAPI(self)
+        self.transformer = Transform(self)
+        pass
+
+
+    def extract(self):
+        owners = self.hubapi.owners
+        deals = self.hubapi.search_deals()
+        data_extract = {
+            'owners': owners,
+            'deals': deals,
+            'calls':    self.hubapi.search_activities('calls'),
+            'emails':   self.hubapi.search_activities('emails'),
+            'meetings': self.hubapi.search_activities('meetings'),
+            'tasks':    self.hubapi.search_activities('tasks'),
+            'timestamp': datetime.now(ZoneInfo('America/New_York'))
+        }
+        return data_extract
+
+    def transform(self, data_extract):
+        data_transformed = self.transformer.transform(data_extract)
+        return data_transformed
+    
+    def load(self, data_transformed):
+        db_deals = data_transformed['db_deals']
+        db_activities = data_transformed['db_activities']
+        self.centralstore.checked_upsert_paginated('hs.deal_tracking', db_deals)
+        self.centralstore.checked_upsert_paginated('hs.deal_snapshots', db_deals)
+        self.centralstore.checked_upsert_paginated('hs.activity_snapshots', db_activities)
+        return data_transformed
+    
+    def log_results(self, data_loaded):
+        pass 

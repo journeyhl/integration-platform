@@ -16,16 +16,16 @@ from dataclasses import asdict
 def rmi_send_shipment_return_pipeline():    
     @task
     def send_shipment():
-        from pipelines import SendRMIShipments
-        rmi_shipment_pipeline = SendRMIShipments()
+        from integration_platform.pipelines import SendRMIShipments
+        rmi_shipment_pipeline = SendRMIShipments('send_shipment')
         completed_rmi_shipment_pipeline = rmi_shipment_pipeline.run()
         rmi_shipments = completed_rmi_shipment_pipeline['loaded']
         return rmi_shipments
         
     @task
     def send_return():
-        from pipelines import SendRMIReturns
-        rmi_return_pipeline = SendRMIReturns()
+        from integration_platform.pipelines import SendRMIReturns
+        rmi_return_pipeline = SendRMIReturns('send_return')
         completed_rmi_return_pipeline = rmi_return_pipeline.run()
         rmi_returns = completed_rmi_return_pipeline['loaded']
         return rmi_returns

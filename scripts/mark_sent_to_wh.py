@@ -1,8 +1,8 @@
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from pipelines import AcumaticaDeletions
-from connectors import SQLConnector, AcumaticaAPI
+from integration_platform.pipelines import AcumaticaDeletions
+from integration_platform.connectors import SQLConnector, AcumaticaAPI
 import json
 
 central = SQLConnector('script', 'db_CentralStore')
