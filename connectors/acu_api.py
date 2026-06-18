@@ -400,6 +400,20 @@ class AcumaticaAPI:
                 'Timestamp': datetime.now(ZoneInfo('America/New_York'))
             })
             bp = 'here'
+        elif descr == 'Manage Sales Allocation':
+            try:
+                json_response = response.json()
+                self.logger.info(payload_data['log_success'])
+                return_bool = True
+            except Exception as e:
+                self.logger.info(payload_data['log_error'])
+                return_bool = False
+            self.data_log.append({
+                **payload_data['acu_api_data_log'],
+                'Response': response_str,
+                'Timestamp': datetime.now(ZoneInfo('America/New_York'))
+            })
+            bp = 'here'
         
     def get_order_details(self, order_data: dict, additional_details: str = '') -> dict:
         '''`get_order_details`(order_data: *dict*, )
@@ -1261,13 +1275,21 @@ class AcumaticaAPI:
                 "OrderNbr":{
                     "value": order_nbr
                 },
-                "Warehouse":{
-                    "value": order_data['Warehouse']
-                },
-                "EndDate":{
-                    "value": datetime.now().date()
+                "parameters":
+                {
+                    "Action": {
+                        "value": "Allocate Sales Orders"
+                    },
+                    "SelectBy":{
+                        "value": "Line Ship On"
+                    },
+                    "Warehouse":{
+                        "value": order_data['Warehouse']
+                    },
+                    "EndDate":{
+                        "value": datetime.now().strftime('%Y-%m-%d')
+                    }
                 }
-
             }
         }
         acu_data_log_entry = {            
@@ -1284,6 +1306,6 @@ class AcumaticaAPI:
             'log_error': error_str,
             'acu_api_data_log': acu_data_log_entry,
         }
-        self.target_api(endpoint='/ManageSalesAllocations', payload_data=full_payload, operation='post', descr='Reclassify Transaction')
+        self.target_api(endpoint='/ManageSalesAllocations/ProcessAllAllocations', payload_data=full_payload, operation='post', descr='Manage Sales Allocation')
         bp = 'here'
         
