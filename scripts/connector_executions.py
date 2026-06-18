@@ -1,8 +1,8 @@
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from connectors import Teams, HubSpotAPI, SFTP
-from pipelines import HubSpotSnapshot
+from integration_platform.connectors import Teams, HubSpotAPI, SFTP
+from integration_platform.pipelines import HubSpotSnapshot
 
 
 sftp = SFTP('pipeline')

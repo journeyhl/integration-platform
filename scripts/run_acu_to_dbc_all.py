@@ -1,7 +1,7 @@
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from pipelines import AcuToDbcCustomers, AcuToDbcPhoneRevenue, AcuToDbcQuotes, AcuToDbcSalesOrders, AcuToDbcShipments
+from integration_platform.pipelines import AcuToDbcCustomers, AcuToDbcPhoneRevenue, AcuToDbcQuotes, AcuToDbcSalesOrders, AcuToDbcShipments
 
 '''
 This script executes all AcumaticaDb to db_CentralStore pipelines

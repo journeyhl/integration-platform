@@ -1,0 +1,64 @@
+
+from integration_platform.pipelines import Pipeline
+from integration_platform.connectors import AcumaticaAPI
+from integration_platform.transform.audit_fulfillment import Transform
+import polars as pl
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
+class AcuToDbcQuotes(Pipeline):
+    '''`AcuToDbcQuotes`(Pipeline)
+    ---
+    <hr>
+
+    Gets all QT type Sales Orders from AcumaticaDb that were modified within the last day and loads them to **acu.Quotes**
+
+    # Extraction
+     - Gets all QT type Sales Orders from AcumaticaDb that were modified within the last day and loads them to **acu.Quotes**
+
+    # Transformation
+     - Transforms extracted data into a format needed for acu.Quotes
+
+    # Load
+     - Upsert to **acu.Quotes** via :class:`~connectors.sql.SQLConnector`.:meth:`~connectors.sql.SQLConnector.checked_upsert_paginated`
+
+    # Results Logging
+     - None needed
+    '''
+    def __init__(self, function: str):
+        super().__init__('acu-to-dbc-quotes', function)
+
+
+    def extract(self) -> dict[str, pl.DataFrame]:
+        acu_extract = self.acudb.query_to_dataframe(self.acudb.queries.AcuToDbc_Quotes)
+        # dbc_extract = self.centralstore.query_db('select distinct QuoteNbr from acu.Quotes where LastChecked is not null')
+        data_extract = {
+            'acu_extract': acu_extract,
+            'dbc_extract': '' #dbc_extract
+        }
+        return data_extract
+
+    def transform(self, data_extract: dict[str, pl.DataFrame]):
+        dbc_extract = data_extract['dbc_extract']
+        acu_extract = data_extract['acu_extract']
+        # acu_extract = data_extract['acu_extract'].join(
+        #     dbc_extract, on='QuoteNbr', how='anti'
+        # )
+        acu_extract = acu_extract.with_columns(
+            pl.col('LineNbr').fill_null(99).alias('LineNbr')
+        ).to_dicts()
+
+
+        data_transformed = acu_extract
+        return data_transformed
+    
+    def load(self, data_transformed):
+        total = len(data_transformed)
+        for item in data_transformed:
+            item['LastChecked'] = datetime.now(ZoneInfo('America/New_York'))
+        self.logger.info(f'{total} rows to upsert')
+        self.centralstore.checked_upsert_paginated('acu.Quotes', data_transformed, page_size= 100)
+        return data_transformed
+    
+    def log_results(self, data_loaded):
+        pass
