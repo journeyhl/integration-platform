@@ -78,7 +78,7 @@ class Pipeline(ABC):
         self.pipeline_name = pipeline_name
         self.function = function
         self.centralstore: SQLConnector[CentralStoreQueries] = SQLConnector(self, 'db_CentralStore')
-        # self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(self, 'AcumaticaDb')
+        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(self, 'AcumaticaDb')
         if env == 'dev':
             self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(self, 'AcudevDb')
         self.logger = logging.getLogger(pipeline_name)

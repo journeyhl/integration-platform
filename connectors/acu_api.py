@@ -1246,8 +1246,44 @@ class AcumaticaAPI:
             'log_error': error_str,
             'acu_api_data_log': acu_data_log_entry,
         }
-        bp = 'here'
         self.target_api(endpoint='/JournalTransaction/ReclassifyCorrections', payload_data=full_payload, operation='post', descr='Reclassify Transaction')
-        bp = 'here'
 
 #endregion
+
+
+    def manage_sales_allocations(self, order_data: dict):
+        order_nbr = order_data['OrderNbr']
+        payload = {
+            "entity": {
+                "OrderType":{
+                    "value": order_data['OrderType']
+                },
+                "OrderNbr":{
+                    "value": order_nbr
+                },
+                "Warehouse":{
+                    "value": order_data['Warehouse']
+                },
+                "EndDate":{
+                    "value": datetime.now().date()
+                }
+
+            }
+        }
+        acu_data_log_entry = {            
+            'Entity': 'ManageSalesAllocations',
+            'KeyValue': order_nbr,
+            'Operation': f'POST - Reclassify Journal Transaction',
+            'Payload': payload,
+        }
+        success_str = f'{order_nbr} reclassified to 5090 successfully!'
+        error_str = f'Could not reclassify {order_nbr}!'
+        full_payload = {
+            'target_api_update_payload': payload,
+            'log_success': success_str,
+            'log_error': error_str,
+            'acu_api_data_log': acu_data_log_entry,
+        }
+        self.target_api(endpoint='/ManageSalesAllocations', payload_data=full_payload, operation='post', descr='Reclassify Transaction')
+        bp = 'here'
+        
