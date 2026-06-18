@@ -1,10 +1,9 @@
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from connectors import AcumaticaAPI
+from pipelines import DarwillAddresses
 
-
-
-acu = AcumaticaAPI(pipeline='.debug', env='dev')
+dw = DarwillAddresses('.debug')
+dw.run()
 
 bp = 'here'

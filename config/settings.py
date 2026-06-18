@@ -1318,6 +1318,40 @@ TABLES = {
             'TotalQueueDuration',
         ],
     },
+    'ucmi.DarwillHubspotBinding': {
+        'keys': [
+            'ANI',
+        ],
+        'columns': [
+            'CustomerID',
+            'HubspotID',
+            'ANI',
+            'Product',
+            'ContactName',
+            'AddressLine1',
+            'AddressLine2',
+            'City',
+            'State',
+            'Zip',
+            'UnformattedANI',
+            'SourceFile',
+            'DateAdded',
+        ],
+        'update_columns': [
+            'CustomerID',
+            'HubspotID',
+            'Product',
+            'ContactName',
+            'AddressLine1',
+            'AddressLine2',
+            'City',
+            'State',
+            'Zip',
+            'UnformattedANI',
+            'SourceFile',
+            'DateAdded',
+        ],
+    },
 }
 
 '''# Tables
@@ -1480,4 +1514,11 @@ JHL_SFTP: dict = {
     'port': os.getenv('SFTP_JHL_PORT'),
     'username': os.getenv('SFTP_JHL_USERNAME'),
     'password': os.getenv('SFTP_JHL_PASSWORD'),
+}
+
+DARWILL_SFTP: dict = {
+    'host': os.getenv('SFTP_DARWILL_HOST'),
+    'port': os.getenv('SFTP_DARWILL_PORT'),
+    'username': os.getenv('SFTP_DARWILL_USERNAME'),
+    'password': os.getenv('SFTP_DARWILL_PASSWORD'),
 }
