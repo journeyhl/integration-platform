@@ -36,8 +36,7 @@ class Transform:
             pl.col('IVR TIME').alias('IVRDuration'),
             pl.col('QUEUE WAIT TIME').alias('QueueWaitDuration'),
             pl.col('TOTAL QUEUE TIME').alias('TotalQueueDuration'),
-            pl.col('SEGMENT TIME').alias('SegmentDuration'),
-            pl.col('TIMESTAMP').cast(pl.String).alias('TimestampKey')
+            pl.col('SEGMENT TIME').alias('SegmentDuration')
         ).drop([
             'CALL ID',
             'TIMESTAMP',

@@ -20,6 +20,7 @@ from .acu_to_dbc_sales_orders import AcuToDbcSalesOrders
 from .acu_to_dbc_shipments import AcuToDbcShipments
 from .acu_to_dbc_customers import AcuToDbcCustomers
 from .acu_to_dbc_phone_revenue import AcuToDbcPhoneRevenue
+from .allocate_sales_orders import AllocateSalesOrders
 
 from .redstag_send_shipments import SendRedStagShipments
 from .redstag_inventory import RedStagInventory
