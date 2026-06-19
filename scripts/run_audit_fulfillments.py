@@ -1,8 +1,8 @@
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from connectors import AcumaticaAPI
-from pipelines import AuditFulfillment
+from integration_platform.connectors import AcumaticaAPI
+from integration_platform.pipelines import AuditFulfillment
 
 
 audit_fulfillment = AuditFulfillment('.debug')

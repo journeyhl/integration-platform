@@ -1,7 +1,7 @@
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from pipelines.criteo import Criteo
+from integration_platform.pipelines.criteo import Criteo
 from datetime import datetime, timedelta, date
 
 

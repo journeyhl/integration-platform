@@ -78,8 +78,8 @@ py -3.13 -m pip install git+https://github.com/journeyhl/integration-platform.gi
 Then import directly in any Python project:
 
 ```python
-from connectors import sql
-from pipelines import kustomer
+from integration_platform.connectors import sql
+from integration_platform.pipelines import kustomer
 ```
 
 ### Option B: Clone and run locally
