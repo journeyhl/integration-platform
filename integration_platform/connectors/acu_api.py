@@ -401,11 +401,10 @@ class AcumaticaAPI:
             })
             bp = 'here'
         elif descr == 'Manage Sales Allocation':
-            try:
-                json_response = response.json()
+            if response_str == '202: Accepted':
                 self.logger.info(payload_data['log_success'])
                 return_bool = True
-            except Exception as e:
+            else:
                 self.logger.info(payload_data['log_error'])
                 return_bool = False
             self.data_log.append({
@@ -1271,41 +1270,48 @@ class AcumaticaAPI:
         payload = {
             "entity": {
                 "Warehouse":{
-                    "value": order_data['Warehouse']
+                    "value": order_data['SiteCD']
                 },
                 "EndDate":{
                     "value": end_date
                 },
                 "OrderType":{
                     "value": order_data['OrderType']
+                },
+                "OrderNbr":{
+                    "value": order_data['OrderNbr']
                 }
             },
             "parameters": {
                 "param_Action": {
-                    "value": "Deallocate Sales Orders"
+                    "value": order_data['param_Action']
                 },
                 "param_SelectBy":{
                     "value": "Line Ship On"
                 },
                 "param_Warehouse":{
-                    "value": order_data['Warehouse']
+                    "value": order_data['SiteCD']
                 },
                 "param_EndDate":{
                     "value": end_date
                 },
                 "param_OrderType":{
                     "value": order_data['OrderType']
+                },
+                "param_OrderNbr":{
+                    "value": order_data['OrderNbr']
                 }
             }            
         }
         acu_data_log_entry = {            
             'Entity': 'ManageSalesAllocations',
             'KeyValue': order_nbr,
-            'Operation': f'POST - Reclassify Journal Transaction',
+            'Operation': f'POST - {order_data['param_Action']}',
             'Payload': payload,
         }
-        success_str = f'{order_nbr} reclassified to 5090 successfully!'
-        error_str = f'Could not reclassify {order_nbr}!'
+        short_action = f'{order_data['param_Action'].split(' ')[0]}'
+        success_str = f'{order_nbr} {short_action}d!'
+        error_str = f'Could not {short_action} {order_nbr}!'
         full_payload = {
             'target_api_update_payload': payload,
             'log_success': success_str,

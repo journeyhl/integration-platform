@@ -220,6 +220,8 @@ class AcumaticaDbQueries(Queries):
     '''Pulls Completed Cosignment orders with an inventory ref document'''
     CreateShipments: Query
     '''Pulls Open Shipments that are ready to have a shipment created'''
+    AllocateSalesOrders: Query
+    '''Pulls Sales Orders that need to have inventory item allocated'''
 
 _QUERY_CLASSES: dict[str, type[Queries]] = {
     'db_CentralStore': CentralStoreQueries,

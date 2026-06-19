@@ -1269,7 +1269,8 @@ TABLES = {
     'Five9CallSegments': {
         'keys': [
             'CallID',
-            'TimestampKey',
+            'Timestamp',
+            'SessionID',
         ],
         'columns': [
             'CallID',
@@ -1292,13 +1293,10 @@ TABLES = {
             'RingDuration',
             'IVRDuration',
             'QueueWaitDuration',
-            'TotalQueueDuration',
-            'TimestampKey',
+            'TotalQueueDuration'
         ],
         'update_columns': [
-            'Timestamp',
             'CallType',
-            'SessionID',
             'CallSegmentID',
             'CalledParty',
             'CallingParty',
