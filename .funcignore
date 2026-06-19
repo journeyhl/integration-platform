@@ -13,9 +13,3 @@ scripts
 .degraded
 /dags
 /.degraded
-integration_platform.egg-info
-**/*.egg-info
-readme.md
-docs
-.python_packages
-local.settings.json
