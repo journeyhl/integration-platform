@@ -11,7 +11,7 @@ from datetime import datetime
 def acu_create_receipt_pipeline():
 
     def create_receipts():
-        from pipelines import CreateAcuReceipt
+        from integration_platform.pipelines import CreateAcuReceipt
         acu_receipts_pipeline = CreateAcuReceipt()
         completed_acu_receipts_pipeline = acu_receipts_pipeline.run()
         receipts = completed_acu_receipts_pipeline['loaded']
