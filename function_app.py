@@ -36,7 +36,8 @@ def rmi_send_shipment_return_pipeline(timer: af.TimerRequest):
     ===
      *Runs at :10 and :40 every hour from 4am-11pm*
     '''
-    from integration_platform.pipelines import SendRMIShipments, SendRMIReturns #rmi-send-shipments, rmi-send-returns
+    from integration_platform.pipelines.rmi_send_shipments import SendRMIShipments #rmi-send-shipments,
+    from integration_platform.pipelines.rmi_send_returns import SendRMIReturns #rmi-send-returns
     shipment_pipeline = SendRMIShipments('rmi_send_shipment_return_pipeline')
     shipment_pipeline.run()
 
@@ -90,7 +91,9 @@ def rmi_data_retrieval_pipeline(timer: af.TimerRequest):
     ===
      *Runs at :25 every hour from 4am-11pm*
     '''
-    from integration_platform.pipelines import GetClosedShipmentsFromRMI, GetReceiptsFromRMI, GetRMAsFromRMI #rmi-shipments, rmi-receipts, rmi-rmas
+    from integration_platform.pipelines.get_closed_shipments_from_RMI import GetClosedShipmentsFromRMI #rmi-shipments
+    from integration_platform.pipelines.get_receipts_from_RMI import GetReceiptsFromRMI #rmi-receipts
+    from integration_platform.pipelines.get_rmas_from_RMI import GetRMAsFromRMI #rmi-rmas
     closed_shipment_pipeline = GetClosedShipmentsFromRMI('rmi_data_retrieval_pipeline')
     closed_shipment_pipeline.run()
 
@@ -131,7 +134,7 @@ def redstag_send_shipment_pipeline(timer: af.TimerRequest):
     ===
      *Runs at :05 and :35 every hour from 4am-11pm*
     '''
-    from integration_platform.pipelines import SendRedStagShipments #redstag-send-shipments
+    from integration_platform.pipelines.redstag_send_shipments import SendRedStagShipments #redstag-send-shipments
     shipment_pipeline = SendRedStagShipments('redstag_send_shipment_pipeline')
     shipment_pipeline.run()
 #endregion redstag_send_shipment_pipeline
@@ -161,7 +164,7 @@ def redstag_inventory_retrieval(timer: af.TimerRequest):
     ===
      *Runs at ten after every hour from 4am-11pm*
     '''
-    from integration_platform.pipelines import RedStagInventory #redstag-inventory
+    from integration_platform.pipelines.redstag_inventory import RedStagInventory #redstag-inventory
     redstag_inventory = RedStagInventory('redstag_inventory_retrieval')
     redstag_inventory.run()
 #endregion redstag_inventory_retrieval
@@ -218,7 +221,7 @@ def create_acu_receipts(timer: af.TimerRequest):
      *Runs at :50 every hour from 8am-8pm*
     '''
 
-    from integration_platform.pipelines import CreateAcuReceipt #create-receipts
+    from integration_platform.pipelines.create_acu_receipt import CreateAcuReceipt #create-receipts
     create_receipt_pipeline = CreateAcuReceipt('create_acu_receipts')
     create_receipt_pipeline.run()
     
@@ -259,7 +262,7 @@ def pack_shipments(timer: af.TimerRequest):
     ===
      *Runs every 15 minutes from 4am-11pm*
     '''
-    from integration_platform.pipelines import PackShipments #pack-shipments
+    from integration_platform.pipelines.pack_shipments import PackShipments #pack-shipments
     pack_shipments = PackShipments('pack_shipments')
     pack_shipments.run()
 #endregion pack_shipments
@@ -292,7 +295,7 @@ def confirm_acu_shipments(timer: af.TimerRequest):
     ===
      *Runs every 20 minutes from 4am-11pm*
     '''
-    from integration_platform.pipelines import ShipmentsReadyToConfirm #shipment-confirmations
+    from integration_platform.pipelines.confirm_open_shipments import ShipmentsReadyToConfirm #shipment-confirmations
     confirm_packed_shipments = ShipmentsReadyToConfirm('confirm_acu_shipments')
     confirm_packed_shipments.run()
 #endregion confirm_acu_shipments
@@ -321,7 +324,7 @@ def acu_deletions(timer: af.TimerRequest):
     ===
      *Runs at :40 every hour*
     '''
-    from integration_platform.pipelines import AcumaticaDeletions #acumatica-deletions
+    from integration_platform.pipelines.acu_deletions import AcumaticaDeletions #acumatica-deletions
     acu_deletions = AcumaticaDeletions('acu_deletions')
     acu_deletions.run()
 #endregion acu_deletions
@@ -359,7 +362,7 @@ def address_validator(timer: af.TimerRequest):
     ===
      *Runs at :55 every hour*
     '''
-    from integration_platform.pipelines import AddressValidator #address-validator
+    from integration_platform.pipelines.address_validator import AddressValidator #address-validator
     address_validator = AddressValidator('address_validator')
     address_validator.run()
 #endregion address_validator
@@ -396,7 +399,7 @@ def criteo_ads(timer: af.TimerRequest):
     ===
      *Runs at :01 every hour*
     '''
-    from integration_platform.pipelines import Criteo #criteo
+    from integration_platform.pipelines.criteo import Criteo #criteo
     from datetime import timedelta
     criteo_pipeline = Criteo('criteo_ads')
     criteo_pipeline._re_init(
@@ -434,7 +437,7 @@ def acu_to_dbc_sales_orders(timer: af.TimerRequest):
     ===
      *Runs at :05 and :35 every hour from 4am-11pm*
     '''
-    from integration_platform.pipelines import AcuToDbcSalesOrders #acu-to-dbc-sales-orders
+    from integration_platform.pipelines.acu_to_dbc_sales_orders import AcuToDbcSalesOrders #acu-to-dbc-sales-orders
     sales_orders_pipeline = AcuToDbcSalesOrders('acu_to_dbc_sales_orders')
     sales_orders_pipeline.run()
 #endregion acu_to_dbc_sales_orders
@@ -463,7 +466,7 @@ def acu_to_dbc_quotes(timer: af.TimerRequest):
     ===
      *Runs at :00 and :30 every hour*
     '''
-    from integration_platform.pipelines import AcuToDbcQuotes #acu-to-dbc-quotes
+    from integration_platform.pipelines.acu_to_dbc_quotes import AcuToDbcQuotes #acu-to-dbc-quotes
     quotes_pipeline = AcuToDbcQuotes('acu_to_dbc_quotes')
     quotes_pipeline.run()
 #endregion acu_to_dbc_quotes
@@ -498,7 +501,7 @@ def kustomer_order_ingest(timer: af.TimerRequest):
     ===
         Currently runs every 12 minutes
     '''
-    from integration_platform.pipelines import SendOrderDetailsToKustomer #kustomer-orders
+    from integration_platform.pipelines.kustomer import SendOrderDetailsToKustomer #kustomer-orders
     kustomer_pipeline = SendOrderDetailsToKustomer('kustomer_order_ingest')
     kustomer_pipeline.logger.info(f'Starting ingest pipeline execution')
     kustomer_pipeline._re_init()
@@ -530,7 +533,7 @@ def kustomer_order_backfill(timer: af.TimerRequest):
     ===
         Runs every 24 minutes
     '''
-    from integration_platform.pipelines import SendOrderDetailsToKustomer #kustomer-orders
+    from integration_platform.pipelines.kustomer import SendOrderDetailsToKustomer #kustomer-orders
     kustomer_pipeline = SendOrderDetailsToKustomer('kustomer_order_backfill')
     kustomer_pipeline.logger.info(f'Starting backfill pipeline execution')
     kustomer_pipeline._re_init('backfill') 
@@ -546,7 +549,7 @@ def kustomer_order_backfill(timer: af.TimerRequest):
     run_on_startup = False
 )
 def aftership_send(timer: af.TimerRequest):
-    from integration_platform.pipelines import SendToAfterShip #aftership-send
+    from integration_platform.pipelines.aftership_send import SendToAfterShip #aftership-send
     send_to_aftership = SendToAfterShip('aftership_send')
     send_to_aftership.run()
 
@@ -562,7 +565,7 @@ def aftership_send(timer: af.TimerRequest):
     run_on_startup = False
 )
 def aftership_update(timer: af.TimerRequest):
-    from integration_platform.pipelines import UpdateAfterShip #aftership-update
+    from integration_platform.pipelines.aftership_update import UpdateAfterShip #aftership-update
     update_aftership = UpdateAfterShip('aftership_update')
     update_aftership.run()
 #endregion      aftership_update
@@ -577,7 +580,7 @@ def aftership_update(timer: af.TimerRequest):
     run_on_startup = False
 )
 def aftership_to_dbc(timer: af.TimerRequest):
-    from integration_platform.pipelines import AfterShipToDbc #aftership-to-dbc
+    from integration_platform.pipelines.aftership_to_dbc import AfterShipToDbc #aftership-to-dbc
     aftership_to_dbc = AfterShipToDbc('aftership_to_dbc')
     aftership_to_dbc.run()
 #endregion          aftership_to_dbc
@@ -595,7 +598,7 @@ def aftership_to_dbc(timer: af.TimerRequest):
     run_on_startup = False
 )
 def hubspot_snapshots(timer: af.TimerRequest):
-    from integration_platform.pipelines import HubSpotSnapshot #hubspot-snapshot
+    from integration_platform.pipelines.hubspot_snapshot import HubSpotSnapshot #hubspot-snapshot
     hubspot_snapshot_upsert = HubSpotSnapshot('hubspot_snapshots')
     hubspot_snapshot_upsert.run()
 #endregion      hubspot_snapshots
@@ -609,7 +612,7 @@ def hubspot_snapshots(timer: af.TimerRequest):
     run_on_startup = False
 )
 def hubspot_property_update(timer: af.TimerRequest):
-    from integration_platform.pipelines import HubspotPropertyUpdate #hubspot-property-update
+    from integration_platform.pipelines.hubspot_property_update import HubspotPropertyUpdate #hubspot-property-update
     hubspot_property_update = HubspotPropertyUpdate('hubspot_property_update')
     hubspot_property_update.run()
 #endregion      hubspot_property_update
@@ -624,7 +627,7 @@ def hubspot_property_update(timer: af.TimerRequest):
     run_on_startup = False
 )
 def rmi_link_to_acumatica(timer: af.TimerRequest):
-    from integration_platform.pipelines import RMILinkToAcu #rmi-link-to-acu
+    from integration_platform.pipelines.rmi_link_to_acu import RMILinkToAcu #rmi-link-to-acu
     rmi_link = RMILinkToAcu('rmi_link_to_acumatica')
     rmi_link.run()
 #endregion          rmi_link_to_acumatica
@@ -640,7 +643,7 @@ def rmi_link_to_acumatica(timer: af.TimerRequest):
     run_on_startup = False
 )
 def sales_order_cleaner(timer: af.TimerRequest):
-    from integration_platform.pipelines import SalesOrderCleaner #sales-orders-cleaner
+    from integration_platform.pipelines.sales_order_cleaner import SalesOrderCleaner #sales-orders-cleaner
     sales_order_cleaner = SalesOrderCleaner('sales_order_cleaner') 
     sales_order_cleaner.run()
 #endregion          sales_order_cleaner
@@ -655,7 +658,7 @@ def sales_order_cleaner(timer: af.TimerRequest):
     run_on_startup = False
 )
 def acu_to_dbc_phone_revenue(timer: af.TimerRequest):
-    from integration_platform.pipelines import AcuToDbcPhoneRevenue #acu-to-dbc-phone-revenue
+    from integration_platform.pipelines.acu_to_dbc_phone_revenue import AcuToDbcPhoneRevenue #acu-to-dbc-phone-revenue
     phone_revenue = AcuToDbcPhoneRevenue('acu_to_dbc_phone_revenue')
     phone_revenue.run()
 #endregion       acu_to_dbc_phone_revenue
@@ -671,7 +674,7 @@ def acu_to_dbc_phone_revenue(timer: af.TimerRequest):
     run_on_startup = False
 )
 def acu_to_dbc_shipments(timer: af.TimerRequest):
-    from integration_platform.pipelines import AcuToDbcShipments #acu-to-dbc-shipments
+    from integration_platform.pipelines.acu_to_dbc_shipments import AcuToDbcShipments #acu-to-dbc-shipments
     shipments = AcuToDbcShipments('acu_to_dbc_shipments')
     shipments.run()
 #endregion       acu_to_dbc_shipments
@@ -687,7 +690,7 @@ def acu_to_dbc_shipments(timer: af.TimerRequest):
     run_on_startup = False
 )
 def acu_to_dbc_customers(timer: af.TimerRequest):
-    from integration_platform.pipelines import AcuToDbcCustomers #acu-to-dbc-customers
+    from integration_platform.pipelines.acu_to_dbc_customers import AcuToDbcCustomers #acu-to-dbc-customers
     customers = AcuToDbcCustomers('acu_to_dbc_customers')
     customers.run()
 #endregion       acu_to_dbc_customers
@@ -702,7 +705,7 @@ def acu_to_dbc_customers(timer: af.TimerRequest):
     run_on_startup = False
 )
 def five9_call_segments(timer: af.TimerRequest):
-    from integration_platform.pipelines import Five9CallSegments #acu-to-dbc-customers
+    from integration_platform.pipelines.five9_call_segments import Five9CallSegments #acu-to-dbc-customers
     five9 = Five9CallSegments('five9_call_segments')
     five9.run()
 #endregion       five9_call_segments
