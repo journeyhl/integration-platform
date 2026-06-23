@@ -90,10 +90,13 @@ class Load:
                 time.sleep(5)
                 shipment_data = self.pipeline.acu_api.sales_order_get_shipment(order)
                 receipt_response = self.pipeline.acu_api.shipment_details(shipment_data)
-                for line in receipt_response['details']:
-                    line = self.check_reason_code(receipt_response, line)
-                receipt_response = self.pipeline.acu_api.add_package(receipt_response)
-                self.check_if_ready_for_confirm(receipt_response)
+                if receipt_response.get('details') != None:
+                    for line in receipt_response['details']:
+                        line = self.check_reason_code(receipt_response, line)
+                    receipt_response = self.pipeline.acu_api.add_package(receipt_response)
+                    self.check_if_ready_for_confirm(receipt_response)
+                else:
+                    self.logger.error(f'Shipment not created!')
                 # self.pipeline.acu_api.confirm_shipment(receipt_response)
         bp = 'here'
     
