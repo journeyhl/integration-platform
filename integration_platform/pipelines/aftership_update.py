@@ -1,6 +1,6 @@
 
 from integration_platform.pipelines.base import Pipeline
-from integration_platform.connectors import AfterShip, AcumaticaAPI
+from integration_platform.connectors import AfterShip
 from integration_platform.transform.aftership import Transform
 from datetime import timedelta
 class UpdateAfterShip(Pipeline):
@@ -31,7 +31,6 @@ class UpdateAfterShip(Pipeline):
     def __init__(self, function: str):
         super().__init__('aftership-update', function)
         self.aftership = AfterShip(self)
-        # self.acuapi = AcumaticaAPI(self)
         self.transformer = Transform(self)
         pass
 
@@ -47,6 +46,9 @@ class UpdateAfterShip(Pipeline):
         return data_extract
 
     def transform(self, data_extract):
+        if data_extract['aftership_extract'] == []:
+            self.logger.warning(f'No rows to update! Nothing will be loaded')
+            return {}
         data_transformed = self.transformer.transform_update(data_extract)
         return data_transformed
     
