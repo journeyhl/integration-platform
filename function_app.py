@@ -92,15 +92,17 @@ def rmi_data_retrieval_pipeline(timer: af.TimerRequest):
      *Runs at :25 every hour from 4am-11pm*
     '''
     from integration_platform.pipelines.get_closed_shipments_from_RMI import GetClosedShipmentsFromRMI #rmi-shipments
-    from integration_platform.pipelines.get_receipts_from_RMI import GetReceiptsFromRMI #rmi-receipts
-    from integration_platform.pipelines.get_rmas_from_RMI import GetRMAsFromRMI #rmi-rmas
-    closed_shipment_pipeline = GetClosedShipmentsFromRMI('rmi_data_retrieval_pipeline')
+    closed_shipment_pipeline = GetClosedShipmentsFromRMI(function='rmi_data_retrieval_pipeline')
     closed_shipment_pipeline.run()
+    
+    rmi_api = closed_shipment_pipeline.rmi
 
-    receipt_pipeline = GetReceiptsFromRMI('rmi_data_retrieval_pipeline')
+    from integration_platform.pipelines.get_receipts_from_RMI import GetReceiptsFromRMI #rmi-receipts
+    receipt_pipeline = GetReceiptsFromRMI('rmi_data_retrieval_pipeline', rmi_api=rmi_api)
     receipt_pipeline.run()
 
-    rma_pipeline = GetRMAsFromRMI('rmi_data_retrieval_pipeline')
+    from integration_platform.pipelines.get_rmas_from_RMI import GetRMAsFromRMI #rmi-rmas
+    rma_pipeline = GetRMAsFromRMI('rmi_data_retrieval_pipeline', rmi_api=rmi_api)
     rma_pipeline.run()
 #endregion rmi_data_retrieval_pipeline
 

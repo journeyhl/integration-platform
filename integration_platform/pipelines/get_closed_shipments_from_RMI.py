@@ -1,7 +1,7 @@
 
 
 from integration_platform.pipelines import Pipeline
-from integration_platform.connectors import RMIAPI, SQLConnector
+from integration_platform.connectors import RMIAPI
 from integration_platform.transform.rmi_receipt_pull import Transform
 
 
@@ -24,7 +24,7 @@ class GetClosedShipmentsFromRMI(Pipeline):
     # Results Logging
      - None needed
     '''
-    def __init__(self, function: str):
+    def __init__(self, function: str, rmi_api: RMIAPI | None = None):
         '''`init`(self)
         ---
         <hr>
@@ -38,7 +38,7 @@ class GetClosedShipmentsFromRMI(Pipeline):
         >>> self.payload_template = ["fromDate", "toDate"]
         '''
         super().__init__('rmi-shipments', function)
-        self.rmi = RMIAPI(self)
+        self.rmi = RMIAPI(self) if rmi_api == None else rmi_api
         self.transformer = Transform(self)
         self.payload_template = ["fromDate", "toDate"]
 

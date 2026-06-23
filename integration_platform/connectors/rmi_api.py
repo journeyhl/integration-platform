@@ -4,6 +4,7 @@ import json
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from integration_platform.config.settings import RMI
+import urllib3
 
 class RMIAPI():
 
@@ -54,6 +55,8 @@ class RMIAPI():
         self.username = RMI['username']
         self.password = RMI['password']
         self.session = requests.Session()
+        self.session.verify = False  # TEMP: backtracksrl.com cert expired 2026-06-22, remove once vendor renews
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         self._auth()
         pass
 

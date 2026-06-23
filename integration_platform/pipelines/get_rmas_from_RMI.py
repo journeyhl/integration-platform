@@ -24,7 +24,7 @@ class GetRMAsFromRMI(Pipeline):
     # Results Logging
      - None needed
     '''
-    def __init__(self, function: str):
+    def __init__(self, function: str, rmi_api: RMIAPI | None = None):
         '''`__init__`(self)
         ---
         <hr>
@@ -38,7 +38,7 @@ class GetRMAsFromRMI(Pipeline):
         >>> self.payload_template = ["lastModifiedDateFrom", "lastModifiedDateTo"]   
         '''
         super().__init__('rmi-rmas', function)
-        self.rmi = RMIAPI(self)
+        self.rmi = RMIAPI(self) if rmi_api == None else rmi_api
         self.transformer = Transform(self)
         self.payload_template = ["lastModifiedDateFrom", "lastModifiedDateTo"]        
 
