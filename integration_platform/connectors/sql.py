@@ -222,6 +222,9 @@ class AcumaticaDbQueries(Queries):
     '''Pulls Open Shipments that are ready to have a shipment created'''
     AllocateSalesOrders: Query
     '''Pulls Sales Orders that need to have inventory item allocated'''
+    AcuToDbc_BackordersPointInTime: Query
+    ''''''
+
 
 _QUERY_CLASSES: dict[str, type[Queries]] = {
     'db_CentralStore': CentralStoreQueries,

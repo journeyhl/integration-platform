@@ -46,7 +46,7 @@ class SendOrderDetailsToKustomer(Pipeline):
     def load(self, data_transformed):
         data_loaded = self.loader.landing(data_transformed)
         self.logger.info(f'Upserted {len(data_loaded)} total rows')
-        return data_loaded
+        return data_transformed
     
     def log_results(self, data_loaded):
         pass

@@ -79,6 +79,7 @@ class RMIXML:
             login_result = xml_response['soap:Envelope']['soap:Body']['LoginResponse']['LoginResult']
             self.session_id = login_result['Message']
             self.login_result = login_result['Result']
+            self.logger.info(f'Successfully logged into RMI')
         except Exception as e:    
             bp = 'here'
         bp = 'here'
