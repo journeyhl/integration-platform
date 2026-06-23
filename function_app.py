@@ -697,8 +697,8 @@ def acu_to_dbc_customers(timer: af.TimerRequest):
 
 
 #region            five9_call_segments
-#               Upsert to acu.Customers
-#6x/day (3:10am, 7:10am, 11:10pm, 3:10pm, 7:10pm, 11:10pm)
+#          Upsert to Five9CallSegments
+                        #2x/hour (:05, :35)
 @app.timer_trigger(
     schedule = '5/30 * * * *',
     arg_name = 'timer',
@@ -708,4 +708,20 @@ def five9_call_segments(timer: af.TimerRequest):
     from integration_platform.pipelines.five9_call_segments import Five9CallSegments #acu-to-dbc-customers
     five9 = Five9CallSegments('five9_call_segments')
     five9.run()
-#endregion       five9_call_segments
+#endregion         five9_call_segments
+
+
+
+#region            acu_to_dbc_backorders
+#    Upsert to acu.BackordersPointInTime
+#2x/day (8am, 11pm)
+@app.timer_trigger(
+    schedule = '10 7,14,23 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def acu_to_dbc_backorders(timer: af.TimerRequest):
+    from integration_platform.pipelines.acu_to_dbc_backorders import AcuToDbcBackordersPointInTime #acu-to-dbc-backorders
+    backorders = AcuToDbcBackordersPointInTime('acu_to_dbc_backorders')
+    backorders.run()
+#endregion       acu_to_dbc_backorders

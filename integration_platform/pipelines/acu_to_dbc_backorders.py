@@ -1,7 +1,6 @@
 
-from pipelines import Pipeline
-from connectors import AcumaticaAPI
-from transform.audit_fulfillment import Transform
+from integration_platform.pipelines import Pipeline
+from integration_platform.connectors import AcumaticaAPI
 import polars as pl
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -31,7 +30,7 @@ class AcuToDbcBackordersPointInTime(Pipeline):
 
 
     def extract(self) -> dict[str, pl.DataFrame]:
-        acu_extract = self.acudb.query_to_dataframe(self.acudb.queries.AcuToDbc_BackordersPointInTIme)
+        acu_extract = self.acudb.query_to_dataframe(self.acudb.queries.AcuToDbc_BackordersPointInTime)
         data_extract = {
             'acu_extract': acu_extract,
             'dbc_extract': '' #dbc_extract 
@@ -39,11 +38,7 @@ class AcuToDbcBackordersPointInTime(Pipeline):
         return data_extract
 
     def transform(self, data_extract: dict[str, pl.DataFrame]):
-        dbc_extract = data_extract['dbc_extract']
-        acu_extract = data_extract['acu_extract']
-        acu_extract = acu_extract.with_columns(
-            pl.col('LineNbr').fill_null(99).alias('LineNbr')
-        ).to_dicts()
+        acu_extract = data_extract['acu_extract'].to_dicts()
 
 
         data_transformed = acu_extract
