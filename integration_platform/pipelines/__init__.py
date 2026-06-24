@@ -50,3 +50,4 @@ from .dev.audit_fulfillment import AuditFulfillment
 from .dev.shopify import ShopifyGraphQL
 from .dev.notify_fulfillment_ops import NotifyFulfillmentOps
 
+from .call_center_mfr import CallCenterMFR
