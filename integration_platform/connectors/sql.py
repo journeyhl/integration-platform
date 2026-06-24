@@ -64,6 +64,10 @@ class CentralStoreQueries(Queries):
     '''Pulls all distinct Shipments from RMI RMAStatus table in centralstore'''
     HubSpot_RevenueByCustomer: Query
     '''Pulls revenue by Company/Customer from acu.SalesOrders for send to Hubspot'''
+    MFR_InventorySummary_Product: Query
+    ''''''
+    MFR_PhoneRevStaging: Query
+    ''''''
 
 
 
