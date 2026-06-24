@@ -11,9 +11,18 @@ class CallCenterMFR(Pipeline):
     def extract(self):
         inventory_summary_product = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_InventorySummary_Product)
         phone_rev_staging = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_PhoneRevStaging)
+        adphone_priority_dates = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_AdPhonePriorityDates)
+        adversion_product = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_AdVersionProduct)
+        call_counts = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_CallCounts)
+        
+        ad_detail_version = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_AdDetailAdVersion)
         data_extract = {
             'InventorySummary_Product': inventory_summary_product,
-            'PhoneRevPreStaging': phone_rev_staging
+            'PhoneRevPreStaging': phone_rev_staging,
+            'AdPhonePriorityDates': adphone_priority_dates,
+            'AdVersionProduct': adversion_product,
+            'CallCounts': call_counts,
+            'AdDetailVersion': ad_detail_version
         }
         return data_extract
 
