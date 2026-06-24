@@ -68,7 +68,13 @@ class CentralStoreQueries(Queries):
     ''''''
     MFR_PhoneRevStaging: Query
     ''''''
-
+    MFR_AdVersionProduct: Query
+    ''''''
+    MFR_AdPhonePriorityDates: Query
+    ''''''
+    MFR_CallCounts: Query
+    ''''''
+    MFR_AdDetailAdVersion: Query
 
 
 class AcumaticaDbQueries(Queries):
