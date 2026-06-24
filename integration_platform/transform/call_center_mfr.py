@@ -23,7 +23,7 @@ class Transform:
         bp = 'here'
         self.__phone_revenue__()
         bp = 'here'
-        self.mfr_intermediate1()
+        self.mfr_intermediate_main()
         self.mfr_intermediate_with_rownum()
 
 
@@ -130,7 +130,7 @@ class Transform:
         return self.df_phone_revenue
 
 
-    def mfr_intermediate1(self):
+    def mfr_intermediate_main(self):
         bp = 'here'
         self.logger.info(f'Compling Intermediate MFRAllocated query...')
         self.inter_mfr_allocated = self.sql_context.execute(
