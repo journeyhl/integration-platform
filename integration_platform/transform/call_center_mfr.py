@@ -1,6 +1,5 @@
 import logging
 import polars as pl
-import pyperclip
 class Transform:
     def __init__(self, pipeline):
         self.pipeline = pipeline
@@ -197,5 +196,5 @@ from Inter_MFRAllocated_rownum a
                 print(f'{col}')
             print('\n')
             printstr += '\n'
-        pyperclip.copy(printstr)
+        # pyperclip.copy(printstr)
         bp = 'here'
