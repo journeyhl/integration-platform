@@ -1351,6 +1351,25 @@ TABLES = {
         ],
     },
     
+    'dbo.src_dm_tracker': {
+        'keys': ['SpendMonth', 'MailName', 'Campaign', 'TFN'],
+        'columns': [
+            'SpendMonth',
+            'InHomeStartDate',
+            'MailName',
+            'Campaign',
+            'TFN',
+            'TotalSpend',
+            'ProductGroup',
+            'LoadTimestamp',
+        ],
+        'update_columns': [
+            'InHomeStartDate',
+            'TotalSpend',
+            'ProductGroup',
+            'LoadTimestamp',
+        ],
+    },
     'acu.BackordersPointInTime': {
         'keys': [
             'OrderType',

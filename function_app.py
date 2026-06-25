@@ -727,3 +727,18 @@ def acu_to_dbc_backorders(timer: af.TimerRequest):
     backorders = AcuToDbcBackordersPointInTime('acu_to_dbc_backorders')
     backorders.run()
 #endregion       acu_to_dbc_backorders
+
+
+#region            sharepoint_dm_tracker
+#    Upsert SharePoint DM plan to dbo.src_dm_tracker
+#                              1x/day (10am UTC)
+@app.timer_trigger(
+    schedule = '0 10 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def sharepoint_dm_tracker_pipeline(timer: af.TimerRequest):
+    from integration_platform.pipelines.sharepoint_dm_tracker import SharepointDmTracker
+    pipeline = SharepointDmTracker('sharepoint_dm_tracker_pipeline')
+    pipeline.run()
+#endregion       sharepoint_dm_tracker
