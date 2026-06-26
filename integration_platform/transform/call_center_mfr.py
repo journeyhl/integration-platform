@@ -16,14 +16,19 @@ class Transform:
             CallCounts = data_extract['CallCounts'],
             AdDetailVersion = data_extract['AdDetailVersion']
         )
-        self.__phone_revenue_staging__()
+        call_counts = self.aggregate_call_counts()
+        phone_revenue_staging = self.__phone_revenue_staging__()
         bp = 'here'
-        self.__lineamt_calc__()
+        lineamt_calc = self.__lineamt_calc__()
         bp = 'here'
-        self.__phone_revenue__()
+        phone_revenue = self.__phone_revenue__()
         bp = 'here'
-        self.mfr_intermediate_main()
-        self.mfr_intermediate_with_rownum()
+        inter_mfr = self.mfr_inter1_match_and_filter()
+        inter_mfr_with_rownum = self.mfr_inter2_pre_aggr()
+
+        inter_mfr_aggregated = self.mfr_inter3_aggregate()
+
+        bp = 'here'
 
 
     def __phone_revenue_staging__(self):
@@ -47,6 +52,7 @@ class Transform:
         ).collect()
         self.sql_context.register('PhoneRevStaging', self.df_phone_rev_staging)
         self.logger.info(f'PhoneRevStaging registered with {self.df_phone_rev_staging.height} rows.')
+        return self.df_phone_rev_staging
 
     def __lineamt_calc__(self):
         '''`__lineamt_calc__`(self):
@@ -129,16 +135,21 @@ class Transform:
         return self.df_phone_revenue
 
 
-    def mfr_intermediate_main(self):
+    def mfr_inter1_match_and_filter(self):
         bp = 'here'
         self.logger.info(f'Compling Intermediate MFRAllocated query...')
         self.inter_mfr_allocated = self.sql_context.execute(
 query="""
-select case when c.Date = s.OrderDate and (a.MFRProduct = s.Product or a.Product = s.Product or a.MFRProduct = c.SkillProduct or c.RawSkill in('SA-Internet', 'SA-Fusion')) then 1
-            when c.Date = s.OrderDate and a.MFRProduct != s.Product and a.Product != s.Product and a.MFRProduct != c.SkillProduct then 2
-            when c.Date != s.OrderDate and (a.MFRProduct = s.Product or a.Product = s.Product or a.MFRProduct = c.SkillProduct) then 3
-            when c.Date != s.OrderDate and a.MFRProduct != s.Product and a.Product != s.Product and a.MFRProduct != c.SkillProduct then 4
-            else 5 end MatchRank
+select case when c.Date = s.OrderDate and (a.MFRProduct = s.Product or a.Product = s.Product or a.MFRProduct = c.SkillProduct or c.RawSkill in('SA-Internet', 'SA-Fusion')) 
+                then 1
+            when c.Date = s.OrderDate and a.MFRProduct != s.Product and a.Product != s.Product and a.MFRProduct != c.SkillProduct 
+                then 2
+            when c.Date != s.OrderDate and (a.MFRProduct = s.Product or a.Product = s.Product or a.MFRProduct = c.SkillProduct) 
+                then 3
+            when c.Date != s.OrderDate and a.MFRProduct != s.Product and a.Product != s.Product and a.MFRProduct != c.SkillProduct 
+                then 4
+            else 5 
+       end MatchRank
      , (s.OrderDate - c.Date) DaysBetweenCallOrder
      , *
 from CallCounts c 
@@ -159,7 +170,7 @@ order by OrderDate desc, OrderNbr
 
 
 
-    def mfr_intermediate_with_rownum(self):
+    def mfr_inter2_pre_aggr(self):
         bp = 'here'
         self.inter_mfr_rownum = self.sql_context.execute(
             query="""
@@ -179,10 +190,65 @@ from Inter_MFRAllocated_rownum a
 """
         ).collect()
         test = self.inter_mfr_rownum.to_dicts()
+        self.sql_context.register(name='IntermediateMFRAllocated_RowNum', frame=self.inter_mfr_rownum)
+        return self.inter_mfr_rownum
+
+
+
+    def mfr_inter3_aggregate(self):
         bp = 'here'
+        self.inter_mfr_aggregated = self.sql_context.execute(
+            query="""
+select a.AdCode
+     , a.PrimaryAdName
+     , a.SecondaryAdName
+     , a.StartDate
+     , a.AdVersionID
+     , a.PrimaryVersionName 
+     , a.SecondaryVersionName 
+     , a.Category
+     , a.Product
+     , a.DNIS
+     , a.Date 
+     , a.AcctCD
+     , a.Name 
+     , a.CustomerPhone_ANI
+     , a.OrderDate
+     , a.OrderNbr
+     , c.Calls
+     , a.RowNum
+     , a.LineAmtCalc
+     , a.OrderCount
+     , a.RowNum
+from IntermediateMFRAllocated_RowNum a
+left join CallCountsAggregated c on a.DNIS = c.DNIS and a.CustomerPhone_ANI = c.CustomerPhone_ANI and a.Date = c.Date
+"""
+        ).collect()
+        test = self.inter_mfr_aggregated.to_dicts()
+        self.sql_context.register(name = 'MFRAllocatedAggregated', frame=self.inter_mfr_aggregated)
+        return self.inter_mfr_aggregated
 
 
-
+    def aggregate_call_counts(self):
+        self.call_counts_agg = self.sql_context.execute(
+            query="""
+with TopLevel as(
+select Date
+     , CustomerPhone_ANI
+     , DNIS
+     , count(distinct SessionID) Calls
+     , Year
+     , Month
+     , FinPeriod
+from CallCounts
+group by Date, CustomerPhone_ANI, DNIS, Year, Month, FinPeriod
+)
+select *
+from TopLevel
+"""
+        ).collect()
+        self.sql_context.register(name='CallCountsAggregated', frame=self.call_counts_agg)
+        return self.call_counts_agg
 
 
     def _format_tables_(self):
@@ -197,4 +263,4 @@ from Inter_MFRAllocated_rownum a
             print('\n')
             printstr += '\n'
         # pyperclip.copy(printstr)
-        bp = 'here'
+        bp = 'here', 
