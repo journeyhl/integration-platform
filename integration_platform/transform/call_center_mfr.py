@@ -23,6 +23,9 @@ class Transform:
         inter_mfr_matched = self.mfr_inter1_match_and_filter()
         inter_mfr_rownum = self.mfr_inter2_pre_aggr()
         inter_mfr_allocated = self.mfr_inter3_aggregate()
+
+        acu_mfr_allocated = self.allocate_mfr_match_acu_view()
+        mfr_allocated = self.allocate_mfr()
         bp = 'here'
 
 
@@ -269,7 +272,7 @@ class Transform:
         return self.inter_mfr_rownum
 
     def mfr_inter3_aggregate(self) -> pl.DataFrame:
-        '''`mfr_inter3_aggregate`(self, ):
+        '''`mfr_inter3_aggregate`(self):
         ---
         <hr>
         
@@ -285,6 +288,60 @@ class Transform:
         '''        
         self.logger.info(f'Compling third and final intermediate MFRAllocated query...Joining CallCountsAggregated')
         self.inter_mfr_allocated = self.sql_context.execute(
+            query="""
+        select c.Calls
+             , a.*
+        from IntermediateMFRAllocated_RowNum a
+        inner join CallCountsAggregated c on a.DNIS = c.DNIS and a.CustomerPhone_ANI = c.CustomerPhone_ANI and a.Date = c.Date
+        order by a.Date desc, a.OrderNbr, a.OrderCount desc, a.RowNum
+        """).collect()
+        self.sql_context.register(name = 'IntermediateMFRAllocated', frame=self.inter_mfr_allocated)
+        self.logger.info(f'IntermediateMFRAllocated registered with {self.inter_mfr_allocated.height} rows.')
+        return self.inter_mfr_allocated
+
+    def allocate_mfr(self) -> pl.DataFrame:
+        '''`allocate_mfr`(self):
+        ---
+        <hr>
+        
+        - Looking at the ***acu.MFRAllocated*** view def, all mfr_inter methods will refer to final query which defines the view by querying all of the prior CTEs
+        - Filters out all non counted orders and keeps all extra columns
+        
+        ### Upstream Calls 
+         #### :class:`~Transform`.:meth:`~landing`
+        
+        Returns
+        ---
+        :return self.:attr:`~mfr_allocated` (_pl.DataFrame_): Intermediate version of MFRAllocated, joined with CallCountsAggregated
+        '''        
+        self.logger.info(f'Compiling final MFRAllocated DataFrame...Filtering to rows with OrderCount value of 1')
+        self.mfr_allocated = self.sql_context.execute(
+            query="""
+        select *
+        from IntermediateMFRAllocated a
+        where a.OrderCount = 1
+        """).collect()
+        self.sql_context.register(name='MFRAllocated', frame=self.mfr_allocated)
+        self.logger.info(f'MFRAllocated registered with {self.mfr_allocated.height} rows.')
+        return self.mfr_allocated
+
+    def allocate_mfr_match_acu_view(self) -> pl.DataFrame:
+        '''`allocate_mfr_match_acu_view`(self):
+        ---
+        <hr>
+        
+        - Looking at the ***acu.MFRAllocated*** view def, all mfr_inter methods will refer to final query which defines the view by querying all of the prior CTEs
+        - Matches the view definition of ***acu.MFRAllocated*** exactly
+        
+        ### Upstream Calls 
+         #### :class:`~Transform`.:meth:`~landing`
+        
+        Returns
+        ---
+        :return self.:attr:`~acu_mfr_allocated_view` (_pl.DataFrame_): acu.MFRAllocated as a DataFrame
+        '''        
+        self.logger.info(f'Compiling acuMFRAllocated DataFrame...Matching the view definition of acu.MFRAllocated')
+        self.acu_mfr_allocated_view = self.sql_context.execute(
             query="""
         select a.AdCode
             , a.PrimaryAdName
@@ -310,9 +367,10 @@ class Transform:
         inner join CallCountsAggregated c on a.DNIS = c.DNIS and a.CustomerPhone_ANI = c.CustomerPhone_ANI and a.Date = c.Date
         order by a.Date desc, a.OrderNbr, a.OrderCount desc, a.RowNum
         """).collect()
-        self.sql_context.register(name = 'IntermediateMFRAllocated', frame=self.inter_mfr_allocated)
-        self.logger.info(f'IntermediateMFRAllocated registered with {self.inter_mfr_allocated.height} rows.')
-        return self.inter_mfr_allocated
+        self.sql_context.register(name = 'acuMFRAllocated', frame=self.acu_mfr_allocated_view)
+        self.logger.info(f'acuMFRAllocated registered with {self.acu_mfr_allocated_view.height} rows.')
+        return self.acu_mfr_allocated_view
+
 
 
 
