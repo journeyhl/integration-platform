@@ -727,3 +727,18 @@ def acu_to_dbc_backorders(timer: af.TimerRequest):
     backorders = AcuToDbcBackordersPointInTime('acu_to_dbc_backorders')
     backorders.run()
 #endregion       acu_to_dbc_backorders
+
+
+#region      ship_chair_removal_separate
+#   Ensure no chair removals are shipping separately
+# every 0:10 from 6am-10:50pm
+@app.timer_trigger(
+    schedule = '*/10 6-22 * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def ship_chair_removal_separate(timer: af.TimerRequest):
+    from integration_platform.pipelines.ship_chair_removal_separate import ShipChairRemovalSeparate #ship-chair-removal-separate
+    chair_removals = ShipChairRemovalSeparate(function='ship_chair_removal_separate')
+    chair_removals.run()
+#endregion       acu_to_dbc_backorders

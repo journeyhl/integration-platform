@@ -32,5 +32,5 @@ and i.InventoryCD not like '%NSG-%'
 -- and s.Status in('C', 'N', 'B', 'S') --Completed, On Hold, Back Order or Shipping statuses are allowed
 and (
 s.OrderDate >= getdate()-1
-or s.LastModifiedDateTime >= getdate()-1
+or s.LastModifiedDateTime >= getdate()-7
 )

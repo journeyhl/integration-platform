@@ -413,6 +413,9 @@ class AcumaticaAPI:
                 'Timestamp': datetime.now(ZoneInfo('America/New_York'))
             })
             bp = 'here'
+        elif descr == 'Ship Separately':
+            json_response = response.json()
+            bp = 'here'
         
     def get_order_details(self, order_data: dict, additional_details: str = '') -> dict:
         '''`get_order_details`(order_data: *dict*, )
@@ -442,8 +445,11 @@ class AcumaticaAPI:
         try:
             response = self.session.get(f'{self.base_uri}/SalesOrder/{order_data['OrderType']}/{order_data['OrderNbr']}{additional_details}')
             order_info = response.json()
-            order_data['ShippingValidated'] = order_info['ShipToAddressValidated']['value']
-            order_data['BillingValidated'] = order_info['BillToAddressOverride']['value']
+            try:
+                order_data['ShippingValidated'] = order_info['ShipToAddressValidated']['value']
+                order_data['BillingValidated'] = order_info['BillToAddressOverride']['value']
+            except Exception as e:
+                bp = 'here'
         except Exception as e:
             order_info = None
             self.logger.error(f'Error getting {order_data['OrderNbr']}')
@@ -499,6 +505,18 @@ class AcumaticaAPI:
             'Timestamp': datetime.now(ZoneInfo('America/New_York'))
         })
 
+
+
+    def order_do_action(self, order_data: dict, payload: dict, action: str):
+        try:
+            self.logger.info(f'{order_data['OrderNbr']}: Performing {action}')
+            url = f'{self.base_uri}/SalesOrder/{action}'
+            response = self.session.post(url=url, json=payload)
+            response_str = f'{response.status_code} {response.reason}'
+            bp = 'here'
+        except Exception as e:
+
+            bp = 'here'
     #endregion SalesOrder
 
 

@@ -234,6 +234,8 @@ class AcumaticaDbQueries(Queries):
     '''Pulls Sales Orders that need to have inventory item allocated'''
     AcuToDbc_BackordersPointInTime: Query
     ''''''
+    ShipChairRemovalSeparate: Query
+    '''Pulls Ryder Orders that are arent already shipped and enforeces Ship Separately for chair removal orders'''
 
 
 _QUERY_CLASSES: dict[str, type[Queries]] = {
