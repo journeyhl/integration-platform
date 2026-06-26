@@ -11,5 +11,13 @@
     "autoDocstring.customTemplatePath": ".vscode/docstring.mustache",
     "python.analysis.typeCheckingMode": "basic",
 
+"editor.hover.hidingDelay": 2000,
+"editor.hover.enabled": "on",
+"editor.hover.above": false,
+"editor.hover.sticky": true,
+"editor.minimap.showSlider":"mouseover",
+"editor.minimap.autohide": "scroll",
+"workbench.editor.showTabIndex": true,
+
     
 }
