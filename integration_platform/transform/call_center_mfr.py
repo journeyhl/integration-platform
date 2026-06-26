@@ -16,50 +16,84 @@ class Transform:
             CallCounts = data_extract['CallCounts'],
             AdDetailVersion = data_extract['AdDetailVersion']
         )
-        call_counts = self.aggregate_call_counts()
-        phone_revenue_staging = self.__phone_revenue_staging__()
-        bp = 'here'
-        lineamt_calc = self.__lineamt_calc__()
-        bp = 'here'
-        phone_revenue = self.__phone_revenue__()
-        bp = 'here'
-        inter_mfr = self.mfr_inter1_match_and_filter()
-        inter_mfr_with_rownum = self.mfr_inter2_pre_aggr()
-
-        inter_mfr_aggregated = self.mfr_inter3_aggregate()
-
+        call_counts = self._aggregate_call_counts_()
+        phone_revenue_staging = self._phone_revenue_staging_()
+        lineamt_calc = self._lineamt_calc_()
+        phone_revenue = self._phone_revenue_()
+        inter_mfr_matched = self.mfr_inter1_match_and_filter()
+        inter_mfr_rownum = self.mfr_inter2_pre_aggr()
+        inter_mfr_allocated = self.mfr_inter3_aggregate()
         bp = 'here'
 
 
-    def __phone_revenue_staging__(self):
-        '''`phone_revenue_staging`(self):
+    def _aggregate_call_counts_(self) -> pl.DataFrame:
+        '''`_aggregate_call_counts_`(self):
         ---
         <hr>
         
-        Joins PhoneRevPreStaging and InventorySummary_Product on InventoryCD, then registers DataFrame as PhoneRevStaging in self.:attr:`~sql_context`
+        Counts distinct SessionIDs from CallCounts query and groups by Date, ANI, and DNIS
         
         ### Upstream Calls 
          #### :class:`~Transform`.:meth:`~landing`
+        
+        <hr>
+        
+        Returns
+        ---
+        :return self.:attr:`~call_counts_agg` (_pl.DataFrame_): Count of distinct SessionIDs or Calls
+        '''        
+        self.call_counts_agg = self.sql_context.execute(
+            query="""
+        with TopLevel as(
+        select Date
+            , CustomerPhone_ANI
+            , DNIS
+            , count(distinct SessionID) Calls
+        from CallCounts
+        group by Date, CustomerPhone_ANI, DNIS, Year, Month, FinPeriod
+        )
+        select *
+        from TopLevel
+        """).collect()
+        self.sql_context.register(name='CallCountsAggregated', frame=self.call_counts_agg)
+        return self.call_counts_agg
+
+    def _phone_revenue_staging_(self) -> pl.DataFrame:
+        '''`_phone_revenue_staging_`(self):
+        ---
+        <hr>
+        
+        - Joins PhoneRevPreStaging and InventorySummary_Product on InventoryCD, then registers DataFrame as PhoneRevStaging in self.:attr:`~sql_context`
+        - Covers the inventory portion of the PhoneRevStaging CTE in the ***acu.MFRAllocated*** view definition
+
+        ### Upstream Calls 
+         #### :class:`~Transform`.:meth:`~landing`
+            
+        <hr>
+        
+        Returns
+        ---
+        :return self.:attr:`~df_phone_rev_staging` (_pl.DataFrame_): PhoneRevPreStaging joined with InventorySummary_Product
         '''
         self.logger.info(f'Querying for PhoneRevStaging...')
         self.df_phone_rev_staging = self.sql_context.execute(
             query="""
-            select s.*
-                , ip.Product
-            from PhoneRevPreStaging s
-            inner join InventorySummary_Product ip on s.InventoryCD = ip.InventoryCD
-            """
-        ).collect()
+        select s.*
+            , ip.Product
+        from PhoneRevPreStaging s
+        inner join InventorySummary_Product ip on s.InventoryCD = ip.InventoryCD
+        """).collect()
         self.sql_context.register('PhoneRevStaging', self.df_phone_rev_staging)
         self.logger.info(f'PhoneRevStaging registered with {self.df_phone_rev_staging.height} rows.')
         return self.df_phone_rev_staging
 
-    def __lineamt_calc__(self):
-        '''`__lineamt_calc__`(self):
+    def _lineamt_calc_(self) -> pl.DataFrame:
+        '''`_lineamt_calc_`(self):
         ---
         <hr>
         
-        Registers LineAmtCalc in self.:attr:`~sql_context`
+        - Registers LineAmtCalc in self.:attr:`~sql_context`
+        - Instead of doing LineAmtCalc in the PhoneRevenue CTE in the ***acu.MFRAllocated*** view definition, do the calculation as such, then join in :meth:`~_phone_revenue_`
         
         ### Upstream Calls 
          #### :class:`~Transform`.:meth:`~landing`
@@ -68,33 +102,32 @@ class Transform:
         
         Returns
         ---
-        :return `variablename` (_type_): _description_
+        :return self.:attr:`~df_lineamt_calc` (_pl.DataFrame_): Summarized LineAmt from all rows with a Priority value != 1, grouped by OrderNbr
         '''
         self.logger.info(f'Querying for LineAmt_Calc...')
         self.df_lineamt_calc = self.sql_context.execute(
             query="""
-            with TopLevel as(
-                select OrderNbr, sum(LineAmt) LineAmt_calc
-                from PhoneRevStaging
-                where Priority != 1
-                group by OrderNbr
-            )
-            select *
-            from TopLevel
-            """
-        ).collect()
+        with TopLevel as(
+            select OrderNbr, sum(LineAmt) LineAmt_calc
+            from PhoneRevStaging
+            where Priority != 1
+            group by OrderNbr
+        )
+        select *
+        from TopLevel
+        """).collect()
         self.sql_context.register('LineAmtCalc', self.df_lineamt_calc)
         self.logger.info(f'LineAmtCalc registered with {self.df_lineamt_calc.height} rows.')
-        bp = 'here'
         return self.df_lineamt_calc
 
-    def __phone_revenue__(self):
-        '''`__phone_revenue__`(self):
+    def _phone_revenue_(self) -> pl.DataFrame:
+        '''`_phone_revenue_`(self):
         ---
         <hr>
         
-        Joins PhoneRevStaging and LineAmtCalc on OrderNbr, then registers DataFrame as PhoneRevenue in self.:attr:`~sql_context`
-        
+        - Joins PhoneRevStaging and LineAmtCalc on OrderNbr, then registers DataFrame as PhoneRevenue in self.:attr:`~sql_context`
+        - Looking at the view definition of ***acu.MFRAllocated***, this is a combination of the 3rd and 4th CTEs, PhoneRevStaging and PhoneRevenue.
+
         ### Upstream Calls 
          #### :class:`~Transform`.:meth:`~landing`
             
@@ -107,148 +140,180 @@ class Transform:
         self.logger.info(f'Querying for PhoneRevenue...')
         self.df_phone_revenue = self.sql_context.execute( 
             query="""
-            select s.AcctCD 
-                , s.Name 
-                , s.Phone 
-                , s.OrderNbr 
-                , s.LineNbr 
-                , s.OrderDate 
-                , s.OrderStatus 
-                , s.InventoryCD 
-                , s.Descr 
-                , s.LineAmt
-                , s.LineAmt + case when c.LineAmt_calc is null then 0 else c.LineAmt_calc end LineAmtCalculated
-                , s.Agent 
-                , s.Value
-                , s.Product
-                , s.Priority
-            from PhoneRevStaging s
-            left join LineAmtCalc c on s.OrderNbr = c.OrderNbr
-            where Priority = 1
-            """
-        ).collect() 
-        
-        
+        select s.AcctCD 
+            , s.Name 
+            , s.Phone 
+            , s.OrderNbr 
+            , s.LineNbr 
+            , s.OrderDate 
+            , s.OrderStatus 
+            , s.InventoryCD 
+            , s.Descr 
+            , s.LineAmt
+            , s.LineAmt + case when c.LineAmt_calc is null then 0 else c.LineAmt_calc end LineAmtCalculated
+            , s.Agent 
+            , s.Value
+            , s.Product
+            , s.Priority
+        from PhoneRevStaging s
+        left join LineAmtCalc c on s.OrderNbr = c.OrderNbr
+        where Priority = 1
+        """).collect()
         self.sql_context.register('PhoneRevenue', self.df_phone_revenue)
         self.logger.info(f'PhoneRevenue registered with {self.df_phone_revenue.height} rows.')
-        bp = 'here'
         return self.df_phone_revenue
 
+    def mfr_inter1_match_and_filter(self) -> pl.DataFrame:
+        '''`mfr_inter1_match_and_filter`(self):
+        ---
+        <hr>
 
-    def mfr_inter1_match_and_filter(self):
+        - Looking at the ***acu.MFRAllocated*** view def, all mfr_inter methods will refer to final query which defines the view by querying all of the prior CTEs
+        - ### Does MatchRank case statement and gets the datediff of the Call Date and the Order Date
+        - #### Does main filtering:
+            - CallDate is before or on OrderDate
+            - OrderDate is within 14 days of the CallDate
+            - CallDate is after the advertisement's StartDate
+            - CallDate is before the advertisement's EndDate
+            - The call was not abandoned
+        - This method's main goal is to do the bulky case statement portion to make downstream queries more readable
+
+        
+        ### Upstream Calls 
+         #### :class:`~Transform`.:meth:`~landing`            
+        
+        <hr>
+        
+        Returns
+        ---
+        :return self.:attr:`~inter_mfr_matched` (_pl.DataFrame_): Intermediate version of MFRAllocated, with the case statement for MatchRank and the DaysBetweenCallOrder values added
+        '''        
         bp = 'here'
-        self.logger.info(f'Compling Intermediate MFRAllocated query...')
+        self.logger.info(f'Compling first intermediate MFRAllocated query...Determining MatchRank and DaysBetweenCallOrder values and filtering based upon dates')
+        self.inter_mfr_matched = self.sql_context.execute(
+            query="""
+        select case when c.Date = s.OrderDate and (a.MFRProduct = s.Product or a.Product = s.Product or a.MFRProduct = c.SkillProduct or c.RawSkill in('SA-Internet', 'SA-Fusion')) 
+                        then 1
+                    when c.Date = s.OrderDate and a.MFRProduct != s.Product and a.Product != s.Product and a.MFRProduct != c.SkillProduct 
+                        then 2
+                    when c.Date != s.OrderDate and (a.MFRProduct = s.Product or a.Product = s.Product or a.MFRProduct = c.SkillProduct) 
+                        then 3
+                    when c.Date != s.OrderDate and a.MFRProduct != s.Product and a.Product != s.Product and a.MFRProduct != c.SkillProduct 
+                        then 4
+                    else 5 
+            end MatchRank
+            , (s.OrderDate - c.Date) DaysBetweenCallOrder
+            , *
+        from CallCounts c 
+        inner join PhoneRevenue s on c.CustomerPhone_ANI = s.Phone 
+        inner join AdPhonePriorityDates p on c.DNIS = p.TFN
+        inner join AdDetailVersion a on p.AdCode = a.AdCode
+        where c.Date <= s.OrderDate 
+        and s.OrderDate <= c.Date + interval '14 days'
+        and c.Date >= p.StartDate 
+        and c.Date <= p.EndDate
+        and c.Abandoned != 0
+        order by OrderDate desc, OrderNbr
+        """).collect()
+        self.sql_context.register('IntermediateMFRAllocated_Match', self.inter_mfr_matched)
+        self.logger.info(f'IntermediateMFRAllocated_Match registered with {self.inter_mfr_matched.height} rows.')
+        return self.inter_mfr_matched
+
+    def mfr_inter2_pre_aggr(self) -> pl.DataFrame:
+        '''`mfr_inter2_pre_aggr`(self, ):
+        ---
+        <hr>
+        
+        - Looking at the ***acu.MFRAllocated*** view def, all mfr_inter methods will refer to final query which defines the view by querying all of the prior CTEs
+        - ### Added Fields:
+            - RowNum
+                - How good of a match the call to order is 
+                    - See case statement in :meth:`~mfr_inter1_match_and_filter`
+            - LineAmtCalc
+                - Summarized LineAmt value from multiline orders.
+                    - For example, Customer calls in for Air Elite ad. They order an Air elite ($2895) and and upwalker ($745). We match the Air Elite call to the Air Elite order, and  LineAmtCalc would be 2895 + 745 = 3640
+                    - Same goes for multiple items. Customer calls PSC phone number, buys $3299 PSC, $295 replacement box, and a $55 controller. LineAmtCalc = $3649
+            - OrderCount
+                - If the order counts or not
+                    - Say we have multiple matches, resulting in rows with RowNum values of 1 and 2. OrderCount will take the best match, aka 1.
+                    - RowNum values of 2 and 4, OrderCount = 1 for RowNum = 2
+                    
+        ### Upstream Calls 
+         #### :class:`~Transform`.:meth:`~landing`
+         
+        <hr>
+        
+        Returns
+        ---
+        :return self.:attr:`~inter_mfr_rownum` (_pl.DataFrame_): Intermediate version of MFRAllocated, with the case statement for MatchRank and the DaysBetweenCallOrder values added
+        '''        
+        self.logger.info(f'Compling second intermediate MFRAllocated query...Determining RowNum, LineAmtCalc, and OrderCount values')
+        self.inter_mfr_rownum = self.sql_context.execute(
+            query="""
+        with Inter_MFRAllocated_rownum as(
+        select row_number() over(partition by a.OrderNbr order by a.MatchRank, a.DaysBetweenCallOrder) RowNum
+            , *
+        from IntermediateMFRAllocated_Match a
+        )
+        select case when RowNum = 1
+                        then a.LineAmtCalculated
+                    else 0 end LineAmtCalc
+            , case when RowNum = 1
+                        then 1
+                    else 0 end OrderCount
+            , *
+        from Inter_MFRAllocated_rownum a
+        """).collect()
+        self.sql_context.register(name='IntermediateMFRAllocated_RowNum', frame=self.inter_mfr_rownum)
+        self.logger.info(f'IntermediateMFRAllocated_RowNum registered with {self.inter_mfr_rownum.height} rows.')
+        return self.inter_mfr_rownum
+
+    def mfr_inter3_aggregate(self) -> pl.DataFrame:
+        '''`mfr_inter3_aggregate`(self, ):
+        ---
+        <hr>
+        
+        - Looking at the ***acu.MFRAllocated*** view def, all mfr_inter methods will refer to final query which defines the view by querying all of the prior CTEs
+        - Performs an inner join to the CallCountsAggregated DataFrame to get the summarized call values
+        
+        ### Upstream Calls 
+         #### :class:`~Transform`.:meth:`~landing`
+        
+        Returns
+        ---
+        :return self.:attr:`~inter_mfr_allocated` (_pl.DataFrame_): Intermediate version of MFRAllocated, joined with CallCountsAggregated
+        '''        
+        self.logger.info(f'Compling third and final intermediate MFRAllocated query...Joining CallCountsAggregated')
         self.inter_mfr_allocated = self.sql_context.execute(
-query="""
-select case when c.Date = s.OrderDate and (a.MFRProduct = s.Product or a.Product = s.Product or a.MFRProduct = c.SkillProduct or c.RawSkill in('SA-Internet', 'SA-Fusion')) 
-                then 1
-            when c.Date = s.OrderDate and a.MFRProduct != s.Product and a.Product != s.Product and a.MFRProduct != c.SkillProduct 
-                then 2
-            when c.Date != s.OrderDate and (a.MFRProduct = s.Product or a.Product = s.Product or a.MFRProduct = c.SkillProduct) 
-                then 3
-            when c.Date != s.OrderDate and a.MFRProduct != s.Product and a.Product != s.Product and a.MFRProduct != c.SkillProduct 
-                then 4
-            else 5 
-       end MatchRank
-     , (s.OrderDate - c.Date) DaysBetweenCallOrder
-     , *
-from CallCounts c 
-inner join PhoneRevenue s on c.CustomerPhone_ANI = s.Phone 
-inner join AdPhonePriorityDates p on c.DNIS = p.TFN
-inner join AdDetailVersion a on p.AdCode = a.AdCode
-where c.Date <= s.OrderDate 
-  and s.OrderDate <= c.Date + interval '14 days'
-  and c.Date >= p.StartDate 
-  and c.Date <= p.EndDate
-  and c.Abandoned != 0
-order by OrderDate desc, OrderNbr
-""").collect()
-        self.sql_context.register('IntermediateMFRAllocated', self.inter_mfr_allocated)
+            query="""
+        select a.AdCode
+            , a.PrimaryAdName
+            , a.SecondaryAdName
+            , a.StartDate
+            , a.AdVersionID
+            , a.PrimaryVersionName 
+            , a.SecondaryVersionName 
+            , a.Category
+            , a.Product
+            , a.DNIS
+            , a.Date 
+            , a.AcctCD
+            , a.Name 
+            , a.CustomerPhone_ANI
+            , a.OrderDate
+            , a.OrderNbr
+            , c.Calls
+            , a.LineAmtCalc
+            , a.OrderCount
+            , a.RowNum
+        from IntermediateMFRAllocated_RowNum a
+        inner join CallCountsAggregated c on a.DNIS = c.DNIS and a.CustomerPhone_ANI = c.CustomerPhone_ANI and a.Date = c.Date
+        order by a.Date desc, a.OrderNbr, a.OrderCount desc, a.RowNum
+        """).collect()
+        self.sql_context.register(name = 'IntermediateMFRAllocated', frame=self.inter_mfr_allocated)
         self.logger.info(f'IntermediateMFRAllocated registered with {self.inter_mfr_allocated.height} rows.')
         return self.inter_mfr_allocated
 
-
-
-
-    def mfr_inter2_pre_aggr(self):
-        bp = 'here'
-        self.inter_mfr_rownum = self.sql_context.execute(
-            query="""
-with Inter_MFRAllocated_rownum as(
-select row_number() over(partition by a.OrderNbr order by a.MatchRank, a.DaysBetweenCallOrder) RowNum
-     , *
-from IntermediateMFRAllocated a
-)
-select case when RowNum = 1
-                then a.LineAmtCalculated
-            else 0 end LineAmtCalc
-     , case when RowNum = 1
-                then 1
-            else 0 end OrderCount
-     , *
-from Inter_MFRAllocated_rownum a
-"""
-        ).collect()
-        test = self.inter_mfr_rownum.to_dicts()
-        self.sql_context.register(name='IntermediateMFRAllocated_RowNum', frame=self.inter_mfr_rownum)
-        return self.inter_mfr_rownum
-
-
-
-    def mfr_inter3_aggregate(self):
-        bp = 'here'
-        self.inter_mfr_aggregated = self.sql_context.execute(
-            query="""
-select a.AdCode
-     , a.PrimaryAdName
-     , a.SecondaryAdName
-     , a.StartDate
-     , a.AdVersionID
-     , a.PrimaryVersionName 
-     , a.SecondaryVersionName 
-     , a.Category
-     , a.Product
-     , a.DNIS
-     , a.Date 
-     , a.AcctCD
-     , a.Name 
-     , a.CustomerPhone_ANI
-     , a.OrderDate
-     , a.OrderNbr
-     , c.Calls
-     , a.RowNum
-     , a.LineAmtCalc
-     , a.OrderCount
-     , a.RowNum
-from IntermediateMFRAllocated_RowNum a
-left join CallCountsAggregated c on a.DNIS = c.DNIS and a.CustomerPhone_ANI = c.CustomerPhone_ANI and a.Date = c.Date
-"""
-        ).collect()
-        test = self.inter_mfr_aggregated.to_dicts()
-        self.sql_context.register(name = 'MFRAllocatedAggregated', frame=self.inter_mfr_aggregated)
-        return self.inter_mfr_aggregated
-
-
-    def aggregate_call_counts(self):
-        self.call_counts_agg = self.sql_context.execute(
-            query="""
-with TopLevel as(
-select Date
-     , CustomerPhone_ANI
-     , DNIS
-     , count(distinct SessionID) Calls
-     , Year
-     , Month
-     , FinPeriod
-from CallCounts
-group by Date, CustomerPhone_ANI, DNIS, Year, Month, FinPeriod
-)
-select *
-from TopLevel
-"""
-        ).collect()
-        self.sql_context.register(name='CallCountsAggregated', frame=self.call_counts_agg)
-        return self.call_counts_agg
 
 
     def _format_tables_(self):
