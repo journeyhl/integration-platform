@@ -12,16 +12,11 @@ class Transform:
         pass
     
     def transform(self, data_extract: pl.DataFrame):
-        summarized_extract = data_extract.sql('''
-select distinct OrderType
-			  , OrderNbr
-			  , SiteCD
-from self
-''') #I may not need...Adding AccountCD = 5000 to where limited to same number of rows as header level select
-
-#also...For posterity, to filter out stuff that that will have already been reclassified, i should query GLTran. Match on the RefNbr and OrigBatchNbr
         bp = 'here'
         for row in data_extract.iter_rows(named=True):
+            if row['QtyAvail'] in [None, 0]:
+                self.logger.warning(f'No units of {row['InventoryCD']} available to allocate to {row['OrderNbr']}!')
+                continue
             self.pipeline.acu_api.manage_sales_allocations(order_data=row)
             bp = 'here'
         bp = 'here'

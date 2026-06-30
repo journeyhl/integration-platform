@@ -11,9 +11,10 @@ class Transform:
         self.logger = logging.getLogger(f'{pipeline.pipeline_name}.transform')
         pass
     
-    def transform(self, data_extract: pl.DataFrame):
+    def transform(self, data_extract: dict[str, pl.DataFrame]):
         data_transformed = []
-        for order in data_extract.iter_rows(named=True):
+        filtered_extract = self.filter(data_extract).to_dicts()
+        for order in filtered_extract:
             if order['Match'] == 1:
                 self.logger.info(f'{order['OrderNbr']}: Customer has same original Shipping/ Billing address')
                 order_avs = self.pipeline.avs.validate(order_data=order, s_or_b='s')
@@ -35,6 +36,42 @@ class Transform:
         return data_transformed
 
     
+
+    def filter(self, data_extract: dict[str, pl.DataFrame]) ->  pl.DataFrame:
+        ''':meth:`~filter` (self, data_extract: *dict[str, pl.DataFrame]*):
+        ---
+        <hr>
+        
+        Filters out any orders that need to be allocated before they have their address validated
+        
+        ### Upstream Calls 
+         #### :class:`~Transform`.:meth:`~transform`
+            - Filters before running main address validation process
+            
+        <hr>
+        
+        Parameters
+        ---
+        :param (*dict[str, pl.DataFrame]*) `data_extract`: dict containing two polars DataFrames, one frame containing the orders to validate, another with orders to filter out
+        
+        <hr>
+        
+        Returns
+        ---
+        :return `filtered_extract` (_pl.DataFrame_): Main polars DataFrame, but with only rows **NOT** having a match in our DataFrame of orders filter out
+        '''        
+        main_extract = data_extract['main_extract']
+        if data_extract['main_extract'].height == 0:
+            self.logger.warning(f'No Orders need validation, returning main_extract with 0 rows')
+            return main_extract
+        filter_extract = data_extract['filter_extract']
+        filtered_extract = main_extract.join(filter_extract, on='OrderNbr', how='anti')
+        self.logger.info(f'Orders originally pulled: {', '.join([f['OrderNbr'] for f in main_extract.to_dicts()])}')
+        self.logger.info(f'Filtered {main_extract.height - filtered_extract.height} rows out of {main_extract.height}...{filtered_extract.height} orders to validate')
+        self.logger.warning(f'Filtered out: {', '.join([f['OrderNbr'] for f in filter_extract.to_dicts()])}')
+        return filtered_extract
+        
+
     
     def format_order_address_payload(self, order_avs: dict):
         '''
@@ -77,7 +114,7 @@ class Transform:
             }
         }
         if order_avs['Match'] == 1:
-            payload['BillToAddressOverride'] = { "value": True }            
+            payload['BillToAddressOverride'] = { "value": True }
             payload['BillToAddress'] = {
                 "AddressLine1": {"value": order_avs['vsAddressLine1']},
                 "AddressLine2": {"value": order_avs['vsAddressLine2']},
@@ -87,7 +124,7 @@ class Transform:
                 "Country":      {"value": order_avs['vsCountryID']},                
             }
         elif order_avs['Match'] == 0 and order_avs.get('vbAddressLine1') != None:
-            payload['BillToAddressOverride'] = { "value": True }            
+            payload['BillToAddressOverride'] = { "value": True }
             payload['BillToAddress'] = {
                 "AddressLine1": {"value": order_avs['vbAddressLine1']},
                 "AddressLine2": {"value": order_avs['vbAddressLine2']},
@@ -96,9 +133,49 @@ class Transform:
                 "PostalCode":   {"value": order_avs['vbPostalCode']},
                 "Country":      {"value": order_avs['vbCountryID']},                
             }
+        if order_avs['WhichPhone'] != 'Valid':
+            payload = self.determine_which_phone(order_avs, payload)
         self._log_differences(order_avs)
         return payload
     
+
+    def determine_which_phone(self, order_avs: dict, payload: dict) -> dict:
+        bp = 'here'
+        if 'Invalid' not in order_avs['WhichPhone']:
+            phone_to_use = order_avs[order_avs['WhichPhone']]
+            bp = 'here'
+            if order_avs['WhichPhone'] == 'defPhone':
+                self.logger.info(f"Swapping BOTH ShipTo and BillTo Phone1 values with Customer's default phone number")
+                payload['ShipToContactOverride'] = { "value": True }
+                payload['ShipToContact'] = {"Phone1": {"value": order_avs['defPhone']}}
+                payload['BillToContactOverride'] = { "value": True }
+                payload['BillToContact'] = {"Phone1": {"value": order_avs['defPhone']}}
+            elif order_avs['WhichPhone'] == 'sPhone':
+                self.logger.info(f"Swapping BillTo Phone1 value with Customer's ShipTo phone number")
+                payload['BillToContactOverride'] = {"value": True}
+                payload['BillToContact'] = {"Phone1": {"value": order_avs['sPhone']},}
+            elif order_avs['WhichPhone'] == 'bPhone':
+                self.logger.info(f"Swapping ShipTo Phone1 value with Customer's BillTo phone number")
+                payload['ShipToContactOverride'] = {"value": True}
+                payload['ShipToContact'] = {"Phone1": {"value": order_avs['bPhone']}}
+
+        else:
+            self.logger.warning(f'Phone number is invalid! {order_avs['WhichPhone']}...')
+            self.logger.warning(f'Using default company phone (800-958-8324)')
+            payload['ShipToContactOverride'] = { "value": True }
+            payload['ShipToContact'] = {
+                "Phone1": {"value": '8009588324'},               
+            }
+            payload['BillToContactOverride'] = { "value": True }
+            payload['BillToContact'] = {
+                "Phone1": {"value": '8009588324'},               
+            }
+
+
+        return payload
+
+
+
     def format_acu_api_log_update_override(self, order_avs: dict):
         '''`format_acu_api_log_update_override`(self, order_avs: *dict*)
         ---

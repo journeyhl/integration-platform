@@ -32,17 +32,22 @@ class AddressValidator(Pipeline):
      - Upserts Acumatica API interactions to **_util.acu_api_log**
     '''
     def __init__(self, function: str):
-        super().__init__('address-validator', function)
+        super().__init__('address-validator', function, env = 'dev')
         self.avs = AddressVerificationSystem(self)
-        self.acu_api = AcumaticaAPI(self)
+        self.acu_api = AcumaticaAPI(self, env = 'dev')
         self.transformer = Transform(self)
         self.loader = Load(self)
 
-    def extract(self) -> pl.DataFrame:
-        data_extract = self.acudb.query_to_dataframe(self.acudb.queries.ValidateAddresses)
+    def extract(self) -> dict[str, pl.DataFrame]:
+        main_extract = self.acudb.query_to_dataframe(self.acudb.queries.ValidateAddresses)
+        filter_extract = self.acudb.query_to_dataframe(self.acudb.queries.AllocateSalesOrders_filter_address_validator)
+        data_extract = {
+            'main_extract': main_extract,
+            'filter_extract': filter_extract
+        }
         return data_extract
 
-    def transform(self, data_extract: pl.DataFrame) -> list:
+    def transform(self, data_extract: dict[str, pl.DataFrame]) -> list:
         data_transformed = self.transformer.transform(data_extract)
         return data_transformed
     
