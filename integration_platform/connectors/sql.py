@@ -75,7 +75,8 @@ class CentralStoreQueries(Queries):
     MFR_CallCounts: Query
     ''''''
     MFR_AdDetailAdVersion: Query
-
+    ''''''
+    DarwillAddresses: Query
 
 class AcumaticaDbQueries(Queries):
     '''Queries to be executed within AcumaticaDb'''
