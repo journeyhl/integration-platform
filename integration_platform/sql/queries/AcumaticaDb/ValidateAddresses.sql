@@ -1,3 +1,4 @@
+with TopLevel as(
 select s.OrderNbr
      , s.OrderType
      , rtrim(b.AcctCD) AcctCD
@@ -17,8 +18,18 @@ select s.OrderNbr
      , ba.State bState
      , ba.PostalCode bPostalCode
      , ba.CountryID bCountryID
-     , case when sa.AddressLine1 = ba.AddressLine1 and sa.AddressLine2 = ba.AddressLine2 and sa.City = ba.City and sa.State = ba.State and sa.PostalCode = ba.PostalCode and sa.CountryID = ba.CountryID
+     , case when sa.AddressLine1 = ba.AddressLine1 
+             and sa.City = ba.City 
+             and sa.State = ba.State
+             and sa.PostalCode = ba.PostalCode 
+             and sa.CountryID = ba.CountryID
      then 1 else 0 end Match
+     , ltrim(rtrim(sc.Phone1)) sPhone
+     , ltrim(rtrim(bc.Phone1)) bPhone
+     , ltrim(rtrim(c.Phone1)) defPhone
+     , case when sc.Phone1 is null then 0 else len(rtrim(ltrim(sc.Phone1))) end Len_sPhone
+     , case when bc.Phone1 is null then 0 else len(rtrim(ltrim(bc.Phone1))) end Len_bPhone
+     , case when c.Phone1 is null then 0 else len(rtrim(ltrim(c.Phone1))) end Len_defPhone
      
 from SOOrder s
 inner join SOAddress sa on s.CompanyID = sa.CompanyID and s.CustomerID = sa.CustomerID and s.ShipAddressID = sa.AddressID
@@ -26,6 +37,7 @@ inner join SOContact sc on s.CompanyID = sc.CompanyID and s.ShipContactID = sc.C
 inner join SOAddress ba on s.CompanyID = ba.CompanyID and s.CustomerID = ba.CustomerID and s.BillAddressID = ba.AddressID
 inner join SOContact bc on s.CompanyID = bc.CompanyID and s.BillContactID = bc.ContactID
 inner join BAccount b on s.CompanyID = b.CompanyID and s.CustomerID = b.BAccountID
+inner join Customer cu on s.CompanyID = cu.CompanyID and s.CustomerID = cu.BAccountID
 inner join JJStatusLookup j on s.Status = j.CStatus and j.Tbl = 'SOOrder'
 
 left join Contact c on s.CompanyID = c.CompanyID and b.BAccountID = c.BAccountID and sc.CustomerContactID = c.ContactID
@@ -39,4 +51,15 @@ and s.OrderType = 'WB'
 -- and s.OrderType != 'QT'
 -- and b.AcctCD = 'C0006719'
 -- and s.OrderNbr = 'QT051749'
+)
+select *
+     , case when Len_sPhone = 10 and Len_bPhone = 10 then 'Valid'
+            when Len_sPhone < 10 and Len_bPhone < 10 and Len_defPhone = 10 then 'defPhone'
+            when Len_sPhone = 10 and Len_bPhone != 10 then 'sPhone'
+            when Len_sPhone < 10 and Len_bPhone = 10 then 'bPhone'
+            when Len_sPhone < 10 and Len_bPhone < 10 and Len_defPhone < 10 then 'Invalid - No phone has 10 digits'
+            else 'Invalid - Other' end WhichPhone
+            
+
+from TopLevel t
 order by OrderDate, OrderNbr

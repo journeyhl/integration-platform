@@ -31,7 +31,7 @@ and s.Status not in ('L', 'C', 'S')
 and l.POCreate = 0
 )
 , InventoryLevels as(
-select rtrim(s.SiteCD) SiteCD
+select s.SiteCD
 	 , s.SiteID
 	 , l.LocationID
 	 , i.InventoryID
@@ -83,5 +83,5 @@ select s.*
      , i.QtyOnHand
 from SecondLevel s
 left join InventoryLevels i on s.InventoryCD = i.InventoryCD and s.SiteCD = i.SiteCD
-where param_Action is not null
+where param_Action is not null and s.IsAllocated = 0
 order by OrderNbr

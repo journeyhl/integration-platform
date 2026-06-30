@@ -16,7 +16,7 @@ class Transform:
             CallCounts = data_extract['CallCounts'],
             AdDetailVersion = data_extract['AdDetailVersion']
         )
-        call_counts = self._aggregate_call_counts_()
+        aggregate_call_counts = self._aggregate_call_counts_()
         phone_revenue_staging = self._phone_revenue_staging_()
         lineamt_calc = self._lineamt_calc_()
         phone_revenue = self._phone_revenue_()
@@ -26,9 +26,46 @@ class Transform:
 
         acu_mfr_allocated = self.allocate_mfr_match_acu_view()
         mfr_allocated = self.allocate_mfr()
+
+
+        calls_by_skill = self.calls_by_metric(metric_name='RawSkill')
         bp = 'here'
 
+        data_transformed = {
+            **data_extract,
+            'aggregate_call_counts': aggregate_call_counts,
+            'phone_revenue_staging': phone_revenue_staging,
+            'lineamt_calc': lineamt_calc,
+            'phone_revenue': phone_revenue,
+            'inter_mfr_matched': inter_mfr_matched,
+            'inter_mfr_rownum': inter_mfr_rownum,
+            'inter_mfr_allocated': inter_mfr_allocated,
+            'acu_mfr_allocated': acu_mfr_allocated,
+            'mfr_allocated': mfr_allocated,
+        }
+        return data_transformed
 
+    #region Aggregation by_
+    def calls_by_metric(self, metric_name: str = 'RawSkill'):
+        calls_by_ = self.sql_context.execute(
+            query=f"""
+        with TopLevel as(
+        select Date
+            , {metric_name}
+            , count(distinct SessionID) Calls
+            
+        from CallCounts
+        group by Date, {metric_name}
+        )
+        select *
+        from TopLevel
+        """).collect()
+        return calls_by_
+    #endregion
+
+
+
+    #region aggregate call counts
     def _aggregate_call_counts_(self) -> pl.DataFrame:
         '''`_aggregate_call_counts_`(self):
         ---
@@ -52,15 +89,18 @@ class Transform:
             , CustomerPhone_ANI
             , DNIS
             , count(distinct SessionID) Calls
+            
         from CallCounts
-        group by Date, CustomerPhone_ANI, DNIS, Year, Month, FinPeriod
+        group by Date, CustomerPhone_ANI, DNIS
         )
         select *
         from TopLevel
         """).collect()
         self.sql_context.register(name='CallCountsAggregated', frame=self.call_counts_agg)
         return self.call_counts_agg
+    #endregion
 
+    #region Phone Revenue staging
     def _phone_revenue_staging_(self) -> pl.DataFrame:
         '''`_phone_revenue_staging_`(self):
         ---
@@ -89,7 +129,9 @@ class Transform:
         self.sql_context.register('PhoneRevStaging', self.df_phone_rev_staging)
         self.logger.info(f'PhoneRevStaging registered with {self.df_phone_rev_staging.height} rows.')
         return self.df_phone_rev_staging
+    #endregion
 
+    #region LineAmount calculations
     def _lineamt_calc_(self) -> pl.DataFrame:
         '''`_lineamt_calc_`(self):
         ---
@@ -122,7 +164,9 @@ class Transform:
         self.sql_context.register('LineAmtCalc', self.df_lineamt_calc)
         self.logger.info(f'LineAmtCalc registered with {self.df_lineamt_calc.height} rows.')
         return self.df_lineamt_calc
+    #endregion
 
+    #region Phone Revenue
     def _phone_revenue_(self) -> pl.DataFrame:
         '''`_phone_revenue_`(self):
         ---
@@ -165,7 +209,9 @@ class Transform:
         self.sql_context.register('PhoneRevenue', self.df_phone_revenue)
         self.logger.info(f'PhoneRevenue registered with {self.df_phone_revenue.height} rows.')
         return self.df_phone_revenue
+    #endregion
 
+    #region MFR inter step1, Match & Filter
     def mfr_inter1_match_and_filter(self) -> pl.DataFrame:
         '''`mfr_inter1_match_and_filter`(self):
         ---
@@ -221,7 +267,9 @@ class Transform:
         self.sql_context.register('IntermediateMFRAllocated_Match', self.inter_mfr_matched)
         self.logger.info(f'IntermediateMFRAllocated_Match registered with {self.inter_mfr_matched.height} rows.')
         return self.inter_mfr_matched
+    #endregion
 
+    #region MFR inter step2, Case statements
     def mfr_inter2_pre_aggr(self) -> pl.DataFrame:
         '''`mfr_inter2_pre_aggr`(self, ):
         ---
@@ -270,7 +318,9 @@ class Transform:
         self.sql_context.register(name='IntermediateMFRAllocated_RowNum', frame=self.inter_mfr_rownum)
         self.logger.info(f'IntermediateMFRAllocated_RowNum registered with {self.inter_mfr_rownum.height} rows.')
         return self.inter_mfr_rownum
+    #endregion
 
+    #region MFR inter step3, Aggregation
     def mfr_inter3_aggregate(self) -> pl.DataFrame:
         '''`mfr_inter3_aggregate`(self):
         ---
@@ -298,7 +348,9 @@ class Transform:
         self.sql_context.register(name = 'IntermediateMFRAllocated', frame=self.inter_mfr_allocated)
         self.logger.info(f'IntermediateMFRAllocated registered with {self.inter_mfr_allocated.height} rows.')
         return self.inter_mfr_allocated
+    #endregion
 
+    #region Allocate MFR
     def allocate_mfr(self) -> pl.DataFrame:
         '''`allocate_mfr`(self):
         ---
@@ -324,7 +376,9 @@ class Transform:
         self.sql_context.register(name='MFRAllocated', frame=self.mfr_allocated)
         self.logger.info(f'MFRAllocated registered with {self.mfr_allocated.height} rows.')
         return self.mfr_allocated
+    #endregion
 
+    #region Matching acu.MFRAllocated
     def allocate_mfr_match_acu_view(self) -> pl.DataFrame:
         '''`allocate_mfr_match_acu_view`(self):
         ---
@@ -370,7 +424,7 @@ class Transform:
         self.sql_context.register(name = 'acuMFRAllocated', frame=self.acu_mfr_allocated_view)
         self.logger.info(f'acuMFRAllocated registered with {self.acu_mfr_allocated_view.height} rows.')
         return self.acu_mfr_allocated_view
-
+    #endregion
 
 
 

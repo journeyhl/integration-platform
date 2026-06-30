@@ -1,6 +1,6 @@
 with TopLevel as(
 select distinct CustomerID
-	 , s.Phone
+     , RIGHT(regexp_replace(s.Phone, '[^0-9]', ''), 10) Phone
 	 , s.AddressLine1
 	 , s.City
 	 , s.State
