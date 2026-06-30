@@ -86,7 +86,7 @@ class SFTP():
         try:            
             with self.sftp.open(path, 'r') as f:
                 file_contents = f.read()
-                df_file = pl.read_csv(file_contents)
+                df_file = pl.read_csv(file_contents, infer_schema_length=0)
             self.logger.info(f'Successfully parsed {df_file.height} rows from {path}')
             return df_file
         except Exception as e:

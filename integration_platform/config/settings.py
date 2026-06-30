@@ -1316,7 +1316,7 @@ TABLES = {
             'TotalQueueDuration',
         ],
     },
-    'ucmi.DarwillHubspotBinding': {
+    'ucmi.DarwillAddresses': {
         'keys': [
             'ANI',
         ],
@@ -1324,6 +1324,7 @@ TABLES = {
             'CustomerID',
             'HubspotID',
             'ANI',
+            'Email',
             'Product',
             'ContactName',
             'AddressLine1',
@@ -1338,6 +1339,7 @@ TABLES = {
         'update_columns': [
             'CustomerID',
             'HubspotID',
+            'Email',
             'Product',
             'ContactName',
             'AddressLine1',
