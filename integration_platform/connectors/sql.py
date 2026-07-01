@@ -308,28 +308,29 @@ class SQLConnector(Generic[QT]):
     
 
     def query_db(self, query: str, params=None, log_str=None):
-        '''`query_db`(self, query: *str*)
+        ''':class:`~SQLConnector`.:meth:`~query_db` (self, `query`: *str*, ):
         ---
         <hr>
-            
+        
         Given a string of SQL text, execute and return a polars DataFrame.
-
+            
         <hr>
-
+        
         Parameters
-        -------------
-
+        ---
         :param (*str*) `query`: SQL query to execute
         :param (*dict*) `params`: Parameters to pass to query if neccessary
         :param (*dict*) `log_str`: String to pass to log output if neccessary
-
+        
         <hr>
-
+        
         Returns
-        -------------
-
+        ---
         :return `data_extract` (*pl.DataFrame*): polars DataFrame with results of query
-        '''
+        :return `params` (): parameters for query, *not required*
+        :return `log_str` (str): If something is passed as the log string, DO NOT log anything here, *not required*
+        
+        '''        
         execute_options = {'parameters': params} if params else {}
         log_str = log_str if log_str else ''
         data_extract = pl.read_database(query, self.engine, execute_options=execute_options, infer_schema_length=None)
@@ -340,14 +341,18 @@ class SQLConnector(Generic[QT]):
     
 
     def insert_df(self, df_data_loaded: pl.DataFrame, table_name: str):
-        '''`insert_df`(self, df_data_loaded: *pl.DataFrame*, table_name: *str*)
-
+        ''':class:`~SQLConnector`.:meth:`~insert_df` (self, `df_data_loaded`: *pl.DataFrame*, `table_name`: *str*)
+        ---
+        <hr>
+        
         Given a polars dataframe and the name of a table, insert the contents of the DataFrame to that table
-
-        :param df_data_loaded: Data to be loaded into SQL db
-        :type df_data_loaded: pl.DataFrame
-        :param table_name: The name of the table in which the contents of *df_data_loaded* will be inserted
-        :type table_name: str
+            
+        <hr>
+        
+        Parameters
+        ---
+        :param (*pl.DataFrame*) `df_data_loaded`: Data to be loaded into SQL db
+        :param (*str*) `table_name`: The name of the table in which the contents of *df_data_loaded* will be inserted
         '''
         df_data_loaded.write_database(table_name=table_name, 
                                       connection=self.engine,
@@ -358,8 +363,7 @@ class SQLConnector(Generic[QT]):
 
     
     def checked_upsert(self, table_name: str, data: list):
-        '''
-        `checked_upsert`(self, table_name: *str*, data: *list*)
+        ''':class:`~SQLConnector`.:meth:`~checked_upsert`(self, `table_name`: *str*, `data`: *list*)
         ---
         <hr>
 
@@ -452,8 +456,7 @@ end
 
 
     def checked_upsert_paginated(self, table_name: str, data: list, page_size: int = 100):
-        '''
-        `checked_upsert`(self, table_name: *str*, data: *list*)
+        ''':class:`~SQLConnector`.:meth:`checked_upsert_paginated`(self, `table_name`: *str*, `data`: *list*, `page_size`: *int = 100*)
         ---
         <hr>
 
@@ -579,7 +582,7 @@ end
 
 
     def query_to_dataframe(self, query: Query):
-        '''`query_to_dataframe`(self, query: **_Query_**)
+        ''':class:`~SQLConnector`.:meth:`~query_to_dataframe` (self, `query`: _Query_)
         ---
         <hr>
             

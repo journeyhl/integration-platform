@@ -31,6 +31,7 @@ select s.OrderNbr
      , case when bc.Phone1 is null then 0 else len(rtrim(ltrim(bc.Phone1))) end Len_bPhone
      , case when c.Phone1 is null then 0 else len(rtrim(ltrim(c.Phone1))) end Len_defPhone
      
+     
 from SOOrder s
 inner join SOAddress sa on s.CompanyID = sa.CompanyID and s.CustomerID = sa.CustomerID and s.ShipAddressID = sa.AddressID
 inner join SOContact sc on s.CompanyID = sc.CompanyID and s.ShipContactID = sc.ContactID
@@ -50,7 +51,7 @@ and s.[Status] = 'H'
 and s.OrderType = 'WB'
 -- and s.OrderType != 'QT'
 -- and b.AcctCD = 'C0006719'
--- and s.OrderNbr = 'QT051749'
+-- and s.OrderNbr = 'WB109897'
 )
 select *
      , case when Len_sPhone = 10 and Len_bPhone = 10 then 'Valid'
