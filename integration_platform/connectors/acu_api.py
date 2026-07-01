@@ -445,9 +445,16 @@ class AcumaticaAPI:
         try:
             response = self.session.get(f'{self.base_uri}/SalesOrder/{order_data['OrderType']}/{order_data['OrderNbr']}{additional_details}')
             order_info = response.json()
+            order_info['ShipToAddressOverride']
             try:
-                order_data['ShippingValidated'] = order_info['ShipToAddressValidated']['value']
-                order_data['BillingValidated'] = order_info['BillToAddressOverride']['value']
+                order_data['ShippingValidated'] =       order_info['ShipToAddressValidated']['value']
+                order_data['ShipToAddressOverride'] =   order_info['ShipToAddressOverride']['value']
+                order_data['BillingValidated'] =        order_info['BillToAddressValidated']['value']
+                order_data['BillToAddressOverride'] =   order_info['BillToAddressOverride']['value']
+                
+                order_data['ShipToContactOverride'] =   order_info['ShipToContactOverride']['value']
+                order_data['BillToContactOverride'] =   order_info['BillToContactOverride']['value']
+
             except Exception as e:
                 bp = 'here'
         except Exception as e:

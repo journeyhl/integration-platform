@@ -6,7 +6,7 @@ from integration_platform.load.address_validator import Load
 import json
 import time
 class AddressValidator(Pipeline):
-    '''`AddressValidator`(Pipeline)
+    ''':meth:`~AddressValidator` (Pipeline)
     ---
     <hr>
     

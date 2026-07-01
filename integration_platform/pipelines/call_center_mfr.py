@@ -32,6 +32,7 @@ class CallCenterMFR(Pipeline):
     
     def load(self, data_transformed):
         data_loaded = data_transformed
+        # test = self.centralstore.insert_df()
         return data_loaded
     
     def log_results(self, data_loaded):

@@ -28,7 +28,8 @@ class Transform:
         mfr_allocated = self.allocate_mfr()
 
 
-        calls_by_skill = self.calls_by_metric(metric_name='RawSkill')
+        calls_by_skill_month = self.calls_by_metric(metric_name='RawSkill', timeframe='Month')
+        calls_by_skill_day = self.calls_by_metric(metric_name='RawSkill', timeframe='Date')
         bp = 'here'
 
         data_transformed = {
@@ -46,16 +47,41 @@ class Transform:
         return data_transformed
 
     #region Aggregation by_
-    def calls_by_metric(self, metric_name: str = 'RawSkill'):
+    def calls_by_metric(self, metric_name: str = 'RawSkill', timeframe: str = 'Date'):
+        ''':meth:`~calls_by_metric` (self, metric_name: *str = 'RawSkill'*, timeframe: *str = 'Date'*):
+        ---
+        <hr>
+        
+        Given the field name of a metric and a timeframe (Date/Month), return an aggregated count of calls by **metric_name**, grouped by the timeframe specified
+        
+        ### Upstream Calls 
+         #### :class:`~Transform`.:meth:`~landing`
+            
+        <hr>
+        
+        Parameters
+        ---
+        :param (*str*) `metric_name`: The name of the metric to aggregate calls for in the given timeframe
+        :param (*str*) `timeframe`: ***Date*** or ***Month***. The timeframe in which we will aggregate calls for
+        
+        <hr>
+        
+        Returns
+        ---
+        :return `calls_by_` (_pl.DataFrame_):  polars DataFrame of aggregated calls by the passed metric, grouped by timeframe
+        '''        
+        if timeframe == 'Month':
+            timeframe = 'Month, Year, FinPeriod'
+        else:
+            timeframe = f'{timeframe}, Month, Year, FinPeriod'
         calls_by_ = self.sql_context.execute(
             query=f"""
         with TopLevel as(
-        select Date
-            , {metric_name}
+        select {metric_name}
             , count(distinct SessionID) Calls
-            
+            , {timeframe}
         from CallCounts
-        group by Date, {metric_name}
+        group by {timeframe}, {metric_name}
         )
         select *
         from TopLevel

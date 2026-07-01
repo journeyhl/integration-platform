@@ -13,7 +13,7 @@
 
 "editor.hover.hidingDelay": 2000,
 "editor.hover.enabled": "on",
-"editor.hover.above": false,
+"editor.hover.above": true,
 "editor.hover.sticky": true,
 "editor.minimap.showSlider":"mouseover",
 "editor.minimap.autohide": "scroll",
