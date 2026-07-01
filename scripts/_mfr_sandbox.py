@@ -40,12 +40,14 @@ tables = pl.SQLContext(
     inter_mfr_allocated = data_transformed['inter_mfr_allocated'],
     acu_mfr_allocated = data_transformed['acu_mfr_allocated'],
     mfr_allocated = data_transformed['mfr_allocated'],
+    calls_by_skill_month = data_transformed['calls_by_skill_month'],
+    calls_by_skill_day = data_transformed['calls_by_skill_day'],
+    calls_by_agent_month = data_transformed['calls_by_agent_month'],
+    calls_by_agent_day = data_transformed['calls_by_agent_day'],
 )
 
 
 
-
-# list_columns(name='inter_mfr_allocated', df=data_transformed['inter_mfr_allocated'])
 
 bp = 'here'
 

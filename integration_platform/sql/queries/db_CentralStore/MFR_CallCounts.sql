@@ -1,6 +1,22 @@
-with TopLevel as(
+with EmployeeDeptRaw as(
+select *
+     , row_number() over(partition by e.EmployeeID order by StartDate desc) ord
+     , lead(StartDate) over(partition by EmployeeID order by startdate) EndDate
+from acu.EmployeeDept e
+)
+,EmployeeDept as(
+select e.EmployeeID
+     , e.Name
+     , e.Department
+     , e.Username
+     , e.StartDate
+     , case when e.EndDate is null then cast(getdate()+7 as date) else e.EndDate end EndDate
+from EmployeeDeptRaw e
+)
+, TopLevel as(
 select cast(Timestamp as date) Date
 	 , case when Skill like '%PlusOne%' then 'plusone' else LOWER(e.Name) end Agent
+     , e.Department
 	 , f.CalledParty
 	 , f.CallingParty CustomerPhone_CallingParty
 	 , f.DNIS 
@@ -78,7 +94,7 @@ select cast(Timestamp as date) Date
      , cast(cast(Timestamp as date) as varchar(20)) DStr
 
 from Five9CallSegments f
-left join acu.EmployeeDept e on left(f.CalledParty, charindex('@', f.CalledParty) - 1) = replace(e.Username, 'journeyhl.com\', '')
+left join EmployeeDept e on left(f.CalledParty, charindex('@', f.CalledParty) - 1) = replace(e.Username, 'journeyhl.com\', '') and cast(f.Timestamp as date) >= e.StartDate and cast(f.Timestamp as date) < e.EndDate
 where CallType = 'Inbound'
 -- and TalkDuration is not null
 and TalkDuration <> '00:00:00'

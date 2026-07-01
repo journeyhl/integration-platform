@@ -27,9 +27,15 @@ class Transform:
         acu_mfr_allocated = self.allocate_mfr_match_acu_view()
         mfr_allocated = self.allocate_mfr()
 
+        # mfr_allocated = self.allocate_mfr_ordercount_eq1()
+
 
         calls_by_skill_month = self.calls_by_metric(metric_name='RawSkill', timeframe='Month')
         calls_by_skill_day = self.calls_by_metric(metric_name='RawSkill', timeframe='Date')
+        calls_by_agent_month = self.calls_by_metric(metric_name='Agent', timeframe='Month')
+        calls_by_agent_day = self.calls_by_metric(metric_name='Agent', timeframe='Date')
+        calls_by_skill_agent_month = self.calls_by_metric(metric_name='RawSkill, Agent', timeframe='Month')
+        calls_by_skill_agent_day = self.calls_by_metric(metric_name='RawSkill, Agent', timeframe='Date')
         bp = 'here'
 
         data_transformed = {
@@ -43,6 +49,11 @@ class Transform:
             'inter_mfr_allocated': inter_mfr_allocated,
             'acu_mfr_allocated': acu_mfr_allocated,
             'mfr_allocated': mfr_allocated,
+            'calls_by_skill_month': calls_by_skill_month,
+            'calls_by_skill_day': calls_by_skill_day,
+            'calls_by_agent_month': calls_by_agent_month,
+            'calls_by_agent_day': calls_by_agent_day,
+
         }
         return data_transformed
 
@@ -376,33 +387,6 @@ class Transform:
         return self.inter_mfr_allocated
     #endregion
 
-    #region Allocate MFR
-    def allocate_mfr(self) -> pl.DataFrame:
-        '''`allocate_mfr`(self):
-        ---
-        <hr>
-        
-        - Looking at the ***acu.MFRAllocated*** view def, all mfr_inter methods will refer to final query which defines the view by querying all of the prior CTEs
-        - Filters out all non counted orders and keeps all extra columns
-        
-        ### Upstream Calls 
-         #### :class:`~Transform`.:meth:`~landing`
-        
-        Returns
-        ---
-        :return self.:attr:`~mfr_allocated` (_pl.DataFrame_): Intermediate version of MFRAllocated, joined with CallCountsAggregated
-        '''        
-        self.logger.info(f'Compiling final MFRAllocated DataFrame...Filtering to rows with OrderCount value of 1')
-        self.mfr_allocated = self.sql_context.execute(
-            query="""
-        select *
-        from IntermediateMFRAllocated a
-        where a.OrderCount = 1
-        """).collect()
-        self.sql_context.register(name='MFRAllocated', frame=self.mfr_allocated)
-        self.logger.info(f'MFRAllocated registered with {self.mfr_allocated.height} rows.')
-        return self.mfr_allocated
-    #endregion
 
     #region Matching acu.MFRAllocated
     def allocate_mfr_match_acu_view(self) -> pl.DataFrame:
@@ -452,6 +436,19 @@ class Transform:
         return self.acu_mfr_allocated_view
     #endregion
 
+    def allocate_mfr(self) -> pl.DataFrame:
+        self.mfr_allocated = self.sql_context.execute(
+            query="""
+        select a.*
+            , c.Calls
+        from IntermediateMFRAllocated_RowNum a
+        inner join CallCountsAggregated c on a.DNIS = c.DNIS and a.CustomerPhone_ANI = c.CustomerPhone_ANI and a.Date = c.Date
+        order by a.Date desc, a.OrderNbr, a.OrderCount desc, a.RowNum
+        """).collect()
+        self.sql_context.register(name = 'MFRAllocated', frame=self.mfr_allocated)
+        self.logger.info(f'MFRAllocated registered with {self.mfr_allocated.height} rows.')
+        return self.mfr_allocated
+
 
 
     def _format_tables_(self):
@@ -467,3 +464,39 @@ class Transform:
             printstr += '\n'
         # pyperclip.copy(printstr)
         bp = 'here', 
+
+
+
+
+
+#region not in use
+
+    #region Allocate MFR
+    def allocate_mfr_ordercount_eq1(self) -> pl.DataFrame:
+        '''`allocate_mfr`(self):
+        ---
+        <hr>
+        
+        - Looking at the ***acu.MFRAllocated*** view def, all mfr_inter methods will refer to final query which defines the view by querying all of the prior CTEs
+        - Filters out all non counted orders and keeps all extra columns
+        
+        ### Upstream Calls 
+         #### :class:`~Transform`.:meth:`~landing`
+        
+        Returns
+        ---
+        :return self.:attr:`~mfr_allocated` (_pl.DataFrame_): Intermediate version of MFRAllocated, joined with CallCountsAggregated
+        '''        
+        self.logger.info(f'Compiling final MFRAllocated DataFrame...Filtering to rows with OrderCount value of 1')
+        self.mfr_allocated = self.sql_context.execute(
+            query="""
+        select *
+        from IntermediateMFRAllocated a
+        where a.OrderCount = 1
+        """).collect()
+        self.sql_context.register(name='MFRAllocated', frame=self.mfr_allocated)
+        self.logger.info(f'MFRAllocated registered with {self.mfr_allocated.height} rows.')
+        return self.mfr_allocated
+    #endregion
+
+#endregion
