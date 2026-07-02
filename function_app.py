@@ -742,3 +742,18 @@ def ship_chair_removal_separate(timer: af.TimerRequest):
     chair_removals = ShipChairRemovalSeparate(function='ship_chair_removal_separate')
     chair_removals.run()
 #endregion       acu_to_dbc_backorders
+
+
+#region            sharepoint_dm_tracker
+#    Upsert SharePoint DM plan to dbo.src_dm_tracker
+#                              1x/day (10am UTC)
+@app.timer_trigger(
+    schedule = '0 6 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def sharepoint_dm_tracker_pipeline(timer: af.TimerRequest):
+    from integration_platform.pipelines.sharepoint_dm_tracker import SharepointDmTracker
+    sharepoint_dm = SharepointDmTracker(function='sharepoint_dm_tracker_pipeline')
+    sharepoint_dm.run()
+#endregion       sharepoint_dm_tracker
