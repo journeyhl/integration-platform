@@ -98,7 +98,10 @@ left join EmployeeDept e on left(f.CalledParty, charindex('@', f.CalledParty) - 
 where CallType = 'Inbound'
 -- and TalkDuration is not null
 and TalkDuration <> '00:00:00'
-and Skill not like '%CS%'
+
+/*and Skill not like '%CS%'*/ /*COMMENTED OUT 7/2/2026!!!!!*/
+
+
 --and Skill not like '%Cust%'
 --and Skill not like '%SA-Retail%'
 --and Skill not like '%Test%'
