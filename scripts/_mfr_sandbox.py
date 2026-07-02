@@ -46,6 +46,17 @@ tables = pl.SQLContext(
     calls_by_agent_day = data_transformed['calls_by_agent_day'],
 )
 
+test = tables.execute(
+    query="""
+select *
+from calls_by_skill_month
+"""
+).collect()
+
+bp ='here'
+#int_calls_by___
+
+
 
 
 

@@ -16,6 +16,7 @@ class Transform:
             CallCounts = data_extract['CallCounts'],
             AdDetailVersion = data_extract['AdDetailVersion']
         )
+
         aggregate_call_counts = self._aggregate_call_counts_()
         phone_revenue_staging = self._phone_revenue_staging_()
         lineamt_calc = self._lineamt_calc_()
@@ -53,6 +54,8 @@ class Transform:
             'calls_by_skill_day': calls_by_skill_day,
             'calls_by_agent_month': calls_by_agent_month,
             'calls_by_agent_day': calls_by_agent_day,
+            'calls_by_skill_agent_month': calls_by_skill_agent_month,
+            'calls_by_skill_agent_day': calls_by_skill_agent_day,
 
         }
         return data_transformed
@@ -205,7 +208,7 @@ class Transform:
 
     #region Phone Revenue
     def _phone_revenue_(self) -> pl.DataFrame:
-        '''`_phone_revenue_`(self):
+        ''':meth:`~_phone_revenue_` (self):
         ---
         <hr>
         
