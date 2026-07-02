@@ -24,8 +24,8 @@ select cast(Timestamp as date) Date
 	 , f.TalkDuration
 	 , f.CallDuration
 	 , f.HandleDuration
-	 , datepart(month, f.Timestamp) Year
-	 , datepart(year, f.Timestamp) Month
+	 , datepart(year, f.Timestamp) Year
+	 , datepart(month, f.Timestamp) Month
 	 , concat(datepart(Year, f.Timestamp), 
 		'-',case when datepart(month, f.Timestamp) < 10 then concat('0', datepart(month, f.Timestamp)) else concat('', datepart(month, f.Timestamp)) end
 	   ) FinPeriod
