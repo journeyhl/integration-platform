@@ -1,12 +1,13 @@
 from . import Pipeline
 from integration_platform.transform.call_center_mfr import Transform
+from integration_platform.load.call_center_mfr import Load
 import polars as pl
 
 class CallCenterMFR(Pipeline):
     def __init__(self, function: str):
         super().__init__('mfr', function)
         self.transformer = Transform(self)
-
+        self.loader = Load(self)
 
     def extract(self):
         inventory_summary_product = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_InventorySummary_Product)
@@ -31,7 +32,7 @@ class CallCenterMFR(Pipeline):
         return data_transformed
     
     def load(self, data_transformed):
-        data_loaded = data_transformed
+        data_loaded = self.loader.landing_loader(data_transformed=data_transformed)
         # test = self.centralstore.insert_df()
         return data_loaded
     

@@ -12,11 +12,11 @@ class Transform:
             InventorySummary_Product = data_extract['InventorySummary_Product'],
             PhoneRevPreStaging = data_extract['PhoneRevPreStaging'],
             AdPhonePriorityDates = data_extract['AdPhonePriorityDates'],
-            AdVersionProduct = data_extract['AdVersionProduct'],
             CallCounts = data_extract['CallCounts'],
             AdDetailVersion = data_extract['AdDetailVersion']
         )
 
+        adphone_full = self.ad_table_joins()
         aggregate_call_counts = self._aggregate_call_counts_()
         phone_revenue_staging = self._phone_revenue_staging_()
         lineamt_calc = self._lineamt_calc_()
@@ -31,16 +31,28 @@ class Transform:
         # mfr_allocated = self.allocate_mfr_ordercount_eq1()
 
 
-        calls_by_skill_month = self.calls_by_metric(metric_name='RawSkill', timeframe='Month')
-        calls_by_skill_day = self.calls_by_metric(metric_name='RawSkill', timeframe='Date')
+        calls_by_skill_month = self.calls_by_metric(metric_name='RawSkill, SkillProduct', timeframe='Month')
+        calls_by_skill_day = self.calls_by_metric(metric_name='RawSkill, SkillProduct', timeframe='Date')
         calls_by_agent_month = self.calls_by_metric(metric_name='Agent', timeframe='Month')
         calls_by_agent_day = self.calls_by_metric(metric_name='Agent', timeframe='Date')
-        calls_by_skill_agent_month = self.calls_by_metric(metric_name='RawSkill, Agent', timeframe='Month')
-        calls_by_skill_agent_day = self.calls_by_metric(metric_name='RawSkill, Agent', timeframe='Date')
-        bp = 'here'
+        
+        
+        calls_by_skill_agent_month = self.calls_by_metric(metric_name='RawSkill, SkillProduct, Agent', timeframe='Month')
+        calls_by_skill_agent_day = self.calls_by_metric(metric_name='RawSkill, SkillProduct, Agent', timeframe='Date')
+        calls_by_dept_month = self.calls_by_metric(metric_name='Department', timeframe='Month')
+        calls_by_dept_day = self.calls_by_metric(metric_name='Department', timeframe='Date')
+        calls_by_skill_dept_month = self.calls_by_metric(metric_name='RawSkill, SkillProduct, Department', timeframe='Month')
+        calls_by_skill_dept_day = self.calls_by_metric(metric_name='RawSkill, SkillProduct, Department', timeframe='Date')
+        calls_by_business_hr_month = self.calls_by_metric(metric_name='DuringBusinessHours', timeframe='Month')
+        calls_by_business_hr_day = self.calls_by_metric(metric_name='DuringBusinessHours', timeframe='Date')
+        agents_by_month = self.agents_by(metric_name=['Month'])
+        agents_by_day = self.agents_by(metric_name=['Date', 'DuringBusinessHours'])
+        # Department
 
-        data_transformed = {
+        bp = 'here'
+        dataframes = {
             **data_extract,
+            'adphone_full': adphone_full,
             'aggregate_call_counts': aggregate_call_counts,
             'phone_revenue_staging': phone_revenue_staging,
             'lineamt_calc': lineamt_calc,
@@ -56,7 +68,22 @@ class Transform:
             'calls_by_agent_day': calls_by_agent_day,
             'calls_by_skill_agent_month': calls_by_skill_agent_month,
             'calls_by_skill_agent_day': calls_by_skill_agent_day,
+            'calls_by_dept_month': calls_by_dept_month,
+            'calls_by_dept_day': calls_by_dept_day,
+            'calls_by_skill_dept_month': calls_by_skill_dept_month,
+            'calls_by_skill_dept_day': calls_by_skill_dept_day,
+            'calls_by_business_hr_month': calls_by_business_hr_month,
+            'calls_by_business_hr_day': calls_by_business_hr_day,
+            'agents_by_month': agents_by_month,
+            'agents_by_day': agents_by_day
+        }
+        dicts = {
+            key: dataframe.to_dicts() for key, dataframe in dataframes.items()
+        }
 
+        data_transformed = {
+            'dataframes': dataframes,
+            'dicts': dicts            
         }
         return data_transformed
 
@@ -83,7 +110,7 @@ class Transform:
         Returns
         ---
         :return `calls_by_` (_pl.DataFrame_):  polars DataFrame of aggregated calls by the passed metric, grouped by timeframe
-        '''        
+        '''
         if timeframe == 'Month':
             timeframe = 'Month, Year, FinPeriod'
         else:
@@ -100,9 +127,50 @@ class Transform:
         select *
         from TopLevel
         """).collect()
+        self.logger.info(f'{len(calls_by_)} rows returned by Calls by {metric_name} & {timeframe} query')
         return calls_by_
+    
+    def agents_by(self, metric_name: list):
+        if 'Month' in metric_name:
+            metric_name = ['Year', 'FinPeriod'] + metric_name
+        elif 'Date' in metric_name:
+            metric_name = ['Year', 'FinPeriod', 'Month'] + metric_name
+        metrics_group_by = ', '.join(metric_name)
+        agents_by_ = self.sql_context.execute(
+            query=f"""
+        with TopLevel as(
+        select {metrics_group_by}
+             , count(distinct Agent) Agents
+        from CallCounts
+        group by {metrics_group_by}
+        )
+        select *
+        from TopLevel
+        """).collect()
+        self.logger.info(f'{len(agents_by_)} rows returned by Agents by {metrics_group_by} query')
+        return agents_by_
     #endregion
 
+
+    def ad_table_joins(self):
+        bp = 'here'
+        self.adphone_full = self.sql_context.execute(
+            query="""
+        select p.*
+             , v.Category
+             , v.PrimaryAdName
+             , v.SecondaryAdName
+             , v.Product
+             , v.AdVersionID
+             , v.PrimaryVersionName
+             , v.SecondaryVersionName
+        from AdPhonePriorityDates p
+        left join AdDetailVersion v on p.AdCode = v.AdCode and p.StartDate = v.StartDate
+"""
+        ).collect()
+        self.sql_context.register(name='adphone_full', frame=self.adphone_full)
+        self.logger.info(f'adphone_full registered with {self.adphone_full.height} rows.')
+        return self.adphone_full
 
 
     #region aggregate call counts
@@ -291,7 +359,7 @@ class Transform:
                         then 4
                     else 5 
             end MatchRank
-            , (s.OrderDate - c.Date) DaysBetweenCallOrder
+            , (cast(cast(s.OrderDate as date) as bigint) - cast(cast(c.Date as date) as bigint)) DaysBetweenCallOrder
             , *
         from CallCounts c 
         inner join PhoneRevenue s on c.CustomerPhone_ANI = s.Phone 
@@ -306,6 +374,7 @@ class Transform:
         """).collect()
         self.sql_context.register('IntermediateMFRAllocated_Match', self.inter_mfr_matched)
         self.logger.info(f'IntermediateMFRAllocated_Match registered with {self.inter_mfr_matched.height} rows.')
+        test = self.inter_mfr_matched.to_dicts()
         return self.inter_mfr_matched
     #endregion
 
