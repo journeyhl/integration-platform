@@ -19,7 +19,7 @@ select a.AccountCD
 	 , cast(f.EndDate as date) EndDate
 from GLHistory g
 inner join Account a on g.CompanyID = a.CompanyID and g.AccountID = a.AccountID
-left join Sub s on g.CompanyID = s.CompanyID and g.SubID = s.SubID
+inner join Sub s on g.CompanyID = s.CompanyID and g.SubID = s.SubID
 inner join FinPeriod f on g.CompanyID = f.CompanyID and g.FinPeriodID = f.FinPeriodID and f.OrganizationID = 2
 where g.CompanyID = 2
 and (g.CuryFinBegBalance != 0 or g.CuryFinYtdBalance != 0)

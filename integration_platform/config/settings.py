@@ -1492,6 +1492,7 @@ TABLES = {
         'keys': [
             'AccountCD',
             'Type',
+            'Sub',
             'FinPeriod',
         ],
         'columns': [
@@ -1511,7 +1512,6 @@ TABLES = {
             'FinPeriodID',
         ],
         'update_columns': [
-            'Sub',
             'Description',
             'BeginningBalance',
             'Debit',
