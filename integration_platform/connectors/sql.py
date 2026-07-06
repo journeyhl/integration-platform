@@ -239,6 +239,7 @@ class AcumaticaDbQueries(Queries):
     '''Pulls Ryder Orders that are arent already shipped and enforeces Ship Separately for chair removal orders'''
     AllocateSalesOrders_filter_address_validator: Query
     '''Ensures we're only pulling orders that have been allocated or aren't in need of allocation '''
+    AcuToDbc_TrialBalance: Query
 
 _QUERY_CLASSES: dict[str, type[Queries]] = {
     'db_CentralStore': CentralStoreQueries,

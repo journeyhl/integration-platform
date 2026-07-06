@@ -1488,6 +1488,42 @@ TABLES = {
             'LoadTimestamp',
         ],
     },
+    'acu.TrialBalance': {
+        'keys': [
+            'AccountCD',
+            'Type',
+            'FinPeriod',
+        ],
+        'columns': [
+            'AccountCD',
+            'Type',
+            'Sub',
+            'Description',
+            'FinPeriod',
+            'BeginningBalance',
+            'Debit',
+            'Credit',
+            'EndingBalance',
+            'StartDate',
+            'EndDate',
+            'TypeID',
+            'SubCD',
+            'FinPeriodID',
+        ],
+        'update_columns': [
+            'Sub',
+            'Description',
+            'BeginningBalance',
+            'Debit',
+            'Credit',
+            'EndingBalance',
+            'StartDate',
+            'EndDate',
+            'TypeID',
+            'SubCD',
+            'FinPeriodID',
+        ],
+    },
 }
 
 '''# Tables
