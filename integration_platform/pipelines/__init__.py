@@ -22,6 +22,7 @@ from .acu_to_dbc_customers import AcuToDbcCustomers
 from .acu_to_dbc_phone_revenue import AcuToDbcPhoneRevenue
 from .allocate_sales_orders import AllocateSalesOrders
 from .acu_to_dbc_backorders import AcuToDbcBackordersPointInTime
+from .acu_to_dbc_trial_balance import AcuToDbcTrialBalance
 
 
 from .redstag_send_shipments import SendRedStagShipments

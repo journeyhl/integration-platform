@@ -1,0 +1,16 @@
+create table acu.TrialBalance(
+AccountCD int not null,
+Type varchar(15) not null,
+Sub varchar(25),
+Description varchar(355),
+FinPeriod varchar(10) not null,
+BeginningBalance decimal(18,2),
+Debit decimal(18,2),
+Credit decimal(18,2),
+EndingBalance decimal(18,2),
+StartDate date,
+EndDate date,
+TypeID varchar(1),
+SubCD varchar(15),
+FinPeriodID varchar(10)
+primary key (AccountCD, Type, FinPeriod))
