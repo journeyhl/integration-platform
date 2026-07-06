@@ -385,7 +385,6 @@ class AcumaticaAPI:
                 'Response': response_str,
                 'Timestamp': datetime.now(ZoneInfo('America/New_York'))
             })
-            return return_bool
         elif descr == 'Reclassify Transaction':
             try:
                 json_response = response.json()
@@ -416,6 +415,21 @@ class AcumaticaAPI:
         elif descr == 'Ship Separately':
             json_response = response.json()
             bp = 'here'
+        elif descr == 'Prepare Shopify':
+            if response_str == '204: No Content':
+                self.logger.info(payload_data['log_success'])
+                return_bool = True
+            else:
+                self.logger.info(payload_data['log_error'])
+                return_bool = False
+            self.data_log.append({
+                **payload_data['acu_api_data_log'],
+                'Response': response_str,
+                'Timestamp': datetime.now(ZoneInfo('America/New_York'))
+            })
+            bp = 'here'
+        return return_bool
+
         
     def get_order_details(self, order_data: dict, additional_details: str = '') -> dict:
         '''`get_order_details`(order_data: *dict*, )
@@ -1227,26 +1241,8 @@ class AcumaticaAPI:
 #endregion Authentication/Logout
 
 
-#region wip
-    def update_customer_address(self, payload: dict):
-        response = self.session.put(f'{self.base_uri}/Customer', json=payload)
-        try:
-            json_response = response.json()
-        except Exception as e:
-            self.logger.error(f'Issue updating address')
-            return False
-        response_str = f'{response.status_code}: {response.reason}'
-        self.data_log.append({
-            'Entity': 'Customer',
-            'KeyValue': payload['CustomerID']['value'],
-            'Operation': f'PUT - Update Address',
-            'Payload': payload,
-            'Response': response_str,
-            'Timestamp': datetime.now(ZoneInfo('America/New_York'))
-        })
-        bp = 'here'
-        return True
-#endregion wip
+
+
 
 
 
@@ -1288,7 +1284,7 @@ class AcumaticaAPI:
 
 #endregion
 
-
+#region Allocate Sales Order
     def manage_sales_allocations(self, order_data: dict):
         order_nbr = order_data['OrderNbr']
         end_date = datetime.now().strftime('%m/%d/%Y')
@@ -1345,4 +1341,51 @@ class AcumaticaAPI:
         }
         self.target_api(endpoint='/ManageSalesAllocations/ProcessAllAllocations', payload_data=full_payload, operation='post', descr='Manage Sales Allocation')
         bp = 'here'
-        
+#endregion
+
+
+
+
+
+#region prepare shopify entity
+    def prepare_shopify(self, entity: str = 'Product Availability'):
+        payload = {
+            "entity": {
+                "Store":{
+                    "value": "ShopJourneyProductio"
+                },
+                "EntityName":{
+                    "value": entity
+                }
+            },
+            "parameters": {
+                "param_Store": {
+                    "value": "ShopJourneyProductio"
+                },
+                "param_Entity":{
+                    "value": entity
+                },
+                "param_PrepareMode":{
+                    "value": "Incremental"
+                }
+            }
+        }
+        acu_data_log_entry = {            
+            'Entity': 'PrepareShopify',
+            'KeyValue': entity,
+            'Operation': f'PUT - Prepare {entity}',
+            'Payload': payload,
+        }
+        success_str = f'{entity} prepared successfully!'
+        error_str = f'Could not prepare {entity}!'
+        full_payload = {
+            'target_api_update_payload': payload,
+            'log_success': success_str,
+            'log_error': error_str,
+            'acu_api_data_log': acu_data_log_entry,
+        }
+        self.target_api(endpoint='/PrepareShopify/PrepareEntity', payload_data=full_payload, operation='post', descr=f'Prepare Shopify')
+        bp = 'here'
+#endregion
+
+
