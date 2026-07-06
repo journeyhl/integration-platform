@@ -11,6 +11,7 @@ order_data = {
 }
 
 acu = AcumaticaAPI(pipeline='.debug', env='dev')
-acu.manage_sales_allocations(order_data=order_data)
+# acu.manage_sales_allocations(order_data=order_data)
+acu.prepare_shopify(entity='Product Availability')
 
 bp = 'here'
