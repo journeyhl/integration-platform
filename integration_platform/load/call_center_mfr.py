@@ -5,7 +5,8 @@ if TYPE_CHECKING:
 import logging
 import time
 import polars as pl
-
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 class Load:
     def __init__(self, pipeline: CallCenterMFR):
@@ -55,7 +56,8 @@ class Load:
         for i, df in enumerate(self.dfs):
             self.logger.info(f'{i+1}/{total_dfs}: Inserting {df['data'].height} rows to {df['table_name']}')
             bp = 'here'
-            self.pipeline.centralstore.insert_df(df_data_loaded=df['data'], table_name=df['table_name'])
+            df_stamped: pl.DataFrame = df['data'].with_columns(pl.lit(datetime.now(ZoneInfo('America/New_York')), pl.Datetime).alias('InsertedDT'))
+            self.pipeline.centralstore.insert_df(df_data_loaded=df_stamped, table_name=df['table_name'])
             bp = 'here'
         self.logger.info(f'{total_dfs} DataFrames created as tables and {total_rows} rows inserted!')
         bp = 'here'

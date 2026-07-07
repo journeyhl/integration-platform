@@ -17,7 +17,7 @@ from EmployeeDeptRaw e
 select cast(Timestamp as date) Date
 	 , case when Skill like '%PlusOne%' then 'plusone' else LOWER(e.Name) end Agent
      , e.Department
-	 , f.CalledParty
+	 , coalesce(f.CalledParty, DNIS) CalledParty
 	 , f.CallingParty CustomerPhone_CallingParty
 	 , f.DNIS 
 	 , f.ANI CustomerPhone_ANI
@@ -111,6 +111,3 @@ and TalkDuration <> '00:00:00'
 select *
 from TopLevel t
 
-
-
- -- 
