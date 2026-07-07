@@ -757,3 +757,19 @@ def sharepoint_dm_tracker_pipeline(timer: af.TimerRequest):
     sharepoint_dm = SharepointDmTracker(function='sharepoint_dm_tracker_pipeline')
     sharepoint_dm.run()
 #endregion       sharepoint_dm_tracker
+
+
+
+#region                     acu_to_dbc_trial_balance
+#    Upsert SharePoint DM plan to dbo.src_dm_tracker
+#                         2x/day (7:45am/7:45pm EST)
+@app.timer_trigger(
+    schedule = '45 7,19 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def acu_to_dbc_trial_balance(timer: af.TimerRequest):
+    from integration_platform.pipelines.acu_to_dbc_trial_balance import AcuToDbcTrialBalance
+    trial_balance = AcuToDbcTrialBalance(function='acu_to_dbc_trial_balance')
+    trial_balance.run()
+#endregion       jhl_trial_balance

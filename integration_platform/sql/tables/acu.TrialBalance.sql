@@ -12,5 +12,7 @@ StartDate date,
 EndDate date,
 TypeID varchar(1),
 SubCD varchar(15),
-FinPeriodID varchar(10)
+FinPeriodID varchar(10),
+InsertedDT datetime,
+LastChecked datetime,
 primary key (AccountCD, Type, FinPeriod))
