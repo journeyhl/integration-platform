@@ -10,8 +10,13 @@ order_data = {
     'Warehouse': 'REDSTAGSWT',
 }
 
-acu = AcumaticaAPI(pipeline='.debug', env='dev')
+acu = AcumaticaAPI(pipeline='.debug', 
+# env='dev'
+)
+
 # acu.manage_sales_allocations(order_data=order_data)
-acu.prepare_shopify(entity='Product Availability')
+# acu.prepare_shopify(entity='Product Availability')
+acu.get_process_shopify_records(entity='Template Item')
+acu.prepare_shopify(entity='Template Item')
 
 bp = 'here'

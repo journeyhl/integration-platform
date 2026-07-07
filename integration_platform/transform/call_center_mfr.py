@@ -1,5 +1,7 @@
 import logging
 import polars as pl
+from datetime import datetime
+from zoneinfo import ZoneInfo
 class Transform:
     def __init__(self, pipeline):
         self.pipeline = pipeline
@@ -28,7 +30,6 @@ class Transform:
         acu_mfr_allocated = self.allocate_mfr_match_acu_view()
         mfr_allocated = self.allocate_mfr()
 
-        # mfr_allocated = self.allocate_mfr_ordercount_eq1()
 
 
         calls_by_skill_month = self.calls_by_metric(metric_name='RawSkill, SkillProduct', timeframe='Month')
@@ -126,7 +127,7 @@ class Transform:
         )
         select *
         from TopLevel
-        """).collect()
+        """).collect().with_columns(pl.lit(datetime.now(ZoneInfo('America/New_York')), pl.Datetime).alias('LastChecked'))
         self.logger.info(f'{len(calls_by_)} rows returned by Calls by {metric_name} & {timeframe} query')
         return calls_by_
     
@@ -146,7 +147,7 @@ class Transform:
         )
         select *
         from TopLevel
-        """).collect()
+        """).collect().with_columns(pl.lit(datetime.now(ZoneInfo('America/New_York')), pl.Datetime).alias('LastChecked'))
         self.logger.info(f'{len(agents_by_)} rows returned by Agents by {metrics_group_by} query')
         return agents_by_
     #endregion
@@ -167,7 +168,7 @@ class Transform:
         from AdPhonePriorityDates p
         left join AdDetailVersion v on p.AdCode = v.AdCode and p.StartDate = v.StartDate
 """
-        ).collect()
+        ).collect().with_columns(pl.lit(datetime.now(ZoneInfo('America/New_York')), pl.Datetime).alias('LastChecked'))
         self.sql_context.register(name='adphone_full', frame=self.adphone_full)
         self.logger.info(f'adphone_full registered with {self.adphone_full.height} rows.')
         return self.adphone_full
@@ -502,7 +503,7 @@ class Transform:
         from IntermediateMFRAllocated_RowNum a
         inner join CallCountsAggregated c on a.DNIS = c.DNIS and a.CustomerPhone_ANI = c.CustomerPhone_ANI and a.Date = c.Date
         order by a.Date desc, a.OrderNbr, a.OrderCount desc, a.RowNum
-        """).collect()
+        """).collect().with_columns(pl.lit(datetime.now(ZoneInfo('America/New_York')), pl.Datetime).alias('LastChecked'))
         self.sql_context.register(name = 'acuMFRAllocated', frame=self.acu_mfr_allocated_view)
         self.logger.info(f'acuMFRAllocated registered with {self.acu_mfr_allocated_view.height} rows.')
         return self.acu_mfr_allocated_view
@@ -516,7 +517,7 @@ class Transform:
         from IntermediateMFRAllocated_RowNum a
         inner join CallCountsAggregated c on a.DNIS = c.DNIS and a.CustomerPhone_ANI = c.CustomerPhone_ANI and a.Date = c.Date
         order by a.Date desc, a.OrderNbr, a.OrderCount desc, a.RowNum
-        """).collect()
+        """).collect().with_columns(pl.lit(datetime.now(ZoneInfo('America/New_York')), pl.Datetime).alias('LastChecked'))
         self.sql_context.register(name = 'MFRAllocated', frame=self.mfr_allocated)
         self.logger.info(f'MFRAllocated registered with {self.mfr_allocated.height} rows.')
         return self.mfr_allocated

@@ -8,6 +8,7 @@ where p.TFN is not null
 and p.TFN != '' and p.TFN not like '#%' 
 and left(p.TFN, 9) != 'NotRouted'
 and left(p.TFN, 3) != 'OoD'
+and p.AdCode is not null and p.StartDate is not null
 )
 select p.*
 	 , case when Priority = 1 and (select StartDate from AdPhonePriority a where a.TFN = p.TFN and a.Priority = 2)  is not null then (select dateadd(DAY, -1, StartDate) from AdPhonePriority a where a.TFN = p.TFN and a.Priority = 2)
@@ -20,5 +21,5 @@ select p.*
 	 		when Priority = 8 and (select StartDate from AdPhonePriority a where a.TFN = p.TFN and a.Priority = 9)  is not null then (select dateadd(DAY, -1, StartDate) from AdPhonePriority a where a.TFN = p.TFN and a.Priority = 9)
 	 		when Priority = 9 and (select StartDate from AdPhonePriority a where a.TFN = p.TFN and a.Priority = 10) is not null then (select dateadd(DAY, -1, StartDate) from AdPhonePriority a where a.TFN = p.TFN and a.Priority = 10)
 	 	else '20991231' 
-	   end EndDate
+	  end EndDate
 from AdPhonePriority p

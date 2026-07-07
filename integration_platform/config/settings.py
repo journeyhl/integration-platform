@@ -1510,6 +1510,8 @@ TABLES = {
             'TypeID',
             'SubCD',
             'FinPeriodID',
+            'InsertedDT',
+            'LastChecked',
         ],
         'update_columns': [
             'Description',
@@ -1522,8 +1524,11 @@ TABLES = {
             'TypeID',
             'SubCD',
             'FinPeriodID',
+            'InsertedDT',
+            'LastChecked',
         ],
     },
+    
 }
 
 '''# Tables

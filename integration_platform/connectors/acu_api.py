@@ -1356,6 +1356,9 @@ class AcumaticaAPI:
                 },
                 "EntityName":{
                     "value": entity
+                },
+                "Selected":{
+                    "value": True
                 }
             },
             "parameters": {
@@ -1373,7 +1376,7 @@ class AcumaticaAPI:
         acu_data_log_entry = {            
             'Entity': 'PrepareShopify',
             'KeyValue': entity,
-            'Operation': f'PUT - Prepare {entity}',
+            'Operation': f'POST - Prepare {entity}',
             'Payload': payload,
         }
         success_str = f'{entity} prepared successfully!'
@@ -1389,3 +1392,59 @@ class AcumaticaAPI:
 #endregion
 
 
+#region process shopify entity
+    def process_shopify(self, entity: str = 'Product Availability'):
+        payload = {
+            "entity": {
+                "Store":{
+                    "value": "ShopJourneyProductio"
+                },
+                "EntityName":{
+                    "value": entity
+                },
+                "Selected":{
+                    "value": True
+                }
+            },
+            "parameters": {
+                "param_Store": {
+                    "value": "ShopJourneyProductio"
+                },
+                "param_Entity":{
+                    "value": entity
+                },
+                "param_PrepareMode":{
+                    "value": "Incremental"
+                }
+            }
+        }
+        acu_data_log_entry = {            
+            'Entity': 'ProcessShopify',
+            'KeyValue': entity,
+            'Operation': f'POST - Process {entity}',
+            'Payload': payload,
+        }
+        success_str = f'{entity} processed successfully!'
+        error_str = f'Could not process {entity}!'
+        full_payload = {
+            'target_api_update_payload': payload,
+            'log_success': success_str,
+            'log_error': error_str,
+            'acu_api_data_log': acu_data_log_entry,
+        }
+        self.target_api(endpoint='/PrepareShopify/PrepareEntity', payload_data=full_payload, operation='post', descr=f'Prepare Shopify')
+        bp = 'here'
+#endregion
+
+
+
+
+    def get_process_shopify_records(self, entity: str = 'Product Availability', store: str = 'ShopJourneyProductio'):
+
+        payload = {
+            "Store": {"value": store},
+            "EntityName": {"value": entity},
+        }
+        response = self.session.put(f'{self.base_uri}/ProcessShopify', json=payload)
+        jresponse = response.json()
+        return response.json()
