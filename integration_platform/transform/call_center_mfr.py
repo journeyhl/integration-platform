@@ -32,22 +32,22 @@ class Transform:
 
 
 
-        calls_by_skill_month = self.calls_by_metric(metric_name='RawSkill, SkillProduct', timeframe='Month')
-        calls_by_skill_day = self.calls_by_metric(metric_name='RawSkill, SkillProduct', timeframe='Date')
-        calls_by_agent_month = self.calls_by_metric(metric_name='Agent', timeframe='Month')
-        calls_by_agent_day = self.calls_by_metric(metric_name='Agent', timeframe='Date')
-        
-        
-        calls_by_skill_agent_month = self.calls_by_metric(metric_name='RawSkill, SkillProduct, Agent', timeframe='Month')
-        calls_by_skill_agent_day = self.calls_by_metric(metric_name='RawSkill, SkillProduct, Agent', timeframe='Date')
-        calls_by_dept_month = self.calls_by_metric(metric_name='Department', timeframe='Month')
-        calls_by_dept_day = self.calls_by_metric(metric_name='Department', timeframe='Date')
-        calls_by_skill_dept_month = self.calls_by_metric(metric_name='RawSkill, SkillProduct, Department', timeframe='Month')
-        calls_by_skill_dept_day = self.calls_by_metric(metric_name='RawSkill, SkillProduct, Department', timeframe='Date')
-        calls_by_business_hr_month = self.calls_by_metric(metric_name='DuringBusinessHours', timeframe='Month')
-        calls_by_business_hr_day = self.calls_by_metric(metric_name='DuringBusinessHours', timeframe='Date')
-        agents_by_month = self.agents_by(metric_name=['Month'])
-        agents_by_day = self.agents_by(metric_name=['Date', 'DuringBusinessHours'])
+        calls_by_skill_month        = self.calls_by_metric(metric_name=['RawSkill', 'SkillProduct'], timeframe='Month')
+        calls_by_agent_month        = self.calls_by_metric(metric_name=["coalesce(Agent, '-') as Agent"], timeframe='Month')
+        calls_by_skill_agent_month  = self.calls_by_metric(metric_name=['RawSkill', 'SkillProduct', "coalesce(Agent, '-') as Agent"], timeframe='Month')
+        calls_by_dept_month         = self.calls_by_metric(metric_name=["coalesce(Department, '-') as Department"], timeframe='Month')
+        calls_by_skill_dept_month   = self.calls_by_metric(metric_name=['RawSkill', 'SkillProduct', "coalesce(Department, '-') as Department"], timeframe='Month')
+        calls_by_business_hr_month  = self.calls_by_metric(metric_name=['DuringBusinessHours'], timeframe='Month')
+        agents_by_month             = self.agents_by(metric_name=['Month'])
+
+        calls_by_skill_day          = self.calls_by_metric(metric_name=['RawSkill', 'SkillProduct'], timeframe='Date')
+        calls_by_agent_day          = self.calls_by_metric(metric_name=["coalesce(Agent, '-') as Agent"], timeframe='Date')
+        calls_by_skill_agent_day    = self.calls_by_metric(metric_name=['RawSkill', 'SkillProduct', "coalesce(Agent, '-') as Agent"], timeframe='Date')
+        calls_by_dept_day           = self.calls_by_metric(metric_name=["coalesce(Department, '-') as Department"], timeframe='Date')
+        calls_by_skill_dept_day     = self.calls_by_metric(metric_name=['RawSkill', 'SkillProduct', "coalesce(Department, '-') as Department"], timeframe='Date')
+        calls_by_business_hr_day    = self.calls_by_metric(metric_name=['DuringBusinessHours'], timeframe='Date')
+        agents_by_day               = self.agents_by(metric_name=['Date', 'DuringBusinessHours'])
+
         # Department
 
         bp = 'here'
@@ -89,7 +89,7 @@ class Transform:
         return data_transformed
 
     #region Aggregation by_
-    def calls_by_metric(self, metric_name: str = 'RawSkill', timeframe: str = 'Date'):
+    def calls_by_metric(self, metric_name: list, timeframe: str = 'Date'):
         ''':meth:`~calls_by_metric` (self, metric_name: *str = 'RawSkill'*, timeframe: *str = 'Date'*):
         ---
         <hr>
@@ -116,14 +116,17 @@ class Transform:
             timeframe = 'Month, Year, FinPeriod'
         else:
             timeframe = f'{timeframe}, Month, Year, FinPeriod'
+        grouped_metric_name = [metric.split(' as ')[0] if ' as ' in metric else metric for metric in metric_name]
+        metric_str = ', '.join(metric_name)
+        grouped_metric_str  = ', '.join(grouped_metric_name)
         calls_by_ = self.sql_context.execute(
             query=f"""
         with TopLevel as(
-        select {metric_name}
+        select {metric_str}
             , count(distinct SessionID) Calls
             , {timeframe}
         from CallCounts
-        group by {timeframe}, {metric_name}
+        group by {timeframe}, {grouped_metric_str}
         )
         select *
         from TopLevel
@@ -141,7 +144,7 @@ class Transform:
             query=f"""
         with TopLevel as(
         select {metrics_group_by}
-             , count(distinct Agent) Agents
+             , count(distinct coalesce(Agent, '-')) Agents
         from CallCounts
         group by {metrics_group_by}
         )
@@ -517,7 +520,7 @@ class Transform:
         from IntermediateMFRAllocated_RowNum a
         inner join CallCountsAggregated c on a.DNIS = c.DNIS and a.CustomerPhone_ANI = c.CustomerPhone_ANI and a.Date = c.Date
         order by a.Date desc, a.OrderNbr, a.OrderCount desc, a.RowNum
-        """).collect().with_columns(pl.lit(datetime.now(ZoneInfo('America/New_York')), pl.Datetime).alias('LastChecked'))
+        """).collect().with_columns(pl.lit(datetime.now(ZoneInfo('America/New_York')), pl.Datetime).alias('LastChecked')).drop(['Agent:s', 'Priority:p', 'AdCode:a', 'Product:a', 'StartDate:a'])
         self.sql_context.register(name = 'MFRAllocated', frame=self.mfr_allocated)
         self.logger.info(f'MFRAllocated registered with {self.mfr_allocated.height} rows.')
         return self.mfr_allocated

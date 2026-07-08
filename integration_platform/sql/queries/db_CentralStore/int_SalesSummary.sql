@@ -135,5 +135,4 @@ from SecondLevel s
 group by s.FinPeriod, DatePlaced
 )
 select *
--- into analytics.int_SalesSummary
 from FinalLevel

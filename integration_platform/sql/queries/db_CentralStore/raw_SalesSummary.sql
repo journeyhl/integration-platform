@@ -71,5 +71,4 @@ and s.InventoryCD != 'EXTWARNTY'
 and s.Quantity != 0
 )
 select *
--- into analytics.raw_SalesSummary
-from TopLevel
+from TopLevel 

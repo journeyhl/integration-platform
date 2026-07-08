@@ -65,7 +65,7 @@ select cast(Timestamp as date) Date
 		else null 
 	  end TalkDurationStr
 	 , case when cast(TalkDuration as time) < '00:01:30' then 1 else 0 end Abandoned
-	 , case when cast(TalkDuration as time) < '00:01:30' then 'No' else 'Yes' end [Longer Than 90 Seconds]
+	 , case when cast(TalkDuration as time) < '00:01:30' then 'No' else 'Yes' end LongerThan90Seconds
 	 , datepart(weekday, f.timestamp) DayOfWeek
 	 , case when datepart(weekday, f.timestamp) in(2, 3, 4, 5, 6) and datepart(hour, f.timestamp) >= 9 and DATEPART(hour, f.timestamp) <= 19
 		then 1

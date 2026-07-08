@@ -13,7 +13,6 @@ class CallCenterMFR(Pipeline):
         inventory_summary_product = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_InventorySummary_Product)
         phone_rev_staging = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_PhoneRevStaging)
         adphone_priority_dates = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_AdPhonePriorityDates)
-        # adversion_product = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_AdVersionProduct)
         call_counts = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_CallCounts)
         
         ad_detail_version = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_AdDetailAdVersion)
@@ -21,7 +20,6 @@ class CallCenterMFR(Pipeline):
             'InventorySummary_Product': inventory_summary_product,
             'PhoneRevPreStaging': phone_rev_staging,
             'AdPhonePriorityDates': adphone_priority_dates,
-            # 'AdVersionProduct': adversion_product,
             'CallCounts': call_counts,
             'AdDetailVersion': ad_detail_version
         }
@@ -33,7 +31,6 @@ class CallCenterMFR(Pipeline):
     
     def load(self, data_transformed):
         data_loaded = self.loader.landing_loader(data_transformed=data_transformed)
-        # test = self.centralstore.insert_df()
         return data_loaded
     
     def log_results(self, data_loaded):
