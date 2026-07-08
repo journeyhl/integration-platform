@@ -77,6 +77,14 @@ class CentralStoreQueries(Queries):
     MFR_AdDetailAdVersion: Query
     ''''''
     DarwillAddresses: Query
+    ''''''
+    raw_SalesSummary: Query
+    ''''''    
+    int_SalesSummary: Query
+    ''''''
+    jhl_SalesSummary: Query
+    ''''''
+
 
 class AcumaticaDbQueries(Queries):
     '''Queries to be executed within AcumaticaDb'''
@@ -626,4 +634,5 @@ end
         db_msg = cursor.execute(query)
         self.raw_connection.commit()
         if cursor.rowcount:
-            self.logger.info(f'{cursor.rowcount} rows affected')
+            self.logger.info(f'{cursor.rowcount} rows {'deleted' if 'delete' in query else 'affected'}')
+        bp = 'here'

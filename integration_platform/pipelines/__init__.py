@@ -52,5 +52,6 @@ from .dev.shopify import ShopifyGraphQL
 from .dev.notify_fulfillment_ops import NotifyFulfillmentOps
 
 from .call_center_mfr import CallCenterMFR
+from .sales_summary import SalesSummary
 from .ship_chair_removal_separate import ShipChairRemovalSeparate
 from .sharepoint_dm_tracker import SharepointDmTracker

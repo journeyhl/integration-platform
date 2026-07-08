@@ -39,6 +39,7 @@ class Load:
         self.get_dataframes_to_sql(dataframes=dataframes)
         self.get_dicts_to_sql(dicts=dicts)
 
+        # self.upsert_dicts()
         self._insert_all_dfs_()
         bp = 'here'
 
@@ -54,7 +55,9 @@ class Load:
         self.logger.info(f'')
         total_rows = sum([df['data'].height for df in self.dfs])
         for i, df in enumerate(self.dfs):
-            self.logger.info(f'{i+1}/{total_dfs}: Inserting {df['data'].height} rows to {df['table_name']}')
+            self.logger.info(f'{i+1}/{total_dfs}: Deleting {df['data'].height} rows from {df['table_name']}...')
+            self.pipeline.centralstore.raw_execute(f'delete from {df['table_name']}')
+            self.logger.info(f'{i+1}/{total_dfs}: Inserting {df['data'].height} rows to {df['table_name']}...')
             bp = 'here'
             df_stamped: pl.DataFrame = df['data'].with_columns(pl.lit(datetime.now(ZoneInfo('America/New_York')), pl.Datetime).alias('InsertedDT'))
             self.pipeline.centralstore.insert_df(df_data_loaded=df_stamped, table_name=df['table_name'])
@@ -63,7 +66,14 @@ class Load:
         bp = 'here'
         
 
-
+    def upsert_dicts(self):
+        for table in self.dicts:
+            self.logger.info(f'Beginning upsert to {table['table_name']}')
+            table['data'] = [{**t, 'InsertedDT': datetime.now(ZoneInfo('America/New_York'))} for t in table['data']]
+            bp = 'here'
+            
+            self.pipeline.centralstore.checked_upsert_paginated(table_name=table['table_name'], data=table['data'])
+            bp = 'here'
 
 
 
@@ -212,18 +222,18 @@ class Load:
             {'data':self.AdPhoneFull, 'table_name': 'analytics.jhl_AdPhone'},
             {'data':self.AcuMFRAllocated, 'table_name': 'analytics.JHL_acuMFRAllocated'},
             {'data':self.MFRAllocated, 'table_name': 'analytics.JHL_MFRAllocated'},
-            {'data':self.CallsBySkillMonth, 'table_name': 'analytics.JHL_CallsBySkillMonth'},
-            {'data':self.CallsBySkillDate, 'table_name': 'analytics.JHL_CallsBySkillDate'},
-            {'data':self.CallsByAgentMonth, 'table_name': 'analytics.JHL_CallsByAgentMonth'},
-            {'data':self.CallsByAgentDate, 'table_name': 'analytics.JHL_CallsByAgentDate'},
-            {'data':self.CallsBySkillAgentMonth, 'table_name': 'analytics.JHL_CallsBySkillAgentMonth'},
-            {'data':self.CallsBySkillAgentDate, 'table_name': 'analytics.JHL_CallsBySkillAgentDate'},
-            {'data':self.CallsByDeptMonth, 'table_name': 'analytics.JHL_CallsByDeptMonth'},
-            {'data':self.CallsByDeptDate, 'table_name': 'analytics.JHL_CallsByDeptDate'},
-            {'data':self.CallsBySkillDeptMonth, 'table_name': 'analytics.JHL_CallsBySkillDeptMonth'},
-            {'data':self.CallsBySkillDeptDate, 'table_name': 'analytics.JHL_CallsBySkillDeptDate'},
-            {'data':self.CallsByDuringBusinessHrMonth, 'table_name': 'analytics.JHL_CallsByDuringBusinessHrMonth'},
-            {'data':self.CallsByDuringBusinessHrDate, 'table_name': 'analytics.JHL_CallsByDuringBusinessHrDate'},
+            {'data':self.CallsBySkillMonth, 'table_name': 'analytics.JHL_CallsBySkillMonth',},
+            {'data':self.CallsBySkillDate, 'table_name': 'analytics.JHL_CallsBySkillDate',},
+            {'data':self.CallsByAgentMonth, 'table_name': 'analytics.JHL_CallsByAgentMonth',},
+            {'data':self.CallsByAgentDate, 'table_name': 'analytics.JHL_CallsByAgentDate',},
+            {'data':self.CallsBySkillAgentMonth, 'table_name': 'analytics.JHL_CallsBySkillAgentMonth',},
+            {'data':self.CallsBySkillAgentDate, 'table_name': 'analytics.JHL_CallsBySkillAgentDate',},
+            {'data':self.CallsByDeptMonth, 'table_name': 'analytics.JHL_CallsByDeptMonth',},
+            {'data':self.CallsByDeptDate, 'table_name': 'analytics.JHL_CallsByDeptDate',},
+            {'data':self.CallsBySkillDeptMonth, 'table_name': 'analytics.JHL_CallsBySkillDeptMonth',},
+            {'data':self.CallsBySkillDeptDate, 'table_name': 'analytics.JHL_CallsBySkillDeptDate',},
+            {'data':self.CallsByDuringBusinessHrMonth, 'table_name': 'analytics.JHL_CallsByDuringBusinessHrMonth',},
+            {'data':self.CallsByDuringBusinessHrDate, 'table_name': 'analytics.JHL_CallsByDuringBusinessHrDate',},
             {'data':self.AgentsByMonth, 'table_name': 'analytics.JHL_AgentsByMonth'},
             {'data':self.AgentsByDate, 'table_name': 'analytics.JHL_AgentsByDate'},
             {'data':self.CallCounts, 'table_name': 'analytics.int_CallCounts'},

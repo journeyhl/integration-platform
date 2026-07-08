@@ -133,5 +133,4 @@ from SecondLevel s
 group by s.FinPeriod
 )
 select *
--- into analytics.jhl_SalesSummary
 from FinalLevel
