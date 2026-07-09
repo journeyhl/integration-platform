@@ -51,6 +51,7 @@ class Transform:
         # Department
 
         bp = 'here'
+        data_extract['CallCounts'] = data_extract['CallCounts'].with_columns(pl.col('QueryTime').alias('LastChecked'))
         dataframes = {
             **data_extract,
             'adphone_full': adphone_full,

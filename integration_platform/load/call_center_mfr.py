@@ -5,7 +5,7 @@ if TYPE_CHECKING:
 import logging
 import time
 import polars as pl
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 class Load:
@@ -39,8 +39,10 @@ class Load:
         self.get_dataframes_to_sql(dataframes=dataframes)
         self.get_dicts_to_sql(dicts=dicts)
 
-        # self.upsert_dicts()
-        self._insert_all_dfs_()
+        bp = 'here'
+        self.upsert_dicts()
+        bp = 'here'
+        # self._insert_all_dfs_()
         bp = 'here'
 
 
@@ -52,7 +54,6 @@ class Load:
         Method to insert all DataFrames found in self.dfs. This will result in duplicate rows if the tables are already populated
         '''
         total_dfs = len(self.dfs)
-        self.logger.info(f'')
         total_rows = sum([df['data'].height for df in self.dfs])
         for i, df in enumerate(self.dfs):
             self.logger.info(f'{i+1}/{total_dfs}: Deleting {df['data'].height} rows from {df['table_name']}...')
@@ -67,14 +68,38 @@ class Load:
         
 
     def upsert_dicts(self):
-        for table in self.dicts:
-            self.logger.info(f'Beginning upsert to {table['table_name']}')
+        dict_count = len(self.dicts)
+        total_rows = 0
+        self.logger.info(f'Beginning upsert sequence for {dict_count} dicts/SQL tables')
+        for i, table in enumerate(self.dicts):
+            self.upsert_prefix = f'{i+1}/{dict_count}: ' 
             table['data'] = [{**t, 'InsertedDT': datetime.now(ZoneInfo('America/New_York'))} for t in table['data']]
             bp = 'here'
-            
+            if len(table['data']) >= 1000:
+                table = self.filter_to_recent_rows(table)
+            total_rows += len(table)
             self.pipeline.centralstore.checked_upsert_paginated(table_name=table['table_name'], data=table['data'])
             bp = 'here'
+        self.logger.info(f'Upsert sequence complete! {total_rows} upserted to {dict_count} tables')
 
+
+
+    def filter_to_recent_rows(self, table: dict):
+        if 'Date' in table['table_name'] or table['table_name'] in ['analytics.int_CallCounts', 'analytics.JHL_MFRAllocated', 'analytics.JHL_acuMFRAllocated']:
+            self.logger.info(f'{self.upsert_prefix}Filtering {table['table_name']} to only those records within the last week')
+            filtered = [row for row in table['data'] if row['Date'] >= (datetime.now() - timedelta(days=7)).date()]
+            self.logger.info(f'{self.upsert_prefix}Filtered {table['table_name']} from {len(table['data'])} rows to {len(filtered)}')
+        elif 'Month' in table['table_name']:
+            self.logger.info(f'{self.upsert_prefix}Filtering {table['table_name']} to only those records within the last month')
+            month_filter = datetime(year=datetime.now().year, month=datetime.now().month-1, day=1) if datetime.now().month != 1 else datetime(year=datetime.now().year-1, month=12, day=1)
+            filtered = [row for row in table['data'] if datetime(year=row['Year'], month=row['Month'], day=1) >= month_filter]
+            self.logger.info(msg=f'{self.upsert_prefix}Filtered {table['table_name']} from {len(table['data'])} rows to {len(filtered)}')
+        else:
+            self.logger.info(f'{self.upsert_prefix}Not filtering {table["table_name"]}...{len(table['data'])} rows ')
+            filtered = table['data']
+            bp = 'here'
+        table['data'] = filtered
+        return table
 
 
     def get_dataframes_to_sql(self, dataframes):
@@ -222,6 +247,8 @@ class Load:
             {'data':self.AdPhoneFull, 'table_name': 'analytics.jhl_AdPhone'},
             {'data':self.AcuMFRAllocated, 'table_name': 'analytics.JHL_acuMFRAllocated'},
             {'data':self.MFRAllocated, 'table_name': 'analytics.JHL_MFRAllocated'},
+            {'data':self.CallCounts, 'table_name': 'analytics.int_CallCounts'},
+
             {'data':self.CallsBySkillMonth, 'table_name': 'analytics.JHL_CallsBySkillMonth',},
             {'data':self.CallsBySkillDate, 'table_name': 'analytics.JHL_CallsBySkillDate',},
             {'data':self.CallsByAgentMonth, 'table_name': 'analytics.JHL_CallsByAgentMonth',},
@@ -236,5 +263,4 @@ class Load:
             {'data':self.CallsByDuringBusinessHrDate, 'table_name': 'analytics.JHL_CallsByDuringBusinessHrDate',},
             {'data':self.AgentsByMonth, 'table_name': 'analytics.JHL_AgentsByMonth'},
             {'data':self.AgentsByDate, 'table_name': 'analytics.JHL_AgentsByDate'},
-            {'data':self.CallCounts, 'table_name': 'analytics.int_CallCounts'},
         ]
