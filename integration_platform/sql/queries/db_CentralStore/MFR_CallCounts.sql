@@ -92,6 +92,7 @@ select cast(Timestamp as date) Date
      , TimeStamp
 	 , SessionID
      , cast(cast(Timestamp as date) as varchar(20)) DStr
+	 , dateadd(hour, -4, getdate()) QueryTime
 
 from Five9CallSegments f
 left join EmployeeDept e on left(f.CalledParty, charindex('@', f.CalledParty) - 1) = replace(e.Username, 'journeyhl.com\', '') and cast(f.Timestamp as date) >= e.StartDate and cast(f.Timestamp as date) < e.EndDate

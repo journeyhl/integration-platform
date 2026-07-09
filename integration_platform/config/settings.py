@@ -1858,7 +1858,6 @@ TABLES = {
             'AdCode',
             'TFN',
             'StartDate',
-            'EndDate',
         ],
         'columns': [
             'AdCode',
@@ -1879,6 +1878,7 @@ TABLES = {
         ],
         'update_columns': [
             'Priority',
+            'EndDate',
             'MatchingAdCodeDate',
             'Category',
             'PrimaryAdName',
