@@ -86,6 +86,16 @@ class AcumaticaDeletions(Pipeline):
                 '''
             },
             {
+                'name': 'sales_summary_del',
+                'table': 'analytics.raw_SalesSummary',
+                'query': 'select s.* from analytics.raw_SalesSummary s inner join _util.SOOrderDeletions d on s.OrderNbr = d.OrderNbr',
+                'delete_cmd': '''
+                    delete from s
+                    from analytics.raw_SalesSummary s
+                    inner join _util.SOOrderDeletions d on s.OrderNbr = d.OrderNbr
+                '''
+            },
+            {
                 'name': 'ship_del',
                 'table': 'acu.Shipments',
                 'query': 'select s.* from acu.Shipments s inner join _util.SOShipmentDeletions d on s.ShipmentNbr = d.ShipmentNbr',
