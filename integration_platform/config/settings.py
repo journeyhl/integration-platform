@@ -1853,7 +1853,7 @@ TABLES = {
             'LastChecked',
         ],
     },
-    'analytics.jhl_AdPhone': {
+    'analytics.JHL_AdPhone': {
         'keys': [
             'AdCode',
             'TFN',

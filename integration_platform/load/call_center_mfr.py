@@ -244,7 +244,7 @@ class Load:
         self.AgentsByMonth = dicts['agents_by_month']
         self.AgentsByDate = dicts['agents_by_day']
         self.dicts = [
-            {'data':self.AdPhoneFull, 'table_name': 'analytics.jhl_AdPhone'},
+            {'data':self.AdPhoneFull, 'table_name': 'analytics.JHL_AdPhone'},
             {'data':self.AcuMFRAllocated, 'table_name': 'analytics.JHL_acuMFRAllocated'},
             {'data':self.MFRAllocated, 'table_name': 'analytics.JHL_MFRAllocated'},
             {'data':self.CallCounts, 'table_name': 'analytics.int_CallCounts'},
