@@ -165,8 +165,8 @@ class Pipeline(ABC):
 
     def _time_differential_(self, start: datetime, end: datetime):
         total_seconds = (end - start).seconds
-        minutes = int(total_seconds % 60)
-        seconds = int(total_seconds / 60)
+        minutes = int(total_seconds / 60)
+        seconds = int(total_seconds % 60)
         elapsed = f'{minutes}m {seconds}s'
         duration = {
             'started': start,

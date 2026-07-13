@@ -16,7 +16,6 @@ class B2BMetrics(Pipeline):
         b2b_customer_order_history = self.centralstore.query_to_dataframe(query=self.centralstore.queries.Metrics_B2BCustomerOrderHistory)
         customer_age = self.centralstore.query_to_dataframe(query=self.centralstore.queries.Metrics_B2BCustomerAge)
         data_extract = {
-            # 'analytics.int_SalesSummaryB2B': b2b_sales,
             'raw_b2b_sales': raw_b2b_sales,
             'int_b2b_sales': int_b2b_sales,
             'b2b_customer_order_history': b2b_customer_order_history,
