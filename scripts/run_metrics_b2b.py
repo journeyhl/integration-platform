@@ -1,10 +1,10 @@
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from integration_platform.pipelines import SalesSummaryMetrics
+from integration_platform.pipelines import B2BMetrics
 
-sales = SalesSummaryMetrics('.debug')
+b2b = B2BMetrics('.debug')
 
-sales.run()
+b2b.run()
 
 bp = 'here'

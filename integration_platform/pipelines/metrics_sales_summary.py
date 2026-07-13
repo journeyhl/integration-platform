@@ -3,16 +3,17 @@ from integration_platform.load.call_center_mfr import Load
 import polars as pl
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from integration_platform.transform.sales_summary_b2b import Transform
 
-class SalesSummary(Pipeline):
+class SalesSummaryMetrics(Pipeline):
     def __init__(self, function: str):
-        super().__init__('sales-summary', function)
+        super().__init__('sales-summary-metrics', function)
+        self.b2b_transformer = Transform(self)
 
     def extract(self):
         raw_summary = self.centralstore.query_to_dataframe(self.centralstore.queries.raw_SalesSummary)
         int_summary = self.centralstore.query_to_dataframe(self.centralstore.queries.int_SalesSummary)
         jhl_summary = self.centralstore.query_to_dataframe(self.centralstore.queries.JHL_SalesSummary)
-        
         data_extract = {
             'upsert':{                
                 'analytics.JHL_SalesSummary': jhl_summary.to_dicts(),
