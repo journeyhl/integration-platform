@@ -3,9 +3,9 @@ from integration_platform.transform.call_center_mfr import Transform
 from integration_platform.load.call_center_mfr import Load
 import polars as pl
 
-class CallCenterMFR(Pipeline):
+class CallCenterMetrics(Pipeline):
     def __init__(self, function: str):
-        super().__init__('mfr', function)
+        super().__init__('call-center-metrics', function)
         self.transformer = Transform(self)
         self.loader = Load(self)
 

@@ -84,6 +84,10 @@ class CentralStoreQueries(Queries):
     ''''''
     jhl_SalesSummary: Query
     ''''''
+    raw_SalesSummaryB2B: Query
+    int_SalesSummaryB2B: Query
+    Metrics_B2BCustomers: Query
+    Metrics_B2BCustomerAge: Query
 
 
 class AcumaticaDbQueries(Queries):

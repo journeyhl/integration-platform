@@ -194,7 +194,8 @@ class Transform:
         Returns
         ---
         :return self.:attr:`~call_counts_agg` (_pl.DataFrame_): Count of distinct SessionIDs or Calls
-        '''        
+        '''
+        self.logger.info(f'Querying for aggregated call counts')        
         self.call_counts_agg = self.sql_context.execute(
             query="""
         with TopLevel as(
@@ -210,6 +211,7 @@ class Transform:
         from TopLevel
         """).collect()
         self.sql_context.register(name='CallCountsAggregated', frame=self.call_counts_agg)
+        self.logger.info(f'CallCountsAggregated registered with {self.call_counts_agg.height} rows.')
         return self.call_counts_agg
     #endregion
 
