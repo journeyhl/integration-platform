@@ -2028,12 +2028,12 @@ Every pipeline subclasses `Pipeline`. The base class:
 - Initializes both [`SQLConnector`](#sqlconnector) instances (`self.centralstore`, `self.acudb`) so subclasses get authenticated database access for free
 - Names a per-pipeline `logging.Logger` (`self.logger`) and configures `colorlog` with millisecond-precision timestamps (America/New_York) the first time any pipeline runs
 - Attaches a `LogHistory` handler so every log emit is captured in `self.logs` for later persistence
-- Stamps `self.run_timestamp` at the start of every `run()`
+- Stamps `self.ts_pipeline_start` at the start of every `run()`
 - Drives the lifecycle in [`Pipeline.run`](pipelines/base.py):
 
   ```python
   def run(self):
-      self.run_timestamp = datetime.now(ZoneInfo('America/New_York'))
+      self.ts_pipeline_start = datetime.now(ZoneInfo('America/New_York'))
       self.logger.info(f'Starting {self.pipeline_name}')
 
       self.logger.info('Extracting...')

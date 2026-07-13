@@ -14,6 +14,7 @@ select distinct c.CustomerID
 	 , min(DatePlaced) over(partition by s.CustomerID ) FirstOrder
 	 , max(DatePlaced) over(partition by s.CustomerID ) LastOrder
 	 , c.CreatedOn
+	 , c.Phone
 from acu.Customers c
 left join acu.SalesOrders s on c.CustomerID = s.CustomerID
 left join acu.InventorySummary i on s.InventoryCD = i.InventoryCD

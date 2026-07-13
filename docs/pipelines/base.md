@@ -8,7 +8,7 @@ flowchart TD
         self.acudb
         self.logger
         self.logs
-        self.run_timestamp
+        self.ts_pipeline_start
     ]
 
     A --> ABS[abstract methods]
@@ -18,7 +18,7 @@ flowchart TD
     ABS --> ABS4[log_results]
 
     A --> RUN[Pipeline.run]
-    RUN --> R0[set run_timestamp]
+    RUN --> R0[set ts_pipeline_start]
     R0 --> R1[extract -- data_extract]
     R1 --> R2[transform data_extract -- data_transformed]
     R2 --> R3[load data_transformed -- data_loaded]

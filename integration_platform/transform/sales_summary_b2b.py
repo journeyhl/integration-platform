@@ -13,13 +13,13 @@ class Transform:
         self.data_extract = data_extract
         self.raw_b2b_sales = data_extract['raw_b2b_sales']
         self.int_b2b_sales = data_extract['int_b2b_sales']
-        self.b2b_customers = data_extract['b2b_customers']
+        self.b2b_customer_order_history = data_extract['b2b_customer_order_history']
         self.customer_age = data_extract['customer_age']
         self.sql = pl.SQLContext(
             raw_B2BSalesSummary = self.raw_b2b_sales,
             int_B2BSalesSummary = self.int_b2b_sales,
-            B2BCustomers = self.b2b_customers,
-            B2BCustomerAge = self.customer_age,
+            B2BCustomerOrderHistory = self.b2b_customer_order_history,
+            B2BCustomerAgeCategory = self.customer_age,
         )
         sales_by_customer = self.sales_by_metric(['b.CustomerID', 'b.CustomerType'])
         sales_by_customer_type = self.sales_by_metric(['b.CustomerType'])
@@ -28,8 +28,10 @@ class Transform:
         data_transformed = {
             'analytics.raw_B2BSalesSummary': self.raw_b2b_sales,
             'analytics.int_B2BSalesSummary': self.int_b2b_sales,
-            'analytics.JHL_B2B_RevenueByCustomer': sales_by_customer,
-            'analytics.JHL_B2B_RevenueByCustomerType': sales_by_customer_type
+            'analytics.int_B2BCustomerOrderHistory': self.b2b_customer_order_history,
+            'analytics.int_B2BCustomerAgeCategory': self.customer_age,
+            'analytics.JHL_B2BRevenueByCustomer': sales_by_customer,
+            'analytics.JHL_B2BRevenueByCustomerType': sales_by_customer_type
 
         }
         bp = 'here'
@@ -51,7 +53,7 @@ class Transform:
              , cast(sum(s.Total_Revenue) as decimal(18,2)) Booked
              , cast(sum(case when s.Shipped = 1 then s.Total_Revenue else 0 end) as decimal(18,2)) Shipped
         from raw_B2BSalesSummary s
-        inner join B2BCustomerAge b on s.CustomerID = b.CustomerID
+        inner join B2BCustomerAgeCategory b on s.CustomerID = b.CustomerID
         group by FinPeriod, {grouped_metric_str}
         )
         select *
