@@ -62,6 +62,7 @@ select s.OrderType
   , datepart(Year, s.DatePlaced) Date_Year
   , concat(datepart(Year, s.DatePlaced), '-', 
     case when datepart(month, s.DatePlaced) < 10 then concat('0', datepart(month, s.DatePlaced)) else concat('', datepart(month, s.DatePlaced)) end) FinPeriod
+  , s.Phone
 from acu.SalesOrders s 
 inner join acu.InventorySummary i on s.InventoryCD = i.InventoryCD
 where s.status not in ('Awaiting Payment', 'Canceled', 'Pending Approval', 'Rejected', 'On Hold')

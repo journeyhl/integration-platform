@@ -83,8 +83,8 @@ class Pipeline(ABC):
             self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(self, 'AcudevDb')
         self.logger = logging.getLogger(pipeline_name)
         self.logs = []
-        self.run_timestamp = datetime.now(ZoneInfo('America/New_York'))
-        self.logger.addHandler(LogHistory(self.logs, self.run_timestamp, self.function))        
+        self.ts_pipeline_start = datetime.now(ZoneInfo('America/New_York'))
+        self.logger.addHandler(LogHistory(self.logs, self.ts_pipeline_start, self.function))        
         if not logging.root.handlers:
             handler = colorlog.StreamHandler()
             handler.setFormatter(MillisecondFormatter(
@@ -117,27 +117,42 @@ class Pipeline(ABC):
 
 
     def run(self):
-        self.run_timestamp = datetime.now(ZoneInfo('America/New_York'))
+        self.ts_pipeline_start = datetime.now(ZoneInfo('America/New_York'))
         self.logger.info(f'Starting {self.pipeline_name}')
 
 
         self.logger.info('Extracting...')
         data_extract = self.extract()
 
+        ts_extract_complete = datetime.now(ZoneInfo('America/New_York'))
+        self.extract_dur = self._time_differential_(start=self.ts_pipeline_start, end=ts_extract_complete)
+        self.logger.info(f'Extract complete in {self.extract_dur['dur_string']}!')
+
 
         self.logger.info('Transforming...')
-        data_transformed = self.transform(data_extract)
+        data_transformed = self.transform(data_extract=data_extract)
+        ts_transform_complete = datetime.now(ZoneInfo('America/New_York'))
+        self.transform_dur = self._time_differential_(start=ts_extract_complete, end=ts_transform_complete)
+        self.logger.info(f'Transform complete in {self.transform_dur['dur_string']}!')
 
 
         self.logger.info('Loading...')
-        data_loaded = self.load(data_transformed)
+        data_loaded = self.load(data_transformed=data_transformed)
+        ts_load_complete = datetime.now(ZoneInfo('America/New_York'))
+        self.load_dur = self._time_differential_(start=ts_transform_complete, end=ts_load_complete)
+        self.logger.info(f'Load complete in {self.load_dur['dur_string']}!')
 
         self.logger.info('Logging...')
-        self.log_results(data_loaded)
+        self.log_results(data_loaded=data_loaded)
         try:
-            self.centralstore.insert_df(pl.DataFrame(self.logs), '_util.Logs')
+            self.centralstore.insert_df(df_data_loaded=pl.DataFrame(self.logs), table_name='_util.Logs')
         except Exception as e:
             self.logger.warning(f"{e}: Couldn't insert logs to SQL but pipeline execution was successful")
+        
+        pipe_complete = datetime.now(ZoneInfo('America/New_York'))
+        self.pipe_dur = self._time_differential_(start=self.ts_pipeline_start, end=pipe_complete)
+        self.logger.info(f'Pipeline complete in {self.pipe_dur['dur_string']}!')
+
         return{
             'pipeline': self.pipeline_name,
             'status': 'success',
@@ -145,3 +160,20 @@ class Pipeline(ABC):
             'transformed': data_transformed,
             'loaded': data_loaded
         }
+
+
+
+    def _time_differential_(self, start: datetime, end: datetime):
+        total_seconds = (end - start).seconds
+        minutes = int(total_seconds % 60)
+        seconds = int(total_seconds / 60)
+        elapsed = f'{minutes}m {seconds}s'
+        duration = {
+            'started': start,
+            'completed': end,
+            'total_seconds': total_seconds,
+            'minutes': minutes,
+            'seconds': seconds,
+            'dur_string': elapsed
+        }
+        return duration
