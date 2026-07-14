@@ -773,3 +773,35 @@ def acu_to_dbc_trial_balance(timer: af.TimerRequest):
     trial_balance = AcuToDbcTrialBalance(function='acu_to_dbc_trial_balance')
     trial_balance.run()
 #endregion       jhl_trial_balance
+
+
+
+#region                         metrics_call_center
+#                       Upserts Call Center metrics
+#                3x/day (7:55am/11:55am/7:55pm EST)
+@app.timer_trigger(
+    schedule = '55 7,11,19 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def metrics_call_center(timer: af.TimerRequest):
+    from integration_platform.pipelines.metrics_call_center_mfr import CallCenterMetrics
+    call_center = CallCenterMetrics(function='metrics_call_center')
+    call_center.run()
+#endregion                      metrics_call_center
+
+
+
+#region                     metrics_sales_summary
+#                           Upserts Sales metrics
+#                3x/day (7:55am/11:55am/7:55pm EST)
+@app.timer_trigger(
+    schedule = '50 7,11,19 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def metrics_sales_summary(timer: af.TimerRequest):
+    from integration_platform.pipelines.metrics_sales_summary import SalesSummaryMetrics
+    sales_summary = SalesSummaryMetrics(function='metrics_sales_summary')
+    sales_summary.run()
+#endregion                  metrics_sales_summary
