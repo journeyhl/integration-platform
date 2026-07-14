@@ -31,8 +31,8 @@ class B2BMetrics(Pipeline):
         bp = 'here'
         
         for table, data in data_transformed.items():
-            # self.logger.info(f'Deleting {data.height} rows from {table}...')
-            # self.centralstore.raw_execute(f'delete from {table}')
+            self.logger.info(f'Deleting {data.height} rows from {table}...')
+            self.centralstore.raw_execute(f'delete from {table}')
             self.logger.info(f'Inserting {data.height} rows to {table}...')
             bp = 'here'
             self.centralstore.insert_df(df_data_loaded=data, table_name=table)
