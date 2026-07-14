@@ -82,7 +82,7 @@ class CentralStoreQueries(Queries):
     ''''''    
     int_SalesSummary: Query
     ''''''
-    jhl_SalesSummary: Query
+    JHL_SalesSummary: Query
     ''''''
     raw_SalesSummaryB2B: Query
     int_SalesSummaryB2B: Query
