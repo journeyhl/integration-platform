@@ -403,12 +403,17 @@ class AcumaticaAPI:
             bp = 'here'
 
         elif descr in ['Ship Separately', 'Update Warehouse']:
-            json_response = response.json()
-            if json_response.get('error') != None:
-                error = json_response['error']
-                self.logger.error(f'Error! {error}')
-                bp = 'here'
-            return json_response
+            try:
+                json_response = response.json()
+                if json_response.get('error') != None:
+                    error = json_response['error']
+                    self.logger.error(f'Error! {error}')
+                    bp = 'here'
+                self.logger.info(f'Success!')
+                return json_response
+            except Exception as e:
+                self.logger.error(f'Error! {e}')
+                return {}
         elif descr == 'Prepare Shopify':
             if response_str == '204: No Content':
                 self.logger.info(payload_data['log_success'])
