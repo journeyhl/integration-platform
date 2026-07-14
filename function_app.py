@@ -753,7 +753,7 @@ def ship_chair_removal_separate(timer: af.TimerRequest):
     run_on_startup = False
 )
 def sharepoint_dm_tracker_pipeline(timer: af.TimerRequest):
-    from integration_platform.pipelines.sharepoint_dm_tracker import SharepointDmTracker
+    from integration_platform.pipelines.sharepoint_dm_tracker import SharepointDmTracker #sharepoint-dm-tracker
     sharepoint_dm = SharepointDmTracker(function='sharepoint_dm_tracker_pipeline')
     sharepoint_dm.run()
 #endregion       sharepoint_dm_tracker
@@ -770,7 +770,7 @@ def sharepoint_dm_tracker_pipeline(timer: af.TimerRequest):
 )
 def acu_to_dbc_trial_balance(timer: af.TimerRequest):
     from integration_platform.pipelines.acu_to_dbc_trial_balance import AcuToDbcTrialBalance
-    trial_balance = AcuToDbcTrialBalance(function='acu_to_dbc_trial_balance')
+    trial_balance = AcuToDbcTrialBalance(function='acu_to_dbc_trial_balance') #acu-to-dbc-trial-balance
     trial_balance.run()
 #endregion       jhl_trial_balance
 
@@ -786,7 +786,7 @@ def acu_to_dbc_trial_balance(timer: af.TimerRequest):
 )
 def metrics_call_center(timer: af.TimerRequest):
     from integration_platform.pipelines.metrics_call_center_mfr import CallCenterMetrics
-    call_center = CallCenterMetrics(function='metrics_call_center')
+    call_center = CallCenterMetrics(function='metrics_call_center') #call-center-metrics
     call_center.run()
 #endregion                      metrics_call_center
 
@@ -802,6 +802,6 @@ def metrics_call_center(timer: af.TimerRequest):
 )
 def metrics_sales_summary(timer: af.TimerRequest):
     from integration_platform.pipelines.metrics_sales_summary import SalesSummaryMetrics
-    sales_summary = SalesSummaryMetrics(function='metrics_sales_summary')
+    sales_summary = SalesSummaryMetrics(function='metrics_sales_summary') #sales-summary-metrics
     sales_summary.run()
 #endregion                  metrics_sales_summary

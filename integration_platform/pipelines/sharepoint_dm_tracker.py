@@ -27,7 +27,7 @@ def _classify_product(campaign: str) -> str:
 
 class SharepointDmTracker(Pipeline):
     def __init__(self, function: str):
-        super().__init__('sharepoint_dm_tracker', function)
+        super().__init__('sharepoint-dm-tracker', function)
         self.sharepoint = Sharepoint(self)
 
     def extract(self) -> bytes:
