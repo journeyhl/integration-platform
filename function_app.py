@@ -761,7 +761,7 @@ def sharepoint_dm_tracker_pipeline(timer: af.TimerRequest):
 
 
 #region                     acu_to_dbc_trial_balance
-#    Upsert SharePoint DM plan to dbo.src_dm_tracker
+#               Upsert Trial Balance to CentralStore
 #                         2x/day (7:45am/7:45pm EST)
 @app.timer_trigger(
     schedule = '45 7,19 * * *',
@@ -805,3 +805,19 @@ def metrics_sales_summary(timer: af.TimerRequest):
     sales_summary = SalesSummaryMetrics(function='metrics_sales_summary') #sales-summary-metrics
     sales_summary.run()
 #endregion                  metrics_sales_summary
+
+
+
+#region                 acu_to_dbc_inventory_summary
+#         Upsert InventorySummary to db_CentralStore
+#                         2x/day (7:17am/5:17pm EST)
+@app.timer_trigger(
+    schedule = '17 7,17 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def acu_to_dbc_inventory_summary(timer: af.TimerRequest):
+    from integration_platform.pipelines.acu_to_dbc_inventory_summary import AcuToDbcInventorySummary
+    inventory_summary = AcuToDbcInventorySummary(function='acu_to_dbc_inventory_summary') #acu-to-dbc-inventory-summary
+    inventory_summary.run()
+#endregion       acu_to_dbc_inventory_summary
