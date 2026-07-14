@@ -24,6 +24,8 @@ class AcuAPILoader:
         bp = 'here'
         put_on_hold = []
         on_hold = []
+        orders = [order for status, data in data_transformed.items() for order in data['Orders']]
+        self.logger.info(f'{len(orders)} total orders across {len(data_transformed.keys())} different statuses')
         for status, data in data_transformed.items():
             self.logger.info(f'{data['OrderCount']} order(s) in {status} status')
             if status in('Risk Hold', 'Open', 'Awaiting Payment', 'On Hold'):
@@ -38,24 +40,27 @@ class AcuAPILoader:
 
     def __update_ship_sep_or_wh__(self, data: dict, status: str):
         for i, order in enumerate(data['Orders']):
-            prefix = f'{i+1}/{data['OrderCount']}: '
+            prefix = f'{i+1}/{data['OrderCount']} {status} orders: '
             self.logger.info(f'{prefix}{order['OrderNbr']}')
-            if order['ChairRemovalWH'] != order['OrderLineWH']:
-                order['acu_response'] = self.pipeline.acu_api.get_order_details(order_data=order, additional_details='?$expand=Details')
-                order['acu_details'] = order['acu_response']['Details']
-                update_wh_payload = self.__update_wh_payload__(order=order)
-                response = self.pipeline.acu_api.target_api(endpoint='/SalesOrder', payload_data={'target_api_update_payload': update_wh_payload}, operation='put', descr='Update Warehouse')
-                bp = 'here'
             bp = 'here'
             if status != 'On Hold':
+                self.logger.info(f'Placing {order['OrderNbr']} On Hold!')
+                hold_payload = self.__put_on_hold_format_payload__(order=order)
                 self.pipeline.acu_api.order_do_action(order_data=order, payload=hold_payload, action='PutOrderOnHold')
             time.sleep(5)
+            if order['ChairRemovalWH'] != order['OrderLineWH']:
+                self.logger.warning(f'Warehouse mismatch! {order['InventoryCD']}: {order['OrderLineWH']}, Chair Removal: {order['ChairRemovalWH']}')
+                order['acu_response'] = self.pipeline.acu_api.get_order_details(order_data=order, additional_details='?$expand=Details')
+                order['acu_details'] = order['acu_response']['Details']
+                self.logger.info(f"Updating Chair Removal's warehouse to {order['OrderLineWH']}")
+                update_wh_payload = self.__update_wh_payload__(order=order)
+                response = self.pipeline.acu_api.target_api(endpoint='/SalesOrder', payload_data={'target_api_update_payload': update_wh_payload}, operation='put', descr='Update Warehouse')
+                status = response['Status']['value'] if isinstance(response, dict) else status
+                bp = 'here'
             if order['ShipSeparately']:
-                hold_payload, ship_sep_payload = self.__ship_sep_format_payload__(order=order)
+                self.logger.info(f"Updating ShipSeparately to False!")
+                ship_sep_payload = self.__ship_sep_format_payload__(order=order)
                 self.pipeline.acu_api.target_api(endpoint='/SalesOrder?$expand=ShippingSettings', payload_data={'target_api_update_payload': ship_sep_payload}, operation='put', descr='Ship Separately')
-
-
-            
             time.sleep(5)
             self.pipeline.acu_api.order_remove_hold(order)
             bp = 'here'
@@ -71,9 +76,6 @@ class AcuAPILoader:
             self.logger.error(f'{'Chair not found! ' if chair == {} else ''}{'Chair Removal not found!' if chair_removal == {} else ''}')
             return {}
         update_wh_payload = {
-            "CustomerID": {
-                "value": order['AcctCD']
-            },
             "OrderType": {
                 "value": order['OrderType']
             },
@@ -103,6 +105,30 @@ class AcuAPILoader:
 
     def __ship_sep_format_payload__(self, order: dict):
 
+        ship_sep_payload = {
+            "OrderType": 
+            {
+                "value": order['OrderType']
+            },
+            "OrderNbr": 
+            {
+                "value": order['OrderNbr']
+            },
+            "": 
+            {
+                "value": order['AcctCD']
+            },
+            'ShippingSettings':{
+                "ShipSeparately":{
+                    "value": False
+                }                
+            }
+
+        }
+        return ship_sep_payload
+
+
+    def __put_on_hold_format_payload__(self, order: dict):        
         hold_payload = {
             "entity": {
                 "Type": {
@@ -116,24 +142,4 @@ class AcuAPILoader:
                 }
             }
         }
-        ship_sep_payload = {
-            "OrderType": 
-            {
-                "value": order['OrderType']
-            },
-            "OrderNbr": 
-            {
-                "value": order['OrderNbr']
-            },
-            "CustomerID": 
-            {
-                "value": order['AcctCD']
-            },
-            'ShippingSettings':{
-                "ShipSeparately":{
-                    "value": False
-                }                
-            }
-
-        }
-        return hold_payload, ship_sep_payload
+        return hold_payload
