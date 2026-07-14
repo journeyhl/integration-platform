@@ -28,13 +28,15 @@ and s.Status not in('C', 'L', 'S')
 )
 , SecondLevel as(
 select *
-	 , (select 1 from TopLevel t2 where t.OrderNbr = t2.OrderNbr and t.LineNbr != t2.LineNbr and t2.InventoryCD = '27222') ChairRemoval
+	--  , (select 1 from TopLevel t2 where t.OrderNbr = t2.OrderNbr and t.LineNbr != t2.LineNbr and t2.InventoryCD = '27222') ChairRemoval
 from TopLevel t
 where t.OrderLineWH = 'RLM NEJ HB'
 and t.InventoryCD != '27222'
 )
-select *
-from SecondLevel
-where ChairRemoval is not null 
-and ShipSeparately = 1 --ShipSeperately needs to be flipped to 0 as a result of this process.
+select s.*
+     , t.OrderLineWH ChairRemovalWH
+from SecondLevel s
+inner join TopLevel t on s.OrderNbr = t.OrderNbr and s.LineNbr != t.LineNbr and t.InventoryCD = '27222'
+where (t.OrderLineWH != s.OrderLineWH or s.ShipSeparately = 1)
+--ShipSeperately needs to be flipped to 0 as a result of this process.
 --and AcuStatus = 'N'

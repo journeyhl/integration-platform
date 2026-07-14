@@ -368,11 +368,13 @@ class AcumaticaAPI:
         """        
         if operation == 'put':
             response = self.session.put(f'{self.base_uri}{endpoint}', json=payload_data['target_api_update_payload'])
+            bp = 'here'
         elif operation == 'post':
             response = self.session.post(f'{self.base_uri}{endpoint}', json=payload_data['target_api_update_payload'])
         response_str = f'{response.status_code}: {response.reason}'
 
-        if descr == 'Override & Update':
+
+        if descr in ['Override & Update', 'Reclassify Transaction']:
             try:
                 json_response = response.json()
                 self.logger.info(payload_data['log_success'])
@@ -385,20 +387,7 @@ class AcumaticaAPI:
                 'Response': response_str,
                 'Timestamp': datetime.now(ZoneInfo('America/New_York'))
             })
-        elif descr == 'Reclassify Transaction':
-            try:
-                json_response = response.json()
-                self.logger.info(payload_data['log_success'])
-                return_bool = True
-            except Exception as e:
-                self.logger.info(payload_data['log_error'])
-                return_bool = False
-            self.data_log.append({
-                **payload_data['acu_api_data_log'],
-                'Response': response_str,
-                'Timestamp': datetime.now(ZoneInfo('America/New_York'))
-            })
-            bp = 'here'
+
         elif descr == 'Manage Sales Allocation':
             if response_str == '202: Accepted':
                 self.logger.info(payload_data['log_success'])
@@ -412,9 +401,14 @@ class AcumaticaAPI:
                 'Timestamp': datetime.now(ZoneInfo('America/New_York'))
             })
             bp = 'here'
-        elif descr == 'Ship Separately':
+
+        elif descr in ['Ship Separately', 'Update Warehouse']:
             json_response = response.json()
-            bp = 'here'
+            if json_response.get('error') != None:
+                error = json_response['error']
+                self.logger.error(f'Error! {error}')
+                bp = 'here'
+            return json_response
         elif descr == 'Prepare Shopify':
             if response_str == '204: No Content':
                 self.logger.info(payload_data['log_success'])
@@ -459,7 +453,6 @@ class AcumaticaAPI:
         try:
             response = self.session.get(f'{self.base_uri}/SalesOrder/{order_data['OrderType']}/{order_data['OrderNbr']}{additional_details}')
             order_info = response.json()
-            order_info['ShipToAddressOverride']
             try:
                 order_data['ShippingValidated'] =       order_info['ShipToAddressValidated']['value']
                 order_data['ShipToAddressOverride'] =   order_info['ShipToAddressOverride']['value']
@@ -474,7 +467,9 @@ class AcumaticaAPI:
         except Exception as e:
             order_info = None
             self.logger.error(f'Error getting {order_data['OrderNbr']}')
+            return order_data
         bp = 'here'
+        order_data = {**order_data, **order_info}
         return order_data
 
     def order_remove_hold(self, order_data: dict):
