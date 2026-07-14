@@ -8,20 +8,21 @@ select distinct rtrim(i.InventoryCD) InventoryCD
 	 , cast(i.BaseWeight as decimal(18,2)) Weight
 	 , cast(i.BasePrice as decimal(18,2)) Price
 	 , cast(its.LastCost as decimal(18,2)) Cost
-	 , (select value from CSAnswers c where i.CompanyID = c.CompanyID and i.NoteID = c.RefNoteID and c.AttributeID = 'OLDSKU') OldSKU
+	 , (select value from CSAnswers c where i.CompanyID = c.CompanyID and i.NoteID = c.RefNoteID and c.AttributeID = 'OLDSKU') oldSKU
 	 , rtrim(v.AcctCD) VendorID
 	 , case when i.ItemType = 'F' then 'Finished Good' when i.ItemType = 'M' then 'Component Part' when i.ItemType = 'A' then 'Subassembly' else 'N/A' end ItemType
 	 , rtrim(ic.ItemClassCD) ItemClass
-	 , i.PostClassID
-	 , i.TaxCategoryID
+	 , i.PostClassID PostingClass
+	 , i.TaxCategoryID TaxCategory
 	 , rtrim(ins.SiteCD) DefaultWH
 	 , ir.ReplenishmentClassID ReplenishmentClass
 	 , cast(ir.MinQty as decimal(18,2)) RC_Min
 	 , cast(ir.MaxQty as decimal(18,2)) RC_Max
-	 , ix1.AlternateID VendorPArtNumber
+	 , ix1.AlternateID VendorPartNumber
 	 , ix2.AlternateID UPC
 	 , ic.Descr ItemClassDesc
 	 , dateadd(hour, -4, i.LastModifiedDateTime) LastModifiedDT
+     , count(ix1.AlternateID) over(partition by InventoryCD) Distinct_VendorPartNumbers
 
 
 
