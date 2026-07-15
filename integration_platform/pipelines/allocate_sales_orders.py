@@ -13,7 +13,12 @@ class AllocateSalesOrders(Pipeline):
         self.transformer = Transform(self)
 
     def extract(self):
-        data_extract = self.acudb.query_to_dataframe(self.acudb.queries.AllocateSalesOrders)
+        order_extract = self.acudb.query_to_dataframe(self.acudb.queries.AllocateSalesOrders)
+        sync_history_extract = self.acudb.query_to_dataframe(self.acudb.queries.ProductSyncHistory)
+        data_extract = {
+            'order_extract': order_extract,
+            'sync_history_extract': sync_history_extract
+        }
         return data_extract
 
     def transform(self, data_extract):

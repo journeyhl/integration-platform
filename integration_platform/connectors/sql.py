@@ -253,6 +253,7 @@ class AcumaticaDbQueries(Queries):
     '''Ensures we're only pulling orders that have been allocated or aren't in need of allocation '''
     AcuToDbc_TrialBalance: Query
     AcuToDbc_InventorySummary: Query
+    ProductSyncHistory: Query
 
 _QUERY_CLASSES: dict[str, type[Queries]] = {
     'db_CentralStore': CentralStoreQueries,

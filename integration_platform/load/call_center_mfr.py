@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from integration_platform.pipelines.call_center_mfr import CallCenterMFR
+    from integration_platform.pipelines.metrics_call_center_mfr import CallCenterMetrics
 import logging
 import time
 import polars as pl
@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 class Load:
-    def __init__(self, pipeline: CallCenterMFR):
+    def __init__(self, pipeline: CallCenterMetrics):
         self.pipeline = pipeline
         self.logger = logging.getLogger(f'{pipeline.pipeline_name}.load')
         bp = 'here'
@@ -20,7 +20,7 @@ class Load:
         ---
         <hr>
         
-        "Landing" method for :class:`~Load` class. This method is called from :class:`~pipelines.call_center_mfr.CallCenterMFR`.:meth:`~pipelines.call_center_mfr.CallCenterMFR.load`
+        "Landing" method for :class:`~Load` class. This method is called from :class:`~pipelines.metrics_call_center_mfr.CallCenterMetrics`.:meth:`~pipelines.metrics_call_center_mfr.CallCenterMetrics.load`
         
         ### Downstream Calls 
          #### :class:`~Load`.:meth:`~get_dataframes_to_sql`

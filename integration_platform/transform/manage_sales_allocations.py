@@ -11,9 +11,11 @@ class Transform:
         self.logger = logging.getLogger(f'{pipeline.pipeline_name}.transform')
         pass
     
-    def transform(self, data_extract: pl.DataFrame):
+    def transform(self, data_extract: dict[str, pl.DataFrame]):
         bp = 'here'
-        for row in data_extract.iter_rows(named=True):
+        orders = data_extract['order_extract']
+        sync_history = data_extract['sync_history_extract']
+        for row in orders.iter_rows(named=True):
             if row['QtyAvail'] in [None, 0]:
                 self.logger.warning(f'No units of {row['InventoryCD']} available to allocate to {row['OrderNbr']}!')
                 continue
