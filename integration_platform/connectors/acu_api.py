@@ -1396,7 +1396,7 @@ class AcumaticaAPI:
         self.target_api(endpoint='/PrepareShopify/PrepareEntity', payload_data=full_payload, operation='post', descr=f'Prepare Shopify')
         bp = 'here'
 #endregion
-
+    
 
 #region process shopify entity
     def process_shopify(self, entity_data: dict, entity: str = 'Product Availability'):
