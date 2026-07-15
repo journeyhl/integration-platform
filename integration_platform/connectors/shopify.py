@@ -7,9 +7,9 @@ class ShopifyAPI:
     def __init__(self, pipeline):
         self.pipeline = pipeline    
         if type(pipeline) == str:            
-            self.logger = logging.getLogger(f'{pipeline}.acu_api')
+            self.logger = logging.getLogger(f'{pipeline}.ShopifyAPI')
         else:
-            self.logger = logging.getLogger(f'{pipeline.pipeline_name}.acu_api')
+            self.logger = logging.getLogger(f'{pipeline.pipeline_name}.ShopifyAPI')
         self.domain = SHOPIFY['domain']
         self.version = SHOPIFY['version']
         self.token = SHOPIFY['token']

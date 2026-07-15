@@ -1,4 +1,5 @@
 from integration_platform.config.settings import ACUMATICA_API
+from integration_platform.helpers.acu_api_helper import AcumaticaAPIHelper
 import requests
 import logging
 import json
@@ -40,10 +41,11 @@ class AcumaticaAPI:
         **self._auth** Authenticates using creds from :data:`~config.settings.ACUMATICA_API`
         """
         self.pipeline = pipeline
+        self.helper = AcumaticaAPIHelper(self)
         if type(pipeline) == str:
-            self.logger = logging.getLogger(f'{pipeline}.acu_api')
+            self.logger = logging.getLogger(f'{pipeline}.AcumaticaAPI')
         else:
-            self.logger = logging.getLogger(f'{pipeline.pipeline_name}.acu_api')
+            self.logger = logging.getLogger(f'{pipeline.pipeline_name}.AcumaticaAPI')
         self.version = '24.200.001'
         self.auth_type = 'Cookie'
         self.uri_env = 'erp' if env == 'prod' else 'acudev'
@@ -414,12 +416,12 @@ class AcumaticaAPI:
             except Exception as e:
                 self.logger.error(f'Error! {e}')
                 return {}
-        elif descr == 'Prepare Shopify':
-            if response_str == '204: No Content':
-                self.logger.info(payload_data['log_success'])
+        elif descr in ['Prepare Shopify', 'Process Shopify']:
+            if response_str in ['202: Accepted', '204: No Content']:
+                self.logger.info(f'{response_str}, {payload_data['log_success']}')
                 return_bool = True
             else:
-                self.logger.info(payload_data['log_error'])
+                self.logger.info(f'{response_str}, {payload_data['log_error']}')
                 return_bool = False
             self.data_log.append({
                 **payload_data['acu_api_data_log'],
@@ -428,6 +430,10 @@ class AcumaticaAPI:
             })
             bp = 'here'
         return return_bool
+
+
+
+
 
         
     def get_order_details(self, order_data: dict, additional_details: str = '') -> dict:
@@ -1393,7 +1399,8 @@ class AcumaticaAPI:
 
 
 #region process shopify entity
-    def process_shopify(self, entity: str = 'Product Availability'):
+    def process_shopify(self, entity_data: dict, entity: str = 'Product Availability'):
+        sync_id = entity_data['SyncRecordID']['value']
         payload = {
             "entity": {
                 "Store":{
@@ -1401,9 +1408,6 @@ class AcumaticaAPI:
                 },
                 "EntityName":{
                     "value": entity
-                },
-                "Selected":{
-                    "value": True
                 }
             },
             "parameters": {
@@ -1413,14 +1417,14 @@ class AcumaticaAPI:
                 "param_Entity":{
                     "value": entity
                 },
-                "param_PrepareMode":{
-                    "value": "Incremental"
+                "param_SyncID":{
+                    "value": sync_id
                 }
             }
         }
         acu_data_log_entry = {            
             'Entity': 'ProcessShopify',
-            'KeyValue': entity,
+            'KeyValue': f'{entity}, SyncID: {sync_id}',
             'Operation': f'POST - Process {entity}',
             'Payload': payload,
         }
@@ -1432,7 +1436,7 @@ class AcumaticaAPI:
             'log_error': error_str,
             'acu_api_data_log': acu_data_log_entry,
         }
-        self.target_api(endpoint='/PrepareShopify/PrepareEntity', payload_data=full_payload, operation='post', descr=f'Prepare Shopify')
+        self.target_api(endpoint='/ProcessShopify/ProcessEntity', payload_data=full_payload, operation='post', descr=f'Process Shopify')
         bp = 'here'
 #endregion
 
@@ -1440,11 +1444,9 @@ class AcumaticaAPI:
 
 
     def get_process_shopify_records(self, entity: str = 'Product Availability', store: str = 'ShopJourneyProductio'):
-
-        payload = {
-            "Store": {"value": store},
-            "EntityName": {"value": entity},
+        params = {
+            "$filter": f"Store eq '{store}' and EntityName eq '{entity}'"
         }
-        response = self.session.put(f'{self.base_uri}/ProcessShopify', json=payload)
+        response = self.session.get(f'{self.base_uri}/ProcessShopify', params=params)
         jresponse = response.json()
         return response.json()

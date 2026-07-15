@@ -5,7 +5,7 @@ import logging
 class AcuOData:
     def __init__(self, pipeline):
         self.pipeline = pipeline
-        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.odata')
+        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.AcuOData')
         self.session = requests.Session()
         self.session.auth = ('***REMOVED***', '***REMOVED***')
         pass

@@ -8,9 +8,9 @@ class SFTP():
     def __init__(self, pipeline, server: str = 'JHL'):
         self.pipeline = pipeline
         if type(pipeline) == str:
-            self.logger = logging.getLogger(f'{pipeline}.sftp')
+            self.logger = logging.getLogger(f'{pipeline}.SFTP')
         else:
-            self.logger = logging.getLogger(f'{pipeline.pipeline_name}.sftp')
+            self.logger = logging.getLogger(f'{pipeline.pipeline_name}.SFTP')
         if server == 'JHL':
             self.host = JHL_SFTP['host']
             self.port = JHL_SFTP['port']

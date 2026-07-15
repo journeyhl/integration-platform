@@ -38,9 +38,9 @@ class RedStagAPI:
         '''
         self.pipeline = pipeline
         if type(pipeline) == str:
-            self.logger = logging.getLogger(f'{pipeline}.redstag_api')
+            self.logger = logging.getLogger(f'{pipeline}.RedStagAPI')
         else:
-            self.logger = logging.getLogger(f'{pipeline.pipeline_name}.redstag_api')
+            self.logger = logging.getLogger(f'{pipeline.pipeline_name}.RedStagAPI')
         self.base_uri = 'https://wms.redstagfulfillment.com/api/jsonrpc'
         self.auth_type = 'Token'
         self.username = REDSTAG['username']

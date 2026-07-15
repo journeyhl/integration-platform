@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 class AfterShip:
     def __init__(self, pipeline: SendToAfterShip | UpdateAfterShip | AfterShipToDbc):
         self.pipeline = pipeline
-        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.aftership_api')
+        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.AfterShip')
         self.api_key = AFTERSHIP['api_key']
         self.headers = {
             "as-api-key": self.api_key,

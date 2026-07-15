@@ -16,7 +16,13 @@ acu = AcumaticaAPI(pipeline='.debug',
 
 # acu.manage_sales_allocations(order_data=order_data)
 # acu.prepare_shopify(entity='Product Availability')
-acu.get_process_shopify_records(entity='Template Item')
+
+
 acu.prepare_shopify(entity='Template Item')
+
+record_to_process = acu.get_process_shopify_records(entity='Template Item')
+
+test = acu.process_shopify(entity_data=record_to_process, entity='Template Item')
+
 
 bp = 'here'

@@ -14,9 +14,9 @@ class Kustomer:
         self.webhook = str(KUSTOMER['webhook'])
         self.pipeline = pipeline
         if type(pipeline) == str:
-            self.logger = logging.getLogger(f'{pipeline}.kustomer_connector')
+            self.logger = logging.getLogger(f'{pipeline}.Kustomer')
         else:
-            self.logger = logging.getLogger(f'{pipeline.pipeline_name}.kustomer_connector')
+            self.logger = logging.getLogger(f'{pipeline.pipeline_name}.Kustomer')
         
         self.session = requests.Session()
         pass

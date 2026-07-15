@@ -42,9 +42,9 @@ class RMIAPI():
         """
         self.pipeline = pipeline
         if type(pipeline) == str:
-            self.logger = logging.getLogger(f'{pipeline}.rmi_api')
+            self.logger = logging.getLogger(f'{pipeline}.RMIAPI')
         else:
-            self.logger = logging.getLogger(f'{pipeline.pipeline_name}.rmi_api')
+            self.logger = logging.getLogger(f'{pipeline.pipeline_name}.RMIAPI')
         self.base_uri = 'https://api.backtracksrl.com/'
         self.auth_type = 'Token'
         self.headers = {

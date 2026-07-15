@@ -14,9 +14,9 @@ class HubSpotAPI:
     def __init__(self, pipeline: HubSpotSnapshot | HubSpotProperties | HubSpotContacts | HubspotCompanyRevenue | HubspotPropertyUpdate | str):
         self.pipeline = pipeline
         if type(pipeline) == str:
-            self.logger = logging.getLogger(f'{pipeline}.hubspot_api')
+            self.logger = logging.getLogger(f'{pipeline}.HubSpotAPI')
         else:
-            self.logger = logging.getLogger(f'{pipeline.pipeline_name}.hubspot_api') #type: ignore
+            self.logger = logging.getLogger(f'{pipeline.pipeline_name}.HubSpotAPI') #type: ignore
         self.base_url = 'https://api.hubapi.com'
         self.session = requests.Session()
         self.session.headers.update({
