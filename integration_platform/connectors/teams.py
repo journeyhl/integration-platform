@@ -7,9 +7,9 @@ class Teams:
     def __init__(self, pipeline):
         self.pipeline = pipeline
         if isinstance(pipeline, str):
-            self.logger = logging.getLogger(f'{pipeline}.teams')
+            self.logger = logging.getLogger(f'{pipeline}.Teams')
         else:
-            self.logger = logging.getLogger(f'{pipeline.pipeline_name}.teams')
+            self.logger = logging.getLogger(f'{pipeline.pipeline_name}.Teams')
         self.config = TEAMS
         self.webhook_url = TEAMS['webhook_url'] or ''
         self.tenant_id = self.config['tenant_id']

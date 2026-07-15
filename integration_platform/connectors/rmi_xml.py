@@ -45,9 +45,9 @@ class RMIXML:
         """
         self.pipeline = pipeline
         if type(pipeline) == str:
-            self.logger = logging.getLogger(f'{pipeline}.rmi_xml')
+            self.logger = logging.getLogger(f'{pipeline}.RMIXML')
         else:
-            self.logger = logging.getLogger(f'{pipeline.pipeline_name}.rmi_xml')
+            self.logger = logging.getLogger(f'{pipeline.pipeline_name}.RMIXML')
         self.session = requests.Session()
         self.login()
         self.send_url = 'https://jhl.returnsmanagement.com/webserviceV2/rma/rmaservice.asmx'
