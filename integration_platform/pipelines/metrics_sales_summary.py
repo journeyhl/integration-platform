@@ -13,7 +13,7 @@ class SalesSummaryMetrics(Pipeline):
     def extract(self):
         raw_summary = self.centralstore.query_to_dataframe(self.centralstore.queries.raw_SalesSummary)
         int_summary = self.centralstore.query_to_dataframe(self.centralstore.queries.int_SalesSummary)
-        jhl_summary = self.centralstore.query_to_dataframe(self.centralstore.queries.JHL_SalesSummary)
+        jhl_summary = self.centralstore.query_to_dataframe(self.centralstore.queries.jhl_SalesSummary)
         data_extract = {
             'upsert':{                
                 'analytics.JHL_SalesSummary': jhl_summary.to_dicts(),
