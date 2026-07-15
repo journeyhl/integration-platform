@@ -474,7 +474,7 @@ class AcumaticaAPI:
             self.logger.error(f'Error getting {order_data['OrderNbr']}')
             return order_data
         bp = 'here'
-        order_data = {**order_data, **order_info}
+        order_data = {**order_data, 'acu_info': order_info}
         return order_data
 
     def order_remove_hold(self, order_data: dict):
