@@ -246,14 +246,19 @@ class AcumaticaDbQueries(Queries):
     AllocateSalesOrders: Query
     '''Pulls Sales Orders that need to have inventory item allocated'''
     AcuToDbc_BackordersPointInTime: Query
-    ''''''
+    '''Pulls Backordered Item quantities and valuations Upserted to **acu.BackordersPointInTime**'''
     ShipChairRemovalSeparate: Query
     '''Pulls Ryder Orders that are arent already shipped and enforeces Ship Separately for chair removal orders'''
     AllocateSalesOrders_filter_address_validator: Query
     '''Ensures we're only pulling orders that have been allocated or aren't in need of allocation '''
     AcuToDbc_TrialBalance: Query
+    '''Query that mirrors JHL Trial Balance GI in Acumatica. Upserted to **acu.BackordersPointInTime**'''
     AcuToDbc_InventorySummary: Query
+    '''Query that mirrors JHL Inventory Summary Acumatica GI, '''
     ProductSyncHistory: Query
+    '''Pulls all Shopify sync records for any Product/Product availability records'''
+    AcuToDbc_B2BCollections: Query
+    '''Query that mirrors JHL Trial Balance GI in Acumatica'''
 
 _QUERY_CLASSES: dict[str, type[Queries]] = {
     'db_CentralStore': CentralStoreQueries,
@@ -641,4 +646,16 @@ end
         self.raw_connection.commit()
         if cursor.rowcount:
             self.logger.info(f'{cursor.rowcount} rows {'deleted' if 'delete' in query else 'affected'}')
+        bp = 'here'
+
+
+
+    def __dataframe_to_table_create_statement__(self, df: pl.DataFrame):
+        test = ''
+        for column, dtype in df.schema.items():
+            dtype_str = 'varchar(replace_me_please),' if dtype == pl.String else 'decimal(18, 2),' if str(dtype) == 'Decimal(precision=38, scale=2)' else str(dtype)
+            row_text = f'{column} {dtype_str}'
+            test += f'{row_text}\n'
+            bp = 'here'
+        print(test)
         bp = 'here'

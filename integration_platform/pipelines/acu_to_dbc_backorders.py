@@ -10,17 +10,17 @@ class AcuToDbcBackordersPointInTime(Pipeline):
     ---
     <hr>
 
-    Gets all Sales Orders from AcumaticaDb that were modified within the last few hours and loads them to **acu.SalesOrders**
+    Gets all Sales Orders from AcumaticaDb that are in Back Order status **acu.BackordersPointInTime**
 
     # Extraction
-     - Gets all Sales Orders from AcumaticaDb that were modified within the last few hours
-        - OrderType not in('QT', 'RA', 'RC', 'RR', 'RM')
+     - Gets all Backordered Sales Orders
+        - OrderType not in('QT')
 
     # Transformation
-     - Transforms extracted data into a format needed for acu.SalesOrders
+     - Casts dataframe as dict 
 
     # Load
-     - Upsert to **acu.SalesOrders** via :class:`~connectors.sql.SQLConnector`.:meth:`~connectors.sql.SQLConnector.checked_upsert_paginated`
+     - Upsert to **acu.BackordersPointInTime** via :class:`~connectors.sql.SQLConnector`.:meth:`~connectors.sql.SQLConnector.checked_upsert_paginated`
 
     # Results Logging
      - None needed
