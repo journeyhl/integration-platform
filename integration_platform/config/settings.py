@@ -2459,6 +2459,105 @@ TABLES = {
             'TotalBalance',
         ],
     },
+    'analytics.B2BCollectionsByStatus': {
+        'keys': [
+            'CustomerStatus',
+        ],
+        'columns': [
+            'CustomerStatus',
+            'CurrentBalance',
+            'Balance_1_30d',
+            'Balance_31_60d',
+            'Balance_61_90d',
+            'Balance_90d',
+            'TotalBalance',
+            'InsertedDT',
+            'LastChecked',
+        ],
+        'update_columns': [
+            'CurrentBalance',
+            'Balance_1_30d',
+            'Balance_31_60d',
+            'Balance_61_90d',
+            'Balance_90d',
+            'TotalBalance',
+            'LastChecked',
+        ],
+    },
+    'analytics.B2BCollectionsByStatus_Snapshot': {
+        'keys': [
+            'CustomerStatus',
+            'Timestamp',
+        ],
+        'columns': [
+            'CustomerStatus',
+            'CurrentBalance',
+            'Balance_1_30d',
+            'Balance_31_60d',
+            'Balance_61_90d',
+            'Balance_90d',
+            'TotalBalance',
+            'Timestamp',
+        ],
+        'update_columns': [
+            'CurrentBalance',
+            'Balance_1_30d',
+            'Balance_31_60d',
+            'Balance_61_90d',
+            'Balance_90d',
+            'TotalBalance',
+        ],
+    },
+    'analytics.B2BCollectionsBySalesRep': {
+        'keys': [
+            'SalespersonID',
+        ],
+        'columns': [
+            'SalespersonID',
+            'CurrentBalance',
+            'Balance_1_30d',
+            'Balance_31_60d',
+            'Balance_61_90d',
+            'Balance_90d',
+            'TotalBalance',
+            'InsertedDT',
+            'LastChecked',
+        ],
+        'update_columns': [
+            'CurrentBalance',
+            'Balance_1_30d',
+            'Balance_31_60d',
+            'Balance_61_90d',
+            'Balance_90d',
+            'TotalBalance',
+            'LastChecked',
+        ],
+    },
+    'analytics.B2BCollectionsBySalesRep_Snapshot': {
+        'keys': [
+            'SalespersonID',
+            'Timestamp',
+        ],
+        'columns': [
+            'SalespersonID',
+            'CurrentBalance',
+            'Balance_1_30d',
+            'Balance_31_60d',
+            'Balance_61_90d',
+            'Balance_90d',
+            'TotalBalance',
+            'Timestamp',
+        ],
+        'update_columns': [
+            'CurrentBalance',
+            'Balance_1_30d',
+            'Balance_31_60d',
+            'Balance_61_90d',
+            'Balance_90d',
+            'TotalBalance',
+        ],
+    },
+    
     
     
     
