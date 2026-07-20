@@ -116,7 +116,7 @@ def rmi_data_retrieval_pipeline(timer: af.TimerRequest):
 #             Redstag - Send Shipments 
 #                 3x/hour (07, 37)
 @app.timer_trigger(
-    schedule = '7/30 * * * *',
+    schedule = '53,7/30 * * * *',
     arg_name = 'timer',
     run_on_startup = False
 )

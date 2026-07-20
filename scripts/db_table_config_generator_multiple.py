@@ -59,9 +59,13 @@ elif db_input.lower() == acudb[0:input_len].lower():
 
 db = SQLConnector('config-generator', db)
 tables = [
-'analytics.B2BCollectionsDetail',
-'analytics.B2BCollectionsSummary',
-'analytics.B2BCollectionsSummary_Snapshot',
+'analytics.B2BCollectionsByStatus',
+'analytics.B2BCollectionsByStatus_Snapshot',
+'analytics.B2BCollectionsBySalesRep',
+'analytics.B2BCollectionsBySalesRep_Snapshot',
+# 'analytics.B2BCollectionsDetail',
+# 'analytics.B2BCollectionsSummary',
+# 'analytics.B2BCollectionsSummary_Snapshot',
 # 'analytics.JHL_SalesSummary',
 # 'analytics.int_SalesSummary',
 # 'analytics.raw_SalesSummary',
