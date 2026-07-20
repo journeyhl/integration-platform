@@ -377,6 +377,7 @@ class SQLConnector(Generic[QT]):
         df_data_loaded.write_database(table_name=table_name, 
                                       connection=self.engine,
                                       if_table_exists='append',
+                                      
                                       )
         self.logger.info(f'Wrote {df_data_loaded.height} rows to {table_name}')
 
@@ -653,7 +654,7 @@ end
     def __dataframe_to_table_create_statement__(self, df: pl.DataFrame):
         test = ''
         for column, dtype in df.schema.items():
-            dtype_str = 'varchar(replace_me_please),' if dtype == pl.String else 'decimal(18, 2),' if str(dtype) == 'Decimal(precision=38, scale=2)' else str(dtype)
+            dtype_str = 'varchar(replace_me_please),' if dtype == pl.String else 'decimal(18,2),' if str(dtype) == 'Decimal(precision=38, scale=2)' else str(dtype)
             row_text = f'{column} {dtype_str}'
             test += f'{row_text}\n'
             bp = 'here'

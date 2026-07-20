@@ -14,24 +14,25 @@ class AcuToDbcB2BCollections(Pipeline):
         return data_extract
     
 
-    def transform(self, data_extract):
+    def transform(self, data_extract) -> dict[str, pl.DataFrame]:
         data_transformed = self.transformer.landing(data_extract)
         return data_transformed
     
 
-    def load(self, data_transformed):
-        collections_summary = data_transformed['summary']
-        collections_detail = data_transformed['detail']
-        self.centralstore.insert_df(df_data_loaded=collections_summary, table_name = 'acu.B2BCollectionSummary')
-        self.centralstore.insert_df(df_data_loaded=collections_detail, table_name = 'acu.B2BCollectionDetail')
+    def load(self, data_transformed: dict[str, pl.DataFrame]):
+        collections_detail = data_transformed['detail'].with_columns(pl.lit(datetime.now(ZoneInfo('America/New_York')), pl.Datetime).alias('InsertedDT')).to_dicts()
+        collections_summary = data_transformed['summary'].with_columns(pl.lit(datetime.now(ZoneInfo('America/New_York')), pl.Datetime).alias('InsertedDT')).to_dicts()
+        collections_detail_snapshot = data_transformed['summary_snapshot']
 
-        # total = len(data_transformed)
-        # for item in data_transformed:
-        #     item['InsertedDT'] = datetime.now(ZoneInfo('America/New_York'))
-        #     item['LastChecked'] = datetime.now(ZoneInfo('America/New_York'))
-        # self.logger.info(f'{total} rows to upsert')
-        # self.centralstore.checked_upsert_paginated('acu.InventorySummary', data_transformed, page_size= 100)
         bp = 'here'
+        self.centralstore.insert_df(df_data_loaded=collections_detail_snapshot, table_name = 'analytics.B2BCollectionsSummary_Snapshot')
+        self.centralstore.checked_upsert_paginated(table_name='analytics.B2BCollectionsDetail', data=collections_detail)
+        self.centralstore.checked_upsert_paginated(table_name='analytics.B2BCollectionsSummary', data=collections_summary)
+        bp = 'here'
+
+        # self.centralstore.insert_df(df_data_loaded=collections_detail, table_name = 'acu.B2BCollectionDetail')
+        # self.centralstore.insert_df(df_data_loaded=collections_summary, table_name = 'acu.B2BCollectionSummary')
+        # self.logger.info(f'{total} rows to upsert')
         return data_transformed
 
 
