@@ -741,7 +741,7 @@ def ship_chair_removal_separate(timer: af.TimerRequest):
     from integration_platform.pipelines.ship_chair_removal_separate import ShipChairRemovalSeparate #ship-chair-removal-separate
     chair_removals = ShipChairRemovalSeparate(function='ship_chair_removal_separate')
     chair_removals.run()
-#endregion       acu_to_dbc_backorders
+#endregion       ship_chair_removal_separate
 
 
 #region            sharepoint_dm_tracker
