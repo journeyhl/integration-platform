@@ -6,7 +6,9 @@ import polars as pl
 import pyperclip
 
 '''
-This file generates the neccessary entry in TABLES (config/settings.py) for checked_upsert to function
+This file generates the neccessary entry in TABLES (config/settings.py) for checked_upsert to function. 
+
+Use when adding multiple tables in one go
 '''
 
 
