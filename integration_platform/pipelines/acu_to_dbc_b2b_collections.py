@@ -22,6 +22,8 @@ class AcuToDbcB2BCollections(Pipeline):
     def load(self, data_transformed: dict[str, pl.DataFrame]):
         collections_detail = data_transformed['detail'].with_columns(pl.lit(datetime.now(ZoneInfo('America/New_York')), pl.Datetime).alias('InsertedDT')).to_dicts()
         collections_summary = data_transformed['summary'].with_columns(pl.lit(datetime.now(ZoneInfo('America/New_York')), pl.Datetime).alias('InsertedDT')).to_dicts()
+        collections_detail = data_transformed['detail'].with_columns(pl.lit(datetime.now(ZoneInfo('America/New_York')), pl.Datetime).alias('InsertedDT')).to_dicts()
+        collections_summary = data_transformed['summary'].with_columns(pl.lit(datetime.now(ZoneInfo('America/New_York')), pl.Datetime).alias('InsertedDT')).to_dicts()
         balance_by_status = data_transformed['balance_by_status'].with_columns(pl.lit(datetime.now(ZoneInfo('America/New_York')), pl.Datetime).alias('InsertedDT')).to_dicts()
         balance_by_salesrep = data_transformed['balance_by_salesrep'].with_columns(pl.lit(datetime.now(ZoneInfo('America/New_York')), pl.Datetime).alias('InsertedDT')).to_dicts()
         
@@ -30,17 +32,15 @@ class AcuToDbcB2BCollections(Pipeline):
         balance_by_salesrep_snapshot = data_transformed['balance_by_salesrep_snapshot'].to_dicts()
         
         
-        self.centralstore.checked_upsert_paginated(table_name='analytics.B2BCollectionsDetail', data=collections_detail)
-        self.centralstore.checked_upsert_paginated(table_name='analytics.B2BCollectionsSummary', data=collections_summary)
-        self.centralstore.checked_upsert_paginated(table_name='analytics.B2BCollectionsSummary_Snapshot', data=collections_summary_snapshot)
-        self.centralstore.checked_upsert_paginated(table_name='analytics.B2BCollectionsByStatus', data=balance_by_status)
-        self.centralstore.checked_upsert_paginated(table_name='analytics.B2BCollectionsByStatus_Snapshot', data=balance_by_status_snapshot)        
-        self.centralstore.checked_upsert_paginated(table_name='analytics.B2BCollectionsBySalesRep', data=balance_by_salesrep)
-        self.centralstore.checked_upsert_paginated(table_name='analytics.B2BCollectionsBySalesRep_Snapshot', data=balance_by_salesrep_snapshot)
+        self.centralstore.checked_upsert_paginated(table_name='analytics.JHL_B2BCollectionsDetail', data=collections_detail)
+        self.centralstore.checked_upsert_paginated(table_name='analytics.JHL_B2BCollectionsSummary', data=collections_summary)
+        self.centralstore.checked_upsert_paginated(table_name='analytics.JHL_B2BCollectionsSummary_Snapshot', data=collections_summary_snapshot)
+        self.centralstore.checked_upsert_paginated(table_name='analytics.JHL_B2BCollectionsByStatus', data=balance_by_status)
+        self.centralstore.checked_upsert_paginated(table_name='analytics.JHL_B2BCollectionsByStatus_Snapshot', data=balance_by_status_snapshot)        
+        self.centralstore.checked_upsert_paginated(table_name='analytics.JHL_B2BCollectionsBySalesRep', data=balance_by_salesrep)
+        self.centralstore.checked_upsert_paginated(table_name='analytics.JHL_B2BCollectionsBySalesRep_Snapshot', data=balance_by_salesrep_snapshot)
         bp = 'here'
 
-        # self.centralstore.insert_df(df_data_loaded=collections_detail, table_name = 'acu.B2BCollectionDetail')
-        # self.centralstore.insert_df(df_data_loaded=collections_summary, table_name = 'acu.B2BCollectionSummary')
         # self.logger.info(f'{total} rows to upsert')
         return data_transformed
 
