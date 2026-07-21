@@ -88,6 +88,7 @@ class CentralStoreQueries(Queries):
     int_SalesSummaryB2B: Query
     Metrics_B2BCustomers: Query
     Metrics_B2BCustomerAge: Query
+    Aftership_LinkID: Query
 
 
 class AcumaticaDbQueries(Queries):
@@ -259,6 +260,7 @@ class AcumaticaDbQueries(Queries):
     '''Pulls all Shopify sync records for any Product/Product availability records'''
     AcuToDbc_B2BCollections: Query
     '''Query that mirrors JHL Trial Balance GI in Acumatica'''
+    Aftership_LinkID_Acu: Query
 
 _QUERY_CLASSES: dict[str, type[Queries]] = {
     'db_CentralStore': CentralStoreQueries,

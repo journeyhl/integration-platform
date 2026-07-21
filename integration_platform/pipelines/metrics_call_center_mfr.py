@@ -14,12 +14,6 @@ class CallCenterMetrics(Pipeline):
         phone_rev_staging = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_PhoneRevStaging)
         adphone_priority_dates = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_AdPhonePriorityDates)
         call_counts = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_CallCounts)
-        call_counts2 = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_CallCounts)
-        call_counts3 = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_CallCounts)
-        call_counts4 = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_CallCounts)
-        call_counts5 = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_CallCounts)
-        call_counts6 = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_CallCounts)
-        call_counts7 = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_CallCounts)
         
         ad_detail_version = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_AdDetailAdVersion)
         data_extract = {

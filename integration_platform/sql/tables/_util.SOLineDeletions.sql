@@ -1,16 +1,19 @@
 if not exists(
-select *
-from sys.schemas s
-where s.name = '_util'
+    select *
+    from sys.schemas s
+    where s.name = '_util'
 )
-exec('create schema _util');
+begin
+    exec('create schema _util');
+end
 if not exists(
-select * 
-from sys.tables t 
-inner join sys.schemas s on t.schema_id = s.schema_id
-where t.name = 'SOLineDeletions' and s.name = '_util'
+    select * 
+    from sys.tables t 
+    inner join sys.schemas s on t.schema_id = s.schema_id
+    where t.name = 'SOLineDeletions' and s.name = '_util'
 ) 
-CREATE TABLE _util.SOLineDeletions(
+begin
+    create table _util.SOLineDeletions(
 	OrderType char(2) not null,
 	OrderNbr nvarchar(15) not null,
 	LineNbr int not null,
@@ -67,3 +70,4 @@ CREATE TABLE _util.SOLineDeletions(
 	CreatedDatetime datetime not null,
 	CreatedBy nvarchar(4000) null,
 	primary key (OrderType, OrderNbr, LineNbr))
+end

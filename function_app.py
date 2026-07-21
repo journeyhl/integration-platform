@@ -629,7 +629,7 @@ def hubspot_property_update(timer: af.TimerRequest):
     run_on_startup = False
 )
 def rmi_link_to_acumatica(timer: af.TimerRequest):
-    from integration_platform.pipelines.rmi_link_to_acu import RMILinkToAcu #rmi-link-to-acu
+    from integration_platform.pipelines.link_rmi_to_acu import RMILinkToAcu #rmi-link-to-acu
     rmi_link = RMILinkToAcu('rmi_link_to_acumatica')
     rmi_link.run()
 #endregion          rmi_link_to_acumatica
