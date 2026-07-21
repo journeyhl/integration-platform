@@ -41,10 +41,39 @@ class Load:
                 bp = 'here'
 
 
-    def validate_remove_hold_create(self, order_avs):
+    def validate_remove_hold_create(self, order_avs: dict):
+        ''':class:`~Load`.:meth:`~validate_remove_hold_create` (self, order_avs: *dict*):
+        ---
+        <hr>
+        
+        Given a dict of Order data, gets Order details, validates address, checks order details again. If all is good, removes Order from hold and creates Shipment
+        
+        ### Downstream Calls 
+         #### :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.get_order_details`
+            - Given a dict of Order data, gets order details. 
+            - Must contain ***OrderType*** and ***OrderNbr***
+         #### :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.validate_order_address`
+            - Given a dict of Order data, creates shipment
+            - Must contain ***OrderType*** and ***OrderNbr***
+         #### :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.order_remove_hold`
+            - Given a dict of Order data, creates shipment
+            - Must contain ***OrderType*** and ***OrderNbr***
+         #### :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.order_create_shipment`
+            - Given a dict of Order data, creates shipment
+            - Must contain ***OrderType***, ***OrderNbr*** and ***AcctCD***
+        
+        ### Upstream Calls 
+         #### :class:`~Load`.:meth:`~landing`
+            - If order passes all checks, validate address here
+            
+        <hr>
+        
+        Parameters
+        ---
+        :param (*dict*) `order_avs`: dict of order data containing ***OrderType***, ***OrderNbr***, ***AcctCD***, ***ShippingValidated***, and ***BillingValidated***
+        '''
         iterations = 0
         order_avs = self.pipeline.acu_api.get_order_details(order_avs)
-        bp = 'here'
         while (order_avs['ShippingValidated'] != True or order_avs['BillingValidated'] != True) and iterations < 5:
             self.pipeline.acu_api.validate_order_address(order_avs)
             time.sleep(1)
@@ -53,12 +82,9 @@ class Load:
             iterations += 1
         if iterations == 5:
             self.logger.warning(f"Couldn't validate address for {order_avs['OrderNbr']}")
-            bp = 'here'
         else:
             self.pipeline.acu_api.order_remove_hold(order_avs)
             time.sleep(1)
             self.pipeline.acu_api.order_create_shipment(order_avs)
-            bp = 'here'
-        bp = 'here'
         
         

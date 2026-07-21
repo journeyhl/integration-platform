@@ -821,3 +821,19 @@ def acu_to_dbc_inventory_summary(timer: af.TimerRequest):
     inventory_summary = AcuToDbcInventorySummary(function='acu_to_dbc_inventory_summary') #acu-to-dbc-inventory-summary
     inventory_summary.run()
 #endregion       acu_to_dbc_inventory_summary
+
+
+
+#region                  acu_to_dbc_b2b_collections
+#        Upserts B2B collections to db_CentralStore
+#                         2x/day (7:23am/7:23pm EST)
+@app.timer_trigger(
+    schedule = '23 7,19 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def acu_to_dbc_b2b_collections(timer: af.TimerRequest):
+    from integration_platform.pipelines.acu_to_dbc_b2b_collections import AcuToDbcB2BCollections
+    inventory_summary = AcuToDbcB2BCollections(function='acu_to_dbc_b2b_collections') #acu-to-dbc-b2b-collections
+    inventory_summary.run()
+#endregion       acu_to_dbc_inventory_summary
