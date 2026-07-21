@@ -68,11 +68,12 @@ class AcumaticaAPI:
                 'CF-Access-Client-Secret': ACUMATICA_API['cf_client_secret'] or '',
             })
         self.login_attempts = 0
-        self._auth()
+        self._auth_()
         if env == 'dev':
             self.logger.warning(f'Running in dev environment!!!')
 
 #region SalesOrder
+    #region order_create_receipt
     def order_create_receipt(self, order_data: dict):
         '''order_create_receipt`(self, order_data)`
     ---
@@ -113,7 +114,9 @@ class AcumaticaAPI:
             'Response': response_str,
             'Timestamp': datetime.now(ZoneInfo('America/New_York'))
         })
+    #endregion
 
+    #region order_create_shipment
     def order_create_shipment(self, order_data: dict):
         '''`order_create_shipment`(self, order_data: *dict*)
         ---
@@ -163,7 +166,9 @@ class AcumaticaAPI:
             'Response': response_str,
             'Timestamp': datetime.now(ZoneInfo('America/New_York'))
         })
+    #endregion
 
+    #region sales_order_get_shipment
     def sales_order_get_shipment(self, order_data):
         '''`sales_order_get_shipment`(self, order_data)
     ---
@@ -226,8 +231,10 @@ class AcumaticaAPI:
             'OrderType': order_data['OrderType']
         }
         return shipment_data
+    #endregion
     
     
+    #region rc_send_to_wh
     def rc_send_to_wh(self, OrderNbr, OrderType, CustomerID):
         '''`rc_send_to_wh`(self, OrderNbr, OrderType, CustomerID)
         ---
@@ -276,7 +283,7 @@ class AcumaticaAPI:
         except Exception as e:
             try:                    
                 self._logout()
-                self._auth()
+                self._auth_()
                 response = self.session.put(f'{self.base_uri}/SalesOrder', json=body)
                 self.parse_response(response, {'type': 'Order', 'attribute': 'AttributeRCSHP2WH'})
             except Exception as e:
@@ -291,9 +298,11 @@ class AcumaticaAPI:
             'Timestamp': datetime.now(ZoneInfo('America/New_York'))
         })
         return self.status_description, body
+    #endregion
     
 
     
+    #region validate_order_address
     def validate_order_address(self, order_data: dict):
         """`validate_order_address`(self, order_data: *dict*)
         ---
@@ -343,9 +352,11 @@ class AcumaticaAPI:
             'Timestamp': datetime.now(ZoneInfo('America/New_York'))
         })
         bp = 'here'
+    #endregion
 
 
 
+    #region target_api
     def target_api(self, endpoint: str, payload_data: dict, operation: str = 'put', descr: str = None): #type: ignore
         """`target_api`(self, endpoint: *str*, payload_data: *dict*, operation: *str*, descr: *str*)
         ---
@@ -430,6 +441,7 @@ class AcumaticaAPI:
             })
             bp = 'here'
         return return_bool
+    #endregion
 
 
 
@@ -454,6 +466,7 @@ class AcumaticaAPI:
         ---
         :param (*dict*) `order_data`:  dictionary containing at least OrderType and OrderNbr
         :param (*str*) `additional_details`: Additional data to get from API, for example, pass `?$expand=Shipments` to get Shipment details with response
+        
             - To retrieve an attribute, pass it as follows: ?$custom=Document.AttributeAFTSHIPID
         
         <hr>
@@ -485,6 +498,7 @@ class AcumaticaAPI:
         return order_data
     #endregion
 
+    #region order_remove_hold
     def order_remove_hold(self, order_data: dict):
         '''`order_remove_hold`(self, order_data: *dict*, )
         ---
@@ -533,9 +547,11 @@ class AcumaticaAPI:
             'Response': response_str,
             'Timestamp': datetime.now(ZoneInfo('America/New_York'))
         })
+    #endregion
 
 
 
+    #region order_do_action
     def order_do_action(self, order_data: dict, payload: dict, action: str):
         try:
             self.logger.info(f'{order_data['OrderNbr']}: Performing {action}')
@@ -546,6 +562,7 @@ class AcumaticaAPI:
         except Exception as e:
 
             bp = 'here'
+    #endregion
     #endregion SalesOrder
 
 
@@ -553,6 +570,7 @@ class AcumaticaAPI:
 
     #region Shipment
 
+    #region shipment_details
     def shipment_details(self, shipment_data: dict):
         '''shipment_details`(self, shipment_data)`
         ---
@@ -586,7 +604,9 @@ class AcumaticaAPI:
         except Exception as e:
             self.logger.error(f'Error getting packages for {shipment_data['ShipmentNbr']}')
             return {}
+    #endregion
 
+    #region shipment_details_attr
     def shipment_details_attr(self, shipment_data: dict):
         '''shipment_details`(self, shipment_data)`
         ---
@@ -623,7 +643,9 @@ class AcumaticaAPI:
         except Exception as e:
             self.logger.error(f'Error getting packages for {shipment_data['ShipmentNbr']} ({shipment_data['OrderNbr']})')
             return {}
+    #endregion
         
+    #region add_package
     def add_package(self, shipment_data: dict):
         '''add_package`(self, shipment_data: *dict*)`
         ---
@@ -681,8 +703,10 @@ class AcumaticaAPI:
         ]
         shipment_data = self.get_package_details(shipment_data, body)
         return shipment_data
+    #endregion
 
 
+    #region add_package_v2
     def add_package_v2(self, shipment_data: dict):
         '''`add_package_v2`(self, shipment_data: *dict*):
         ---
@@ -706,7 +730,9 @@ class AcumaticaAPI:
         shipment_data = self.get_package_details(shipment_data, shipment_data['PackagePayload'])
         bp = 'here'
         return shipment_data
+    #endregion
 
+    #region get_package_details
     def get_package_details(self, shipment_data, body=None):
         '''`get_package_details`(self, shipment_data)
         ---
@@ -759,7 +785,9 @@ class AcumaticaAPI:
             'Timestamp': datetime.now(ZoneInfo('America/New_York'))
         })
         return shipment_data
+    #endregion
 
+    #region confirm_shipment
     def confirm_shipment(self, shipment_data: dict):
         '''`confirm_shipment`(self, shipment_data: *dict* )
         ---
@@ -799,8 +827,10 @@ class AcumaticaAPI:
             'Response': response_str,
             'Timestamp': datetime.now(ZoneInfo('America/New_York'))
         })
+    #endregion
 
 
+    #region update_reason_code
     def update_reason_code(self, shipment_data: dict, line_data: dict):    
         '''`update_reason_code`(self, shipment_data: *dict*, line_data: *dict*)
         ---
@@ -847,7 +877,9 @@ class AcumaticaAPI:
             'Timestamp': datetime.now(ZoneInfo('America/New_York'))
         })
         return line_data
+    #endregion
 
+    #region send_to_wh
     def send_to_wh(self, ShipmentNbr, CustomerID):
         '''`send_to_wh`(ShipmentNbr, CustomerID, )
         ---
@@ -889,7 +921,7 @@ class AcumaticaAPI:
         except Exception as e:
             try:                    
                 self._logout()
-                self._auth()
+                self._auth_()
                 response = self.session.put(f'{self.base_uri}/Shipment', json=body)
                 self.parse_response(response, {'type': 'Shipment', 'attribute': 'AttributeSHP2WH'})
             except Exception as e:
@@ -904,7 +936,9 @@ class AcumaticaAPI:
             'Timestamp': datetime.now(ZoneInfo('America/New_York'))
         })
         return self.status_description, body
+    #endregion
 
+    #region rc_send_to_wh_v2
     def rc_send_to_wh_v2(self, OrderNbr: str, OrderType: str, CustomerID: str, attribute_payload: dict = {}):
         '''`rc_send_to_wh_v2`(self, OrderNbr, OrderType, CustomerID)
         ---
@@ -954,7 +988,7 @@ class AcumaticaAPI:
         except Exception as e:
             try:                    
                 self._logout()
-                self._auth()
+                self._auth_()
                 response = self.session.put(f'{self.base_uri}/SalesOrder', json=body)
                 self.parse_response(response, {'type': 'Order', 'attribute': 'AttributeRCSHP2WH'})
             except Exception as e:
@@ -969,8 +1003,10 @@ class AcumaticaAPI:
             'Timestamp': datetime.now(ZoneInfo('America/New_York'))
         })
         return self.status_description, body
+    #endregion
     
 
+    #region send_to_wh_v2
     def send_to_wh_v2(self, ShipmentNbr: str, CustomerID: str, attribute_payload: dict = {}):
         '''`sent_to_wh_v2`(self, ShipmentNbr: *str*, CustomerID: *str*, attribute_payload: *dict*)
         ===
@@ -1017,7 +1053,7 @@ class AcumaticaAPI:
         except Exception as e:
             try:                    
                 self._logout()
-                self._auth()
+                self._auth_()
                 response = self.session.put(f'{self.base_uri}/Shipment', json=body)
                 self.parse_response(response, {'type': 'Shipment', 'attribute': 'AttributeSHP2WH'})
             except Exception as e:
@@ -1032,11 +1068,13 @@ class AcumaticaAPI:
             'Timestamp': datetime.now(ZoneInfo('America/New_York'))
         })
         return self.status_description, body
+    #endregion
     #endregion Shipment
 
 
 
 #region Utility
+    #region parse_shipment_details
     def parse_shipment_details(self, shipment_data: dict, response: requests.Response):
         '''`parse_shipment_details`(self, shipment_data, response)
         ===
@@ -1105,7 +1143,9 @@ class AcumaticaAPI:
         }
         self.logger.info(f'{json_response['ShipmentNbr']['value']} - Packages: {package_count}. Lines: {line_count}')
         return shipment_details
+    #endregion
 
+    #region parse_response
     def parse_response(self, response: requests.Response, entity_type: dict):
         status_code = response.status_code
         if status_code == 200:
@@ -1130,10 +1170,12 @@ class AcumaticaAPI:
         else:
             self.status_description = 'FAILURE'
             bp = 'here'
+    #endregion
 #endregion Utility
 
 
 #region Customer/Contact
+    #region customers
     def customers(self, query=None, limit=100):
         '''customers`(self, query=None, limit=100)`
         ===
@@ -1168,7 +1210,9 @@ class AcumaticaAPI:
         response = self.session.get(f'{self.base_uri}/Customer', params=params)
         response.raise_for_status()
         return response.json()
+    #endregion
 
+    #region contact
     def contact(self, query=None, limit=100):
         '''contact`(self, query=None, limit=100)`
         ===
@@ -1203,6 +1247,7 @@ class AcumaticaAPI:
         response = self.session.get(f'{self.base_uri}/Contact', params=params)
         response.raise_for_status()
         return response.json()
+    #endregion
     #endregion Customer/Contact
 
 
@@ -1210,7 +1255,7 @@ class AcumaticaAPI:
 
 
 #region Authentication/Logout
-    def _auth(self):
+    def _auth_(self):
         body = {
             "name": self.username,
             "password": self.password,
@@ -1241,11 +1286,13 @@ class AcumaticaAPI:
                 time.sleep(sleep)
             else:
                 raise e
-            self._auth()
+            self._auth_()
 
+    #region _logout
     def _logout(self):
         self.session.post(f'https://{self.uri_env}.journeyhl.com/entity/auth/logout')
         self.logger.info('Logged out of Acumatica API session')
+    #endregion
 #endregion Authentication/Logout
 
 
@@ -1255,6 +1302,7 @@ class AcumaticaAPI:
 
 
 #region Journal Transactions
+    #region reclassify_transaction
     def reclassify_transaction(self, cogs_entry: dict):
         bp = 'here'
         batch_nbr = cogs_entry['BatchNbr']
@@ -1289,10 +1337,12 @@ class AcumaticaAPI:
             'acu_api_data_log': acu_data_log_entry,
         }
         self.target_api(endpoint='/JournalTransaction/ReclassifyCorrections', payload_data=full_payload, operation='post', descr='Reclassify Transaction')
+    #endregion
 
 #endregion
 
 #region Allocate Sales Order
+    #region manage_sales_allocations
     def manage_sales_allocations(self, order_data: dict):
         order_nbr = order_data['OrderNbr']
         end_date = datetime.now().strftime('%m/%d/%Y')
@@ -1349,6 +1399,7 @@ class AcumaticaAPI:
         }
         self.target_api(endpoint='/ManageSalesAllocations/ProcessAllAllocations', payload_data=full_payload, operation='post', descr='Manage Sales Allocation')
         bp = 'here'
+    #endregion
 #endregion
 
 
@@ -1356,6 +1407,7 @@ class AcumaticaAPI:
 
 
 #region prepare shopify entity
+    #region prepare_shopify
     def prepare_shopify(self, entity: str = 'Product Availability'):
         payload = {
             "entity": {
@@ -1397,10 +1449,12 @@ class AcumaticaAPI:
         }
         self.target_api(endpoint='/PrepareShopify/PrepareEntity', payload_data=full_payload, operation='post', descr=f'Prepare Shopify')
         bp = 'here'
+    #endregion
 #endregion
     
 
 #region process shopify entity
+    #region process_shopify
     def process_shopify(self, entity_data: dict, entity: str = 'Product Availability'):
         sync_id = entity_data['SyncRecordID']['value']
         payload = {
@@ -1440,11 +1494,13 @@ class AcumaticaAPI:
         }
         self.target_api(endpoint='/ProcessShopify/ProcessEntity', payload_data=full_payload, operation='post', descr=f'Process Shopify')
         bp = 'here'
+    #endregion
 #endregion
 
 
 
 
+    #region get_process_shopify_records
     def get_process_shopify_records(self, entity: str = 'Product Availability', store: str = 'ShopJourneyProductio'):
         params = {
             "$filter": f"Store eq '{store}' and EntityName eq '{entity}'"
@@ -1452,3 +1508,4 @@ class AcumaticaAPI:
         response = self.session.get(f'{self.base_uri}/ProcessShopify', params=params)
         jresponse = response.json()
         return response.json()
+    #endregion
