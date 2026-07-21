@@ -4,7 +4,7 @@ from .rmi_send_returns import SendRMIReturns
 from .get_receipts_from_RMI import GetReceiptsFromRMI
 from .get_closed_shipments_from_RMI import GetClosedShipmentsFromRMI
 from .get_rmas_from_RMI import GetRMAsFromRMI
-from .rmi_link_to_acu import RMILinkToAcu
+from .link_rmi_to_acu import RMILinkToAcu
 
 from .create_acu_receipt import CreateAcuReceipt
 from .create_acu_shipment import CreateAcuShipment
@@ -45,6 +45,7 @@ from .kustomer import SendOrderDetailsToKustomer
 from .aftership_send import SendToAfterShip
 from .aftership_update import UpdateAfterShip
 from .aftership_to_dbc import AfterShipToDbc
+from .link_aftership_to_acu import AftershipLinkToAcu
 
 from .five9_call_segments import Five9CallSegments
 from .darwill_addresses import DarwillAddresses
