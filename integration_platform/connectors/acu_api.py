@@ -435,7 +435,7 @@ class AcumaticaAPI:
 
 
 
-        
+    #region get_order_details
     def get_order_details(self, order_data: dict, additional_details: str = '') -> dict:
         '''`get_order_details`(order_data: *dict*, )
         ---
@@ -445,8 +445,8 @@ class AcumaticaAPI:
         
         
         ### Upstream Calls 
-         #### :meth:`~folder.file.class.method`
-            - Description
+         #### :class:`~integration_platform.pipelines.address_validator.AddressValidator`.:class:`~integration_platform.load.address_validator.Load`.:meth:`~integration_platform.load.address_validator.Load.validate_remove_hold_create`
+            - Gets order details and whether or not the addresses have been validated and overridden 
             
         <hr>
         
@@ -454,6 +454,7 @@ class AcumaticaAPI:
         ---
         :param (*dict*) `order_data`:  dictionary containing at least OrderType and OrderNbr
         :param (*str*) `additional_details`: Additional data to get from API, for example, pass `?$expand=Shipments` to get Shipment details with response
+            - To retrieve an attribute, pass it as follows: ?$custom=Document.AttributeAFTSHIPID
         
         <hr>
         
@@ -482,6 +483,7 @@ class AcumaticaAPI:
         bp = 'here'
         order_data = {**order_data, 'acu_info': order_info}
         return order_data
+    #endregion
 
     def order_remove_hold(self, order_data: dict):
         '''`order_remove_hold`(self, order_data: *dict*, )
