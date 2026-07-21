@@ -2313,7 +2313,7 @@ TABLES = {
             'LastChecked',
         ],
     },
-    'analytics.B2BCollectionsDetail': {
+    'analytics.JHL_B2BCollectionsDetail': {
         'keys': [
             'CustomerID',
             'RefNbr',
@@ -2382,7 +2382,7 @@ TABLES = {
             'LastChecked',
         ],
     },
-    'analytics.B2BCollectionsSummary': {
+    'analytics.JHL_B2BCollectionsSummary': {
         'keys': [
             'CustomerID',
         ],
@@ -2421,7 +2421,7 @@ TABLES = {
             'LastChecked',
         ],
     },
-    'analytics.B2BCollectionsSummary_Snapshot': {
+    'analytics.JHL_B2BCollectionsSummary_Snapshot': {
         'keys': [
             'CustomerID',
             'Timestamp',
@@ -2459,7 +2459,7 @@ TABLES = {
             'TotalBalance',
         ],
     },
-    'analytics.B2BCollectionsByStatus': {
+    'analytics.JHL_B2BCollectionsByStatus': {
         'keys': [
             'CustomerStatus',
         ],
@@ -2484,7 +2484,7 @@ TABLES = {
             'LastChecked',
         ],
     },
-    'analytics.B2BCollectionsByStatus_Snapshot': {
+    'analytics.JHL_B2BCollectionsByStatus_Snapshot': {
         'keys': [
             'CustomerStatus',
             'Timestamp',
@@ -2508,7 +2508,7 @@ TABLES = {
             'TotalBalance',
         ],
     },
-    'analytics.B2BCollectionsBySalesRep': {
+    'analytics.JHL_B2BCollectionsBySalesRep': {
         'keys': [
             'SalespersonID',
         ],
@@ -2533,7 +2533,7 @@ TABLES = {
             'LastChecked',
         ],
     },
-    'analytics.B2BCollectionsBySalesRep_Snapshot': {
+    'analytics.JHL_B2BCollectionsBySalesRep_Snapshot': {
         'keys': [
             'SalespersonID',
             'Timestamp',

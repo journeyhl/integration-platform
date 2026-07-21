@@ -651,12 +651,30 @@ end
 
 
 
-    def __dataframe_to_table_create_statement__(self, df: pl.DataFrame):
-        test = ''
+    def __dataframe_to_table_create_statement__(self, df: pl.DataFrame, table_name: str = ''):
+        test = f'create table {table_name}(\n'
         for column, dtype in df.schema.items():
-            dtype_str = 'varchar(replace_me_please),' if dtype == pl.String else 'decimal(18,2),' if str(dtype) == 'Decimal(precision=38, scale=2)' else str(dtype)
+            if dtype == pl.String:
+                dtype_str = 'varchar(replace_me_please),'
+            elif str(dtype) == 'Decimal(precision=38, scale=2)':
+                dtype_str = 'decimal(18,2),'
+            elif str(dtype) == "Datetime(time_unit='us', time_zone='America/New_York')":
+                dtype_str = 'datetime,'
+            elif str(dtype) == 'Boolean':
+                dtype_str = 'bit,'
+            elif str(dtype) == 'Int64':
+                dtype_str = 'int,'
+            elif str(dtype) == 'Date':
+                dtype_str = 'Date,'
+            else:
+                dtype_str = str(dtype)
+            dtype_str = 'varchar(replace_me_please),' if dtype == pl.String else 'decimal(18,2),' if str(dtype) == 'Decimal(precision=38, scale=2)' else 'datetime,'
             row_text = f'{column} {dtype_str}'
             test += f'{row_text}\n'
             bp = 'here'
+
+        test += ')'
+        t = test[-3:]
+        t2 = test[:-3]
         print(test)
         bp = 'here'

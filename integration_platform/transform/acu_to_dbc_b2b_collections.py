@@ -34,6 +34,9 @@ class Transform:
         balance_by_status, balance_by_status_snapshot = self._aggregate_by_metric_(group_by_columns=['LastChecked', 'CustomerStatus'])
         balance_by_salesrep, balance_by_salesrep_snapshot = self._aggregate_by_metric_(group_by_columns=['LastChecked', 'SalespersonID'])
         # self.pipeline.centralstore.__dataframe_to_table_create_statement__(balance_by_status)
+
+
+
         data_transformed = {
             'detail': data_extract,
             'summary': collections_summary,

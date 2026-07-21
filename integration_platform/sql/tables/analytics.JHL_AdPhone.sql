@@ -1,16 +1,19 @@
 if not exists(
-select *
-from sys.schemas s
-where s.name = 'analytics'
+    select *
+    from sys.schemas s
+    where s.name = 'analytics'
 )
-exec('create schema analytics');
+begin
+    exec('create schema analytics');
+end
 if not exists(
-select * 
-from sys.tables t 
-inner join sys.schemas s on t.schema_id = s.schema_id
-where t.name = 'JHL_AdPhone' and s.name = 'analytics'
+    select * 
+    from sys.tables t 
+    inner join sys.schemas s on t.schema_id = s.schema_id
+    where t.name = 'JHL_AdPhone' and s.name = 'analytics'
 )
-create table analytics.JHL_AdPhone(
+begin
+    create table analytics.JHL_AdPhone(
 	AdCode varchar(10) NOT NULL,
 	TFN varchar(15) NOT NULL,
 	StartDate date NOT NULL,
@@ -26,5 +29,6 @@ create table analytics.JHL_AdPhone(
 	SecondaryVersionName varchar(255) NULL,
 	InsertedDT datetime NULL,
 	LastChecked datetime NULL,
-primary key(AdCode,	TFN, StartDate))
+    primary key(AdCode,	TFN, StartDate))
 
+end

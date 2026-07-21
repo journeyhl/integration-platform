@@ -105,6 +105,16 @@ class AcumaticaDeletions(Pipeline):
                     inner join _util.SOShipmentDeletions d on s.ShipmentNbr = d.ShipmentNbr
                 '''
             },
+            # {
+            #     'name': 'mfr_allocated_del',
+            #     'table': 'analytics.JHL_MFRAllocated',
+            #     'query': 'select s.* from analytics.JHL_MFRAllocated s inner join _util.SOLineDeletionsd on s.OrderNbr = d.OrderNbr and s.LineNbr = d.LineNbr',
+            #     'delete_cmd': '''
+            #         delete from s
+            #         from analytics.JHL_MFRAllocated s
+            #         inner join _util.SOShipmentDeletions d on s.ShipmentNbr = d.ShipmentNbr
+            #     '''
+            # },
         ]
         for cleaner in cleaners:
             self.logger.info(f'Cleaning {cleaner['table']}')
