@@ -446,6 +446,27 @@ class HubSpotAPI:
 
     
     def retrieve_companies(self, limit: int = 100):
+        ''':class:`~HubSpotAPI`.:meth:`~retrieve_companies` (self, limit: *int = 100*):
+        ---
+        <hr>
+        
+        Gets companies, contacts and contact information from Hubspot
+        
+        ### Downstream Calls 
+         #### :class:`~HubSpotAPI`.:meth:`~get_company_primary_contact`
+            - For each company, get all primary contacts. For each primary contact, lookup their contact information and return company data with contacts appended
+            
+        
+        ### Upstream Calls 
+         #### :class:`~integration_platform.pipelines.hubspot_company_revenue.HubspotCompanyRevenue`.:meth:`~integration_platform.pipelines.hubspot_company_revenue.HubspotCompanyRevenue.extract`
+            - Called during data extraction in HubspotCompanyRevenue pipeline execution
+
+        <hr>
+        
+        Returns
+        ---
+        :return `companies` (list[*dict*]): List of companies with contacts and contact information
+        '''
         companies = []
         after: str | None = None
         while True:
@@ -485,7 +506,50 @@ class HubSpotAPI:
         self.logger.info(f'{self.calls} total hubspot api calls')
         return companies
     
-    def get_company_primary_contact(self, company: dict) -> dict | None:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    def get_company_primary_contact(self, company: dict) -> dict:
+        ''':class:`~HubSpotAPI`.:meth:`~get_company_primary_contact` (self, company: *dict*):
+        ---
+        <hr>
+        
+        put_summary_here
+        
+        ### Downstream Calls 
+         #### :class:`~HubSpotAPI`.:meth:`~_request`
+            - Hits the Hubspot API to get all primary contacts, then for each one, hits the Hubspot API again to get the contact's contact info
+        
+        ### Upstream Calls 
+         #### :class:`~HubSpotAPI`.:meth:`~retrieve_companies`
+            - Description
+            
+        <hr>
+        
+        Parameters
+        ---
+        :param (*dict*) `company`: dict of company data. Must contain ***id***
+        
+        <hr>
+        
+        Returns
+        ---
+        :return `company` (dict): returns dict that was passed, but with contact information added. *`company['contacts']`*
+        '''
         contacts = []
         self.logger.info(f'{self.prefix}retrieving primary contact...')
         data = self._request('GET', f'/crm/v4/objects/companies/{company['id']}/associations/contacts')
