@@ -10,6 +10,41 @@ from integration_platform.load.shipment_api import Load
 from integration_platform.connectors import AcumaticaAPI
 import json
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class CreateAcuReceipt(Pipeline):
     '''`CreateAcuReceipt`(Pipeline)
     ---
@@ -67,7 +102,6 @@ class CreateAcuReceipt(Pipeline):
         return data_transformed
     
     def load(self, data_transformed):
-
         self.loader.load_receipts(data_transformed)
         return self.acu_api.data_log
     

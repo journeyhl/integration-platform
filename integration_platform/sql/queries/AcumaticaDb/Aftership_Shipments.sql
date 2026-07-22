@@ -145,4 +145,5 @@ select s.ShipmentNbr
                 then '$2000-4999.99'
        else '$5000+' end PackageValue
 from SecondLevel s
+where s.OrderNbr != 'SO016911'
 order by ShipmentNbr desc, ShipLineNbr, OrderNbr, OrderLineNbr

@@ -528,7 +528,7 @@ class HubSpotAPI:
         ---
         <hr>
         
-        put_summary_here
+        Given a company, finds all primary contacts. Then for each contact, retrieves contact details (name, phone, email, etc.)
         
         ### Downstream Calls 
          #### :class:`~HubSpotAPI`.:meth:`~_request`
@@ -536,7 +536,7 @@ class HubSpotAPI:
         
         ### Upstream Calls 
          #### :class:`~HubSpotAPI`.:meth:`~retrieve_companies`
-            - Description
+            - Main entry point. Calls this method for each company
             
         <hr>
         
@@ -586,6 +586,28 @@ class HubSpotAPI:
 
 
     def update_company(self, company: dict, property_payload: dict):
+        ''':class:`~HubSpotAPI`.:meth:`~update_company` (self, company: *dict*, property_payload: *dict*):
+        ---
+        <hr>
+        
+        Given a dict of company data and properties to update, update the specified properties for the passed company
+        
+        ### Upstream Calls 
+         #### :class:`~integration_platform.transform.hubspot_company_revenue.HubspotCompanyRevenue`.:class:`~integration_platform.transform.hubspot_company_revenue.Transform`.:meth:`~integration_platform.transform.hubspot_company_revenue.Transform._update_payload`
+            
+        <hr>
+        
+        Parameters
+        ---
+        :param (*dict*) `company`: dict of company data. Must contain ***`id`*** and ***`name`***
+        :param (*dict*) `property_payload`: properties and values to send to HubSpot
+        
+        <hr>
+        
+        Returns
+        ---
+        :return `variablename` (_type_): _description_
+        '''
         path = f'/crm/v3/objects/companies/{company['id']}'
         url = f'{self.base_url}{path}'
         browser_link = f'https://app.hubspot.com/contacts/5053729/record/0-2/{company['id']}'
@@ -606,6 +628,28 @@ class HubSpotAPI:
         return company
 
     def update_property_options(self, property: dict):
+        ''':class:`~HubSpotAPI`.:meth:`~update_property_options` (self, property: *dict*):
+        ---
+        <hr>
+        
+        Given a property (Acumatica Items), update its dropdown options
+        
+        ### Upstream Calls 
+         #### :class:`~integration_platform.pipelines.hubspot_property_update.HubspotPropertyUpdate`.:meth:`~integration_platform.pipelines.hubspot_property_update.HubspotPropertyUpdate.load`
+            - Description
+            
+        <hr>
+        
+        Parameters
+        ---
+        :param (*dict*) `property`: dict of property data with all existing options and new options appended. New options will be updated following successful update
+        
+        <hr>
+        
+        Returns
+        ---
+        :return `jresponse` (dict): json formatted response from Hubspot API
+        '''
         path = f'/crm/v3/properties/Contact/{property['name']}'
         url = f'{self.base_url}{path}'
         try:

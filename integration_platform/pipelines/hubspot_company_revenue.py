@@ -24,6 +24,7 @@ class HubspotCompanyRevenue(Pipeline):
         return data_transformed
     
     def load(self, data_transformed):
+        '''Instead of posting to hubspot here, we did so in transform and upsert to sql here'''
         self.centralstore.engine = self.centralstore._create_engine()
         self.centralstore.raw_connection = self.centralstore.engine.raw_connection()
         acu_companies = data_transformed['acu_companies']
