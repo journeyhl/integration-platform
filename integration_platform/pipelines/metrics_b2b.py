@@ -30,10 +30,12 @@ class B2BMetrics(Pipeline):
     def load(self, data_transformed):
         bp = 'here'
         
-        for table, data in data_transformed.items():
-            self.logger.info(f'Deleting {data.height} rows from {table}...')
+        frame_count = len(data_transformed)
+        for i, (table, data) in enumerate(data_transformed.items()):
+            prefix = f'{i+1}/{frame_count}: '
+            self.logger.info(f'{prefix}Deleting {data.height} rows from {table}...')
             self.centralstore.raw_execute(f'delete from {table}')
-            self.logger.info(f'Inserting {data.height} rows to {table}...')
+            self.logger.info(f'{prefix}Inserting {data.height} rows to {table}...')
             bp = 'here'
             self.centralstore.insert_df(df_data_loaded=data, table_name=table)
             bp = 'here'

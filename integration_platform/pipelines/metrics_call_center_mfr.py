@@ -4,10 +4,11 @@ from integration_platform.load.call_center_mfr import Load
 import polars as pl
 
 class CallCenterMetrics(Pipeline):
-    def __init__(self, function: str):
+    def __init__(self, function: str, backfill: bool = False):
         super().__init__('call-center-metrics', function)
         self.transformer = Transform(self)
         self.loader = Load(self)
+        self.backfill = backfill
 
     def extract(self):
         inventory_summary_product = self.centralstore.query_to_dataframe(self.centralstore.queries.MFR_InventorySummary_Product)

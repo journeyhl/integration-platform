@@ -39,11 +39,10 @@ class Load:
         self.get_dataframes_to_sql(dataframes=dataframes)
         self.get_dicts_to_sql(dicts=dicts)
 
-        bp = 'here'
-        self.upsert_dicts()
-        bp = 'here'
-        # self._insert_all_dfs_()
-        bp = 'here'
+        if self.pipeline.backfill:
+            self._insert_all_dfs_()
+        else:
+            self.upsert_dicts()
 
 
     def _insert_all_dfs_(self):
