@@ -229,7 +229,6 @@ class Transform:
         
         ### Upstream Calls 
          #### :class:`~pipelines.hubspot_company_revenue.HubspotCompanyRevenue`.:class:`~Transform`.:meth:`~_main_iterator`
-            - Description
             
         <hr>
         

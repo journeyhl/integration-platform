@@ -106,14 +106,7 @@ class AcumaticaAPI:
             self.logger.info(response_str)
         except Exception as e:
             bp = 'here'
-        self.data_log.append({
-            'Entity': 'SalesOrder',
-            'KeyValue': order_data['OrderNbr'],
-            'Operation': f'POST - Create Receipt',
-            'Payload': body,
-            'Response': response_str,
-            'Timestamp': datetime.now(ZoneInfo('America/New_York'))
-        })
+        self.helper.format_data_log_entry(entity='SalesOrder', key_value=order_data['OrderNbr'], operation=f'POST - Create Receipt', payload=body, response=response_str, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
     #endregion
 
     #region order_create_shipment
@@ -158,14 +151,7 @@ class AcumaticaAPI:
             self.logger.info(f'{order_data['OrderNbr']}: Shipment created! {response_str}')
         else:
             self.logger.warning(response_str)
-        self.data_log.append({
-            'Entity': 'SalesOrder',
-            'KeyValue': order_data['OrderNbr'],
-            'Operation': f'POST - Create Shipment',
-            'Payload': body,
-            'Response': response_str,
-            'Timestamp': datetime.now(ZoneInfo('America/New_York'))
-        })
+        self.helper.format_data_log_entry(entity='SalesOrder', key_value=order_data['OrderNbr'], operation=f'POST - Create Shipment', payload=body, response=response_str, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
     #endregion
 
     #region sales_order_get_shipment
@@ -343,14 +329,7 @@ class AcumaticaAPI:
         else:
             self.logger.error(f'{order_data['OrderNbr']}: Issue validating addresses!')
 
-        self.data_log.append({
-            'Entity': 'SalesOrder',
-            'KeyValue': order_data['OrderNbr'],
-            'Operation': f'POST - Validate Address',
-            'Payload': payload,
-            'Response': response_str,
-            'Timestamp': datetime.now(ZoneInfo('America/New_York'))
-        })
+        self.helper.format_data_log_entry(entity='SalesOrder', key_value=order_data['OrderNbr'], operation=f'POST - Validate Address', payload=payload, response=response_str, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
         bp = 'here'
     #endregion
 
@@ -385,7 +364,7 @@ class AcumaticaAPI:
         elif operation == 'post':
             response = self.session.post(f'{self.base_uri}{endpoint}', json=payload_data['target_api_update_payload'])
         response_str = f'{response.status_code}: {response.reason}'
-
+        data_log = payload_data['acu_api_data_log']
 
         if descr in ['Override & Update', 'Reclassify Transaction']:
             try:
@@ -395,11 +374,7 @@ class AcumaticaAPI:
             except Exception as e:
                 self.logger.info(payload_data['log_error'])
                 return_bool = False
-            self.data_log.append({
-                **payload_data['acu_api_data_log'],
-                'Response': response_str,
-                'Timestamp': datetime.now(ZoneInfo('America/New_York'))
-            })
+            self.helper.format_data_log_entry(entity=data_log['Entity'], key_value=data_log['Entity'], operation=data_log['Entity'], payload=data_log['Payload'], response=response_str, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
 
         elif descr == 'Manage Sales Allocation':
             if response_str == '202: Accepted':
@@ -408,11 +383,7 @@ class AcumaticaAPI:
             else:
                 self.logger.info(payload_data['log_error'])
                 return_bool = False
-            self.data_log.append({
-                **payload_data['acu_api_data_log'],
-                'Response': response_str,
-                'Timestamp': datetime.now(ZoneInfo('America/New_York'))
-            })
+            self.helper.format_data_log_entry(entity=data_log['Entity'], key_value=data_log['Entity'], operation=data_log['Entity'], payload=data_log['Payload'], response=response_str, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
             bp = 'here'
 
         elif descr in ['Ship Separately', 'Update Warehouse']:
@@ -434,11 +405,7 @@ class AcumaticaAPI:
             else:
                 self.logger.info(f'{response_str}, {payload_data['log_error']}')
                 return_bool = False
-            self.data_log.append({
-                **payload_data['acu_api_data_log'],
-                'Response': response_str,
-                'Timestamp': datetime.now(ZoneInfo('America/New_York'))
-            })
+            self.helper.format_data_log_entry(entity=data_log['Entity'], key_value=data_log['Entity'], operation=data_log['Entity'], payload=data_log['Payload'], response=response_str, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
             bp = 'here'
         return return_bool
     #endregion
@@ -539,14 +506,7 @@ class AcumaticaAPI:
         else:
             self.logger.error(f'{order_data['OrderNbr']}: Issue removing from hold')
         
-        self.data_log.append({
-            'Entity': 'SalesOrder',
-            'KeyValue': order_data['OrderNbr'],
-            'Operation': f'POST - Remove Hold',
-            'Payload': payload,
-            'Response': response_str,
-            'Timestamp': datetime.now(ZoneInfo('America/New_York'))
-        })
+        self.helper.format_data_log_entry(entity='SalesOrder', key_value=order_data['OrderNbr'], operation=f'POST - Remove Hold', payload=payload, response=response_str, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
     #endregion
 
 
@@ -775,15 +735,7 @@ class AcumaticaAPI:
             self.logger.error(f'get_package_details failed ({response.status_code}): {json_response.get('error')}')
             response_str = f'{response.status_code} {json_response.get('error')}'
             self.logger.warning(response_str)
-
-        self.data_log.append({
-            'Entity': 'Shipment',
-            'KeyValue': shipment_data['ShipmentNbr'],
-            'Operation': f'PUT: Package {verb} {shipment_data['ShipmentNbr']}!',
-            'Payload': body,
-            'Response': response_str,
-            'Timestamp': datetime.now(ZoneInfo('America/New_York'))
-        })
+        self.helper.format_data_log_entry(entity='Shipment', key_value=shipment_data['ShipmentNbr'], operation=f'PUT: Package {verb} {shipment_data['ShipmentNbr']}!', payload=body, response=response_str, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
         return shipment_data
     #endregion
 
@@ -818,15 +770,8 @@ class AcumaticaAPI:
         response = self.session.post(url=f'{self.base_uri}/Shipment/ConfirmShipment', json=body)
         response_str = f'{response.status_code} {response.reason}'
         self.logger.info(f'{response.status_code} {response.reason}')
-        bp = 'here'
-        self.data_log.append({
-            'Entity': 'Shipment',
-            'KeyValue': shipment_data['ShipmentNbr'],
-            'Operation': 'POST - Confirm Shipment',
-            'Payload': body,
-            'Response': response_str,
-            'Timestamp': datetime.now(ZoneInfo('America/New_York'))
-        })
+        self.helper.format_data_log_entry(entity='Shipment', key_value=shipment_data['ShipmentNbr'], operation='POST - Confirm Shipment', payload=body, response=response_str, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
+
     #endregion
 
 
@@ -868,14 +813,7 @@ class AcumaticaAPI:
         if response.ok:
             line_data['ReasonCode'] = 'RETURN'
         response_str = f'{response.status_code} {response.reason}'
-        self.data_log.append({
-            'Entity': 'Shipment',
-            'KeyValue': shipment_data['ShipmentNbr'],
-            'Operation': 'PUT - Update ReasonCode on Shipment Line',
-            'Payload': body,
-            'Response': response_str,
-            'Timestamp': datetime.now(ZoneInfo('America/New_York'))
-        })
+        self.helper.format_data_log_entry(entity='Shipment', key_value=shipment_data['ShipmentNbr'], operation='PUT - Update ReasonCode on Shipment Line', payload=body, response=response_str, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
         return line_data
     #endregion
 
@@ -927,14 +865,7 @@ class AcumaticaAPI:
             except Exception as e:
                 self.status_description = 'FAILURE'
                 bp = 'here'
-        self.data_log.append({
-            'Entity': 'Shipment',
-            'KeyValue': ShipmentNbr,
-            'Operation': 'PUT - Mark Shipment as Sent to WH',
-            'Payload': body,
-            'Response': self.status_description,
-            'Timestamp': datetime.now(ZoneInfo('America/New_York'))
-        })
+        self.helper.format_data_log_entry(entity='Shipment', key_value=ShipmentNbr, operation='PUT - Mark Shipment as Sent to WH', payload=body, response=self.status_description, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
         return self.status_description, body
     #endregion
 
@@ -1002,6 +933,7 @@ class AcumaticaAPI:
             'Response': self.status_description,
             'Timestamp': datetime.now(ZoneInfo('America/New_York'))
         })
+        self.helper.format_data_log_entry(entity='SalesOrder', key_value=OrderNbr, operation='PUT - Mark RC Order as Sent To WH', payload=body, response=self.status_description, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
         return self.status_description, body
     #endregion
     
@@ -1067,6 +999,7 @@ class AcumaticaAPI:
             'Response': self.status_description,
             'Timestamp': datetime.now(ZoneInfo('America/New_York'))
         })
+        self.helper.format_data_log_entry(entity='Shipment', key_value=ShipmentNbr, operation='PUT - Mark Shipment as Sent to WH', payload=body, response=self.status_description, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
         return self.status_description, body
     #endregion
     #endregion Shipment
@@ -1305,37 +1238,7 @@ class AcumaticaAPI:
     #region reclassify_transaction
     def reclassify_transaction(self, cogs_entry: dict):
         bp = 'here'
-        batch_nbr = cogs_entry['BatchNbr']
-        payload = {
-            "entity": {
-                "BatchNbr": {
-                    "value": batch_nbr
-                },
-                "Module": {
-                    "value": cogs_entry['Module']
-                },
-                "parameters": {
-                    "NewAccountID": {
-                        "value": "5090"
-                    }
-                }
-            }
-        }
-        
-        acu_data_log_entry = {            
-            'Entity': 'JournalTransaction',
-            'KeyValue': batch_nbr,
-            'Operation': f'POST - Reclassify Journal Transaction',
-            'Payload': payload,
-        }
-        success_str = f'{batch_nbr} reclassified to 5090 successfully!'
-        error_str = f'Could not reclassify {batch_nbr}!'
-        full_payload = {
-            'target_api_update_payload': payload,
-            'log_success': success_str,
-            'log_error': error_str,
-            'acu_api_data_log': acu_data_log_entry,
-        }
+        full_payload = self.helper.format_reclassify_transaction(cogs_entry=cogs_entry)
         self.target_api(endpoint='/JournalTransaction/ReclassifyCorrections', payload_data=full_payload, operation='post', descr='Reclassify Transaction')
     #endregion
 
@@ -1344,59 +1247,7 @@ class AcumaticaAPI:
 #region Allocate Sales Order
     #region manage_sales_allocations
     def manage_sales_allocations(self, order_data: dict):
-        order_nbr = order_data['OrderNbr']
-        end_date = datetime.now().strftime('%m/%d/%Y')
-        payload = {
-            "entity": {
-                "Warehouse":{
-                    "value": order_data['SiteCD']
-                },
-                "EndDate":{
-                    "value": end_date
-                },
-                "OrderType":{
-                    "value": order_data['OrderType']
-                },
-                "OrderNbr":{
-                    "value": order_data['OrderNbr']
-                }
-            },
-            "parameters": {
-                "param_Action": {
-                    "value": order_data['param_Action']
-                },
-                "param_SelectBy":{
-                    "value": "Line Ship On"
-                },
-                "param_Warehouse":{
-                    "value": order_data['SiteCD']
-                },
-                "param_EndDate":{
-                    "value": end_date
-                },
-                "param_OrderType":{
-                    "value": order_data['OrderType']
-                },
-                "param_OrderNbr":{
-                    "value": order_data['OrderNbr']
-                }
-            }            
-        }
-        acu_data_log_entry = {            
-            'Entity': 'ManageSalesAllocations',
-            'KeyValue': order_nbr,
-            'Operation': f'POST - {order_data['param_Action']}',
-            'Payload': payload,
-        }
-        short_action = f'{order_data['param_Action'].split(' ')[0]}'
-        success_str = f'{order_nbr} {short_action}d!'
-        error_str = f'Could not {short_action} {order_nbr}!'
-        full_payload = {
-            'target_api_update_payload': payload,
-            'log_success': success_str,
-            'log_error': error_str,
-            'acu_api_data_log': acu_data_log_entry,
-        }
+        full_payload = self.helper.format_manage_sales_allocations(order_data=order_data)
         self.target_api(endpoint='/ManageSalesAllocations/ProcessAllAllocations', payload_data=full_payload, operation='post', descr='Manage Sales Allocation')
         bp = 'here'
     #endregion
@@ -1409,44 +1260,7 @@ class AcumaticaAPI:
 #region prepare shopify entity
     #region prepare_shopify
     def prepare_shopify(self, entity: str = 'Product Availability'):
-        payload = {
-            "entity": {
-                "Store":{
-                    "value": "ShopJourneyProductio"
-                },
-                "EntityName":{
-                    "value": entity
-                },
-                "Selected":{
-                    "value": True
-                }
-            },
-            "parameters": {
-                "param_Store": {
-                    "value": "ShopJourneyProductio"
-                },
-                "param_Entity":{
-                    "value": entity
-                },
-                "param_PrepareMode":{
-                    "value": "Incremental"
-                }
-            }
-        }
-        acu_data_log_entry = {            
-            'Entity': 'PrepareShopify',
-            'KeyValue': entity,
-            'Operation': f'POST - Prepare {entity}',
-            'Payload': payload,
-        }
-        success_str = f'{entity} prepared successfully!'
-        error_str = f'Could not prepare {entity}!'
-        full_payload = {
-            'target_api_update_payload': payload,
-            'log_success': success_str,
-            'log_error': error_str,
-            'acu_api_data_log': acu_data_log_entry,
-        }
+        full_payload = self.helper.format_prepare_shopify(entity=entity)
         self.target_api(endpoint='/PrepareShopify/PrepareEntity', payload_data=full_payload, operation='post', descr=f'Prepare Shopify')
         bp = 'here'
     #endregion
@@ -1456,42 +1270,7 @@ class AcumaticaAPI:
 #region process shopify entity
     #region process_shopify
     def process_shopify(self, entity_data: dict, entity: str = 'Product Availability'):
-        sync_id = entity_data['SyncRecordID']['value']
-        payload = {
-            "entity": {
-                "Store":{
-                    "value": "ShopJourneyProductio"
-                },
-                "EntityName":{
-                    "value": entity
-                }
-            },
-            "parameters": {
-                "param_Store": {
-                    "value": "ShopJourneyProductio"
-                },
-                "param_Entity":{
-                    "value": entity
-                },
-                "param_SyncID":{
-                    "value": sync_id
-                }
-            }
-        }
-        acu_data_log_entry = {            
-            'Entity': 'ProcessShopify',
-            'KeyValue': f'{entity}, SyncID: {sync_id}',
-            'Operation': f'POST - Process {entity}',
-            'Payload': payload,
-        }
-        success_str = f'{entity} processed successfully!'
-        error_str = f'Could not process {entity}!'
-        full_payload = {
-            'target_api_update_payload': payload,
-            'log_success': success_str,
-            'log_error': error_str,
-            'acu_api_data_log': acu_data_log_entry,
-        }
+        full_payload = self.helper.format_process_shopify(entity_data=entity_data, entity=entity)
         self.target_api(endpoint='/ProcessShopify/ProcessEntity', payload_data=full_payload, operation='post', descr=f'Process Shopify')
         bp = 'here'
     #endregion
