@@ -42,24 +42,19 @@ class AcuAPILoader:
         for i, order in enumerate(data['Orders']):
             prefix = f'{i+1}/{data['OrderCount']} {status} orders: '
             self.logger.info(f'{prefix}{order['OrderNbr']}')
-            bp = 'here'
             if status != 'On Hold':
-                self.logger.info(f'Placing {order['OrderNbr']} On Hold!')
-                hold_payload = self.__put_on_hold_format_payload__(order=order)
+                hold_payload = self.pipeline.acu_api.helper.format_put_on_hold(order=order)
                 self.pipeline.acu_api.order_do_action(order_data=order, payload=hold_payload, action='PutOrderOnHold')
             time.sleep(5)
             if order['ChairRemovalWH'] != order['OrderLineWH']:
                 self.logger.warning(f'Warehouse mismatch! {order['InventoryCD']}: {order['OrderLineWH']}, Chair Removal: {order['ChairRemovalWH']}')
                 order['acu_response'] = self.pipeline.acu_api.get_order_details(order_data=order, additional_details='?$expand=Details')
                 order['acu_details'] = order['acu_response']['Details']
-                self.logger.info(f"Updating Chair Removal's warehouse to {order['OrderLineWH']}")
-                update_wh_payload = self.__update_wh_payload__(order=order)
+                update_wh_payload = self.pipeline.acu_api.helper.format_soline_wh_update(order=order)
                 response = self.pipeline.acu_api.target_api(endpoint='/SalesOrder', payload_data={'target_api_update_payload': update_wh_payload}, operation='put', descr='Update Warehouse')
                 status = response['Status']['value'] if isinstance(response, dict) else status
-                bp = 'here'
             if order['ShipSeparately']:
-                self.logger.info(f"Updating ShipSeparately to False!")
-                ship_sep_payload = self.__ship_sep_format_payload__(order=order)
+                ship_sep_payload = self.pipeline.acu_api.helper.format_ship_separately(order=order)
                 self.pipeline.acu_api.target_api(endpoint='/SalesOrder?$expand=ShippingSettings', payload_data={'target_api_update_payload': ship_sep_payload}, operation='put', descr='Ship Separately')
             time.sleep(5)
             self.pipeline.acu_api.order_remove_hold(order)
@@ -68,78 +63,5 @@ class AcuAPILoader:
 
 
 
-    def __update_wh_payload__(self, order):
-        lines = order['acu_details']
-        chair = [line for line in lines if line['InventoryID']['value'] != '27222'][0] or {}
-        chair_removal = [line for line in lines if line['InventoryID']['value'] == '27222'][0] or {}
-        if chair == {} or chair_removal == {}:
-            self.logger.error(f'{'Chair not found! ' if chair == {} else ''}{'Chair Removal not found!' if chair_removal == {} else ''}')
-            return {}
-        update_wh_payload = {
-            "OrderType": {
-                "value": order['OrderType']
-            },
-            "OrderNbr": {
-                "value": order['OrderNbr']
-            },
-            "Details": [
-                {
-                    "id": chair_removal['id'],
-                    "WarehouseID": {
-                        "value": order['OrderLineWH']
-                    },
-                    # 'UOM': {
-                    #     "value": "EA"
-                    # },
-                    # "IsSpecialOrder": {
-                    #     "value": False
-                    # },
-                    # "SalesAcctID":{
-                    #     "value": chair['Account']['value']
-                    # }
-                }
-            ]      
-        }
-        return update_wh_payload
 
 
-    def __ship_sep_format_payload__(self, order: dict):
-
-        ship_sep_payload = {
-            "OrderType": 
-            {
-                "value": order['OrderType']
-            },
-            "OrderNbr": 
-            {
-                "value": order['OrderNbr']
-            },
-            "": 
-            {
-                "value": order['AcctCD']
-            },
-            'ShippingSettings':{
-                "ShipSeparately":{
-                    "value": False
-                }                
-            }
-
-        }
-        return ship_sep_payload
-
-
-    def __put_on_hold_format_payload__(self, order: dict):        
-        hold_payload = {
-            "entity": {
-                "Type": {
-                    "value": "SalesOrder"
-                },
-                "OrderType": {
-                    "value": order['OrderType']
-                },
-                "OrderNbr": {
-                    "value": order['OrderNbr']
-                }
-            }
-        }
-        return hold_payload

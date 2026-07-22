@@ -302,3 +302,141 @@ class AcumaticaAPIHelper:
         else:
             self.acu.data_log.append(entry)
             return entry
+
+
+
+    def format_put_on_hold(self, order: dict) -> dict:
+        ''':class:`~AcumaticaAPIHelper`.:meth:`~format_put_on_hold` (self, order: *dict*):
+        ---
+        <hr>
+        
+        Given a dict of order data, formats payload to be sent to Acumatica API in order to place the specified order on hold
+
+        ### Upstream Calls 
+         #### :class:`~integration_platform.load.acu_api_loader.AcuAPILoader`.:meth:`~integration_platform.load.acu_api_loader.AcuAPILoader.__update_ship_sep_or_wh__`
+            - If an order's status doesn't equal On Hold, then this method is called to format payload to send to Acu api so that we may put it on hold
+            
+        <hr>
+        
+        Parameters
+        ---
+        :param (*dict*) `order`: dict of order data. Must contain ***`OrderType`*** and ***`OrderNbr`***
+        
+        <hr>
+        
+        Returns
+        ---
+        :return `hold_payload` (dict): payload to be sent to Acumatica API
+        '''
+        self.logger.info(f'Placing {order['OrderNbr']} On Hold!')       
+        hold_payload = {
+            "entity": {
+                "Type": {
+                    "value": "SalesOrder"
+                },
+                "OrderType": {
+                    "value": order['OrderType']
+                },
+                "OrderNbr": {
+                    "value": order['OrderNbr']
+                }
+            }
+        }
+        return hold_payload
+
+
+    def format_soline_wh_update(self, order: dict):
+        ''':class:`~AcumaticaAPIHelper`.:meth:`~format_soline_wh_update` (self, order: *dict*):
+        ---
+        <hr>
+        
+        Given a dict of order data, formats payload to be sent to Acumatica API to update the warehouse on a given order line
+        
+        ### Upstream Calls 
+         #### :class:`~integration_platform.load.acu_api_loader.AcuAPILoader`.:meth:`~integration_platform.load.acu_api_loader.AcuAPILoader.__update_ship_sep_or_wh__`
+            - If the warehouse of the Sleepchair doesn't equal the warehouse of the Chair Removal, this method is called so that we can change the Chair Removal line's warehouse to that of the PSChair.
+            
+        <hr>
+        
+        Parameters
+        ---
+        :param (*dict*) `order`: dict of order data. Must contain ***`acu_details`***, ***`OrderType`*** and ***`OrderNbr`***
+        
+        <hr>
+        
+        Returns
+        ---
+        :return `update_soline_wh_payload` (dict): payload to be sent to Acumatica api to update the warehouse on a given order line
+        '''
+        self.logger.info(f"Updating Chair Removal's warehouse to {order['OrderLineWH']}")
+        lines = order['acu_details']
+        chair = [line for line in lines if line['InventoryID']['value'] != '27222'][0] or {}
+        chair_removal = [line for line in lines if line['InventoryID']['value'] == '27222'][0] or {}
+        if chair == {} or chair_removal == {}:
+            self.logger.error(f'{'Chair not found! ' if chair == {} else ''}{'Chair Removal not found!' if chair_removal == {} else ''}')
+            return {}
+        update_soline_wh_payload = {
+            "OrderType": {
+                "value": order['OrderType']
+            },
+            "OrderNbr": {
+                "value": order['OrderNbr']
+            },
+            "Details": [
+                {
+                    "id": chair_removal['id'],
+                    "WarehouseID": {
+                        "value": order['OrderLineWH']
+                    },
+                }
+            ]      
+        }
+        return update_soline_wh_payload
+
+
+    
+    def format_ship_separately(self, order: dict) -> dict:
+        ''':class:`~AcumaticaAPIHelper`.:meth:`~format_ship_separately` (self, order: *dict*):
+        ---
+        <hr>
+        
+        Given a dict of order data, formats payload to be sent to Acumatica API to update the Ship Separately value to ***`False`*** on the given order
+        
+        ### Upstream Calls 
+         #### :class:`~integration_platform.load.acu_api_loader.AcuAPILoader`.:meth:`~integration_platform.load.acu_api_loader.AcuAPILoader.__update_ship_sep_or_wh__`
+            - If ShipSeparately equals True, then this method is called so we can change value to False
+            
+        <hr>
+        
+        Parameters
+        ---
+        :param (*dict*) `order`: dict of order data. Must contain `***OrderType***` and `***OrderNbr***`
+        
+        <hr>
+        
+        Returns
+        ---
+        :return `ship_sep_payload` (dict): Formatted payload to send to ACumatica API
+        '''
+        self.logger.info(f"Updating ShipSeparately to False!")
+        ship_sep_payload = {
+            "OrderType": 
+            {
+                "value": order['OrderType']
+            },
+            "OrderNbr": 
+            {
+                "value": order['OrderNbr']
+            },
+            # "": 
+            # {
+            #     "value": order['AcctCD']
+            # },
+            'ShippingSettings':{
+                "ShipSeparately":{
+                    "value": False
+                }                
+            }
+
+        }
+        return ship_sep_payload
