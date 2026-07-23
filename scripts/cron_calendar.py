@@ -19,31 +19,28 @@ def cron_to_db_central(ip_cron: dict):
             month_days = monthrange(now.year, now.month)[1]
             minutes = [m for m in range(60)]
             return minutes
-        try:
-            if ',' in minstr:
-                minutes = []
-                min_split = minstr.split(',')
-                bp = 'here'
-                for min in min_split:
-                    if '/' in min:
-                        step = int( min.split('/')[0])
-                        freq = int( min.split('/')[1])
-                        ex_per_hour = 60/freq
-                        minutes = minutes + [i for i in range(step, 60, freq)]
-                        bp = 'here'
-                    else:
-                        minutes.append(int(min))
-                    minutes.sort()
-                return minutes
-            elif '/' in minstr:
-                step = 0 if minstr[0] == '*' else int(minstr.split('/')[0])
-                freq = int( minstr.split('/')[1])
-                minutes = [i for i in range(0, 60, freq)]
-                return minutes
-            else:
-                return [int(minstr)]
-        except Exception as e:
+        if ',' in minstr:
+            minutes = []
+            min_split = minstr.split(',')
             bp = 'here'
+            for min in min_split:
+                if '/' in min:
+                    step = int( min.split('/')[0])
+                    freq = int( min.split('/')[1])
+                    ex_per_hour = 60/freq
+                    minutes = minutes + [i for i in range(step, 60, freq)]
+                    bp = 'here'
+                else:
+                    minutes.append(int(min))
+                minutes.sort()
+            return minutes
+        elif '/' in minstr:
+            step = 0 if minstr[0] == '*' else int(minstr.split('/')[0])
+            freq = int( minstr.split('/')[1])
+            minutes = [i for i in range(0, 60, freq)]
+            return minutes
+        else:
+            return [int(minstr)]
         return minutes
 
     
@@ -52,40 +49,71 @@ def cron_to_db_central(ip_cron: dict):
             month_days = monthrange(now.year, now.month)[1]
             hours = [h for h in range(24)]
             return hours
+        if ',' in hrstr:
+            hours = []
+            hr_split = hrstr.split(',')
+            bp = 'here'
+            for hr in hr_split:
+                if '/' in hr:
+                    step = int( hr.split('/')[0])
+                    freq = int( hr.split('/')[1])
+                    ex_per_hour = 24/freq
+                    hours = hours + [i for i in range(step, 24, freq)]
+                    bp = 'here'
+                else:
+                    hours.append(int(hr))
+                hours.sort()
+            return hours
+        elif '/' in hrstr:
+            step = 0 if hrstr[0] == '*' else int(hrstr.split('/')[0])
+            freq = int( hrstr.split('/')[1])
+            hours = [i for i in range(0, 24, freq)]
+            return hours
+        elif '-' in hrstr:
+            split = hrstr.split('-')
+            start = int(split[0])
+            end = int(split[1])
+            hours = [h for h in range(start, end)]
+            return hours
+        else:
+            return [int(hrstr)]
+        
+    def get_days(daystr: str):
+        month_days = monthrange(now.year, now.month)[1] + 1
+        if daystr == '*':
+            days = [d for d in range(1, month_days)]
+            return days
         try:
-            if ',' in hrstr:
-                hours = []
-                hr_split = hrstr.split(',')
+            if ',' in daystr:
+                days = []
+                day_split = daystr.split(',')
                 bp = 'here'
-                for hr in hr_split:
-                    if '/' in hr:
-                        step = int( hr.split('/')[0])
-                        freq = int( hr.split('/')[1])
-                        ex_per_hour = 24/freq
-                        hours = hours + [i for i in range(step, 24, freq)]
+                for d in day_split:
+                    if '/' in d:
+                        step = int( d.split('/')[0])
+                        freq = int( d.split('/')[1])
+                        days = days + [i for i in range(step, month_days, freq)]
                         bp = 'here'
                     else:
-                        hours.append(int(hr))
-                    hours.sort()
-                return hours
-            elif '/' in hrstr:
-                step = 0 if hrstr[0] == '*' else int(hrstr.split('/')[0])
-                freq = int( hrstr.split('/')[1])
-                hours = [i for i in range(0, 24, freq)]
-                return hours
-            elif '-' in hrstr:
-                split = hrstr.split('-')
+                        days.append(int(hr))
+                    days.sort()
+                return days
+            elif '/' in daystr:
+                step = 0 if daystr[0] == '*' else int(daystr.split('/')[0])
+                freq = int( daystr.split('/')[1])
+                days = [i for i in range(1, month_days, freq)]
+                return days
+            elif '-' in daystr:
+                split = daystr.split('-')
                 start = int(split[0])
                 end = int(split[1])
-                hours = [h for h in range(start, end)]
-                return hours
-
+                days = [d for d in range(start, end)]
+                return days
             else:
-                return [int(hrstr)]
+                return [int(daystr)]
         except Exception as e:
             bp = 'here'
-        return hours
-
+        return days
 
     bp = 'here'
     now = datetime.now()
@@ -103,16 +131,18 @@ def cron_to_db_central(ip_cron: dict):
 
         minutes = get_minutes(minstr=minute)
         hours = get_hours(hrstr=hour)
+        days = get_days(day)
         bp = 'here'
-        for hr in hours:
-            for min in minutes:
-                ex = {
-                    'AzureFunction': function,
-                    'ExecutionTime': datetime(year=year_now, month=month_now, day=day_now, hour=hr, minute=min)
-                }
-                executions.append(ex)
+        for day in days:
+            for hr in hours:
+                for min in minutes:
+                    ex = {
+                        'AzureFunction': function,
+                        'ExecutionTime': datetime(year=year_now, month=month_now, day=day, hour=hr, minute=min)
+                    }
+                    executions.append(ex)
+                bp = 'here'
             bp = 'here'
-        bp = 'here'
 
     df_executions = pl.DataFrame(executions, infer_schema_length=None)
     dbc.raw_execute(f'delete from _util.Schedule')
