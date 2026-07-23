@@ -13,3 +13,4 @@ from .teams import Teams
 from .aftership import AfterShip
 from .sharepoint import Sharepoint
 from .sftp import SFTP
+from .ryder_api import RyderAPI

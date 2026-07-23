@@ -1,8 +1,23 @@
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from integration_platform.connectors import Teams, HubSpotAPI, SFTP
+from integration_platform.connectors import Teams, HubSpotAPI, SFTP, RyderAPI
 from integration_platform.pipelines import HubSpotSnapshot
+
+
+
+test = RyderAPI(pipeline='test', env='prod')
+bp = 'here'
+
+
+
+
+
+
+
+
+
+
 
 
 sftp = SFTP('pipeline')
