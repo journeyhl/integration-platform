@@ -2579,6 +2579,18 @@ TABLES = {
             'ValueText',
         ],
     },
+    '_util.Schedule': {
+        'keys': [
+            'AzureFunction',
+            'ExecutionTime',
+        ],
+        'columns': [
+            'AzureFunction',
+            'ExecutionTime',
+        ],
+        'update_columns': [
+        ],
+    },
     
     
     
@@ -2752,4 +2764,13 @@ DARWILL_SFTP: dict = {
     'port': os.getenv('SFTP_DARWILL_PORT'),
     'username': os.getenv('SFTP_DARWILL_USERNAME'),
     'password': os.getenv('SFTP_DARWILL_PASSWORD'),
+}
+
+
+
+RYDER = {
+    'api_key': os.getenv('RYDER_API_KEY'),
+    'api_secret': os.getenv('RYDER_APP_SECRET'),
+    'dev_api_key': os.getenv('RYDERDEV_API_KEY'),
+    'dev_api_secret': os.getenv('RYDERDEV_APP_SECRET')
 }
