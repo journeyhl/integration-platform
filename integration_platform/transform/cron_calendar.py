@@ -2,12 +2,13 @@ import json
 from calendar import monthrange
 from datetime import datetime
 import polars as pl
-
+import logging
 class Transform:
     def __init__(self, pipeline):
-            bp = 'here'
-            self.pipeline = pipeline
-            pass
+        bp = 'here'
+        self.pipeline = pipeline
+        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.Transform')
+        pass
 
     def lander(self, data_extract):            
         cron_schedule = self._parse_file_(data_extract)
@@ -58,8 +59,6 @@ class Transform:
         self.month_now = self.now.month
         executions = []
         for function, schedule in cron_schedule.items():
-            if function == 'five9_call_segments':
-                bp = 'here'
             segments = schedule.split(' ')
             minute = segments[0]
             hour = segments[1]
@@ -70,6 +69,7 @@ class Transform:
             minutes = self._get_minutes_(minstr=minute)
             hours = self._get_hours_(hrstr=hour)
             days = self._get_days_(day)
+            weekdays = self._get_weekdays_(wkdaystr=weekday)
             bp = 'here'
             for day in days:
                 for hr in hours:
@@ -95,27 +95,22 @@ class Transform:
             if ',' in daystr:
                 days = []
                 day_split = daystr.split(',')
-                bp = 'here'
                 for d in day_split:
                     if '/' in d:
-                        step = int( d.split('/')[0])
-                        freq = int( d.split('/')[1])
-                        days = days + [i for i in range(step, month_days, freq)]
-                        bp = 'here'
+                        more_days = self.__slash__(cstr=d, units=month_days)
+                        days.extend(more_days)
+                    elif '-' in d:
+                        more_days = self.__dash__(d)
+                        days.extend(more_days)
                     else:
                         days.append(int(d))
-                    days.sort()
+                days.sort()
                 return days
             elif '/' in daystr:
-                step = 0 if daystr[0] == '*' else int(daystr.split('/')[0])
-                freq = int( daystr.split('/')[1])
-                days = [i for i in range(1, month_days, freq)]
+                days = self.__slash__(cstr=daystr, units=month_days)
                 return days
             elif '-' in daystr:
-                split = daystr.split('-')
-                start = int(split[0])
-                end = int(split[1])
-                days = [d for d in range(start, end)]
+                days = self.__dash__(daystr)
                 return days
             else:
                 return [int(daystr)]
@@ -126,34 +121,28 @@ class Transform:
 
     def _get_hours_(self, hrstr: str):
         if hrstr == '*':
-            month_days = monthrange(self.year_now, self.month_now)[1]
             hours = [h for h in range(24)]
             return hours
-        if ',' in hrstr:
+        elif ',' in hrstr:
             hours = []
             hr_split = hrstr.split(',')
             bp = 'here'
             for hr in hr_split:
                 if '/' in hr:
-                    step = int( hr.split('/')[0])
-                    freq = int( hr.split('/')[1])
-                    ex_per_hour = 24/freq
-                    hours = hours + [i for i in range(step, 24, freq)]
-                    bp = 'here'
+                    more_hours = self.__slash__(cstr=hr, units=24)
+                    hours.extend(more_hours)
+                elif '-' in hrstr:
+                    more_hours = self.__dash__(hrstr)
+                    hours.extend(more_hours)
                 else:
                     hours.append(int(hr))
-                hours.sort()
-            return hours
-        elif '/' in hrstr:
-            step = 0 if hrstr[0] == '*' else int(hrstr.split('/')[0])
-            freq = int( hrstr.split('/')[1])
-            hours = [i for i in range(0, 24, freq)]
+            hours.sort()
             return hours
         elif '-' in hrstr:
-            split = hrstr.split('-')
-            start = int(split[0])
-            end = int(split[1])
-            hours = [h for h in range(start, end)]
+            hours = self.__dash__(hrstr)
+            return hours
+        elif '/' in hrstr:
+            hours = self.__slash__(cstr=hrstr, units=24)
             return hours
         else:
             return [int(hrstr)]
@@ -162,29 +151,71 @@ class Transform:
         
     def _get_minutes_(self, minstr: str):
         if minstr == '*':
-            month_days = monthrange(self.year_now, self.month_now)[1]
             minutes = [m for m in range(60)]
             return minutes
-        if ',' in minstr:
+        elif ',' in minstr:
             minutes = []
             min_split = minstr.split(',')
             bp = 'here'
             for min in min_split:
                 if '/' in min:
-                    step = int( min.split('/')[0])
-                    freq = int( min.split('/')[1])
-                    ex_per_hour = 60/freq
-                    minutes = minutes + [i for i in range(step, 60, freq)]
-                    bp = 'here'
+                    more_minutes = self.__slash__(min, 60)
+                    minutes.extend(more_minutes)
+                elif '-' in min:
+                    more_minutes = self.__dash__(min)
+                    minutes.extend(more_minutes)
                 else:
                     minutes.append(int(min))
-                minutes.sort()
+            minutes.sort()
+            return minutes
+        elif '-' in minstr:
+            minutes = self.__dash__(minstr)
             return minutes
         elif '/' in minstr:
-            step = 0 if minstr[0] == '*' else int(minstr.split('/')[0])
-            freq = int( minstr.split('/')[1])
-            minutes = [i for i in range(step, 60, freq)]
+            minutes= self.__slash__(minstr, 60)
             return minutes
         else:
             return [int(minstr)]
-        return minutes
+
+
+    def _get_weekdays_(self, wkdaystr):
+        if wkdaystr == '*':
+            wd = [m for m in range(7)]
+            return wd
+        elif ',' in wkdaystr:
+            wkdays = []
+            wd_split = wkdaystr.split(', ')
+            for wd in wd_split:
+                if '/' in wkdaystr:
+                    self.logger.error(f"What in the world are you trying to schedule? returning all weekdays...")
+                    return [m for m in range(6)]
+                elif '-' in wd_split:
+                    more_wd = self.__dash__(wd)
+                    wkdays.extend(more_wd)
+                else:
+                    wkdays.append(int(wd))
+            wkdays.sort()
+            return wkdays
+        elif '-' in wkdaystr:
+            wkdays = self.__dash__(wkdaystr)
+            return wkdays
+        else:
+            return [int(wkdaystr)]
+
+
+
+
+    def __dash__(self, cstr: str):
+        split = cstr.split('-')
+        start = int( split[0]) if split[0] != '*' else 0
+        end = int(split[1])
+        window = [i for i in range(start, end)]
+        return window
+
+
+    def __slash__(self, cstr: str, units: int):
+        step = int( cstr.split('/')[0]) if cstr.split('/')[0] != '*' else 0
+        freq = int( cstr.split('/')[1])
+        times = [i for i in range(step, units, freq)]
+        bp = 'here'
+        return times

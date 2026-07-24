@@ -1,4 +1,4 @@
-from . import Pipeline
+from integration_platform.pipelines.base import Pipeline
 from integration_platform.connectors.sftp import SFTP
 from datetime import datetime
 from zoneinfo import ZoneInfo

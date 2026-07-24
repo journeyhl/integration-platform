@@ -6,7 +6,7 @@ import logging
 class Transform:
     def __init__(self, pipeline: RedStagOrderSearch):
         self.pipeline = pipeline
-        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.transform')
+        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.Transform')
         pass
     
     def transform(self, data_extract):

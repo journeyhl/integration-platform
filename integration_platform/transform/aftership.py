@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 class Transform:
     def __init__(self, pipeline: SendToAfterShip | UpdateAfterShip | AfterShipToDbc):
         self.pipeline = pipeline
-        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.transform')
+        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.Transform')
         self._set_state_map()
         self._set_tzoffset_map()
         self.data_transformed = []

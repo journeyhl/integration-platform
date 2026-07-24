@@ -19,7 +19,7 @@ def _parse_hs_date(value: str | None) -> datetime | None:
 class Transform:
     def __init__(self, pipeline: HubSpotSnapshot):
         self.pipeline = pipeline
-        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.transform')
+        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.Transform')
         self.inside_reps = ['Angela Rivieccio', 'Cameron Wright', 'Wilson Noriega', 'Annemarie Castellano']
         self.field_reps  = ['Elias Bandak', 'Kevin Massimino', 'Snowden Portis']
     

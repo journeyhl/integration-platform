@@ -840,9 +840,9 @@ def acu_to_dbc_b2b_collections(timer: af.TimerRequest):
 
 
 
-#region                  mfr_inserts_export
-#     Exports "Inserts" MFR spend summary CSV to INC_MEDIA SFTP
-#                         Weekly (Mondays 10:00am ET)
+#region                                 mfr_inserts_export
+#Exports "Inserts" MFR spend summary CSV to INC_MEDIA SFTP
+#                              Weekly (Mondays 10:00am ET)
 @app.timer_trigger(
     schedule = '0 10 * * 1',
     arg_name = 'timer',
@@ -852,4 +852,21 @@ def mfr_inserts_export(timer: af.TimerRequest):
     from integration_platform.pipelines.mfr_inserts_export import MFRInsertsExport
     mfr_export = MFRInsertsExport(function='mfr_inserts_export') #mfr-inserts-export
     mfr_export.run()
-#endregion       mfr_inserts_export
+#endregion                              mfr_inserts_export
+
+
+
+#region                                     cron_calendar
+#     Exports current function_app.py cron schedule to db
+#                             2x/day (5:00am)
+@app.timer_trigger(
+    schedule = '5 5,12,15 * * 1-5',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def cron_calendar(timer: af.TimerRequest):
+    from integration_platform.pipelines.cron_calendar import CronCalendar
+    cron_cal = CronCalendar(function='cron_calendar') #cron-calendar
+    cron_cal.run()
+#endregion                              mfr_inserts_export
+

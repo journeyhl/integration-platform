@@ -10,7 +10,7 @@ class Transform:
 
     def __init__(self, pipeline: AcuToDbcB2BCollections):
         self.pipeline = pipeline
-        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.transform')
+        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.Transform')
         self.summary_group_by_columns= [
             'CustomerID', 
             'CustomerName',
