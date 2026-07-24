@@ -45,13 +45,13 @@ class AcuAPILoader:
             if status != 'On Hold':
                 hold_payload = self.pipeline.acu_api.helper.format_put_on_hold(order=order)
                 self.pipeline.acu_api.order_do_action(order_data=order, payload=hold_payload, action='PutOrderOnHold')
-            time.sleep(5)
+                time.sleep(5)
             if order['ChairRemovalWH'] != order['OrderLineWH']:
                 self.logger.warning(f'Warehouse mismatch! {order['InventoryCD']}: {order['OrderLineWH']}, Chair Removal: {order['ChairRemovalWH']}')
                 order['acu_response'] = self.pipeline.acu_api.get_order_details(order_data=order, additional_details='?$expand=Details')
                 order['acu_details'] = order['acu_response']['Details']
-                update_wh_payload = self.pipeline.acu_api.helper.format_soline_wh_update(order=order)
-                response = self.pipeline.acu_api.target_api(endpoint='/SalesOrder', payload_data={'target_api_update_payload': update_wh_payload}, operation='put', descr='Update Warehouse')
+                update_wh_payload, data_log = self.pipeline.acu_api.helper.format_soline_wh_update(order=order)
+                response = self.pipeline.acu_api.target_api(endpoint='/SalesOrder', payload_data={'target_api_update_payload': update_wh_payload, 'acu_api_data_log': data_log}, operation='put', descr='Update Warehouse')
                 status = response['Status']['value'] if isinstance(response, dict) else status
             if order['ShipSeparately']:
                 ship_sep_payload = self.pipeline.acu_api.helper.format_ship_separately(order=order)

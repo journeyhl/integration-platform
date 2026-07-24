@@ -58,6 +58,8 @@ class Transform:
         self.month_now = self.now.month
         executions = []
         for function, schedule in cron_schedule.items():
+            if function == 'five9_call_segments':
+                bp = 'here'
             segments = schedule.split(' ')
             minute = segments[0]
             hour = segments[1]
@@ -181,7 +183,7 @@ class Transform:
         elif '/' in minstr:
             step = 0 if minstr[0] == '*' else int(minstr.split('/')[0])
             freq = int( minstr.split('/')[1])
-            minutes = [i for i in range(0, 60, freq)]
+            minutes = [i for i in range(step, 60, freq)]
             return minutes
         else:
             return [int(minstr)]
