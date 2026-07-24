@@ -2766,6 +2766,13 @@ DARWILL_SFTP: dict = {
     'password': os.getenv('SFTP_DARWILL_PASSWORD'),
 }
 
+INC_MEDIA_SFTP: dict = {
+    'host': os.getenv('SFTP_INC_MEDIA_HOST'),
+    'port': os.getenv('SFTP_INC_MEDIA_PORT'),
+    'username': os.getenv('SFTP_INC_MEDIA_USERNAME'),
+    'password': os.getenv('SFTP_INC_MEDIA_PASSWORD'),
+}
+
 
 
 RYDER = {

@@ -837,3 +837,19 @@ def acu_to_dbc_b2b_collections(timer: af.TimerRequest):
     inventory_summary = AcuToDbcB2BCollections(function='acu_to_dbc_b2b_collections') #acu-to-dbc-b2b-collections
     inventory_summary.run()
 #endregion       acu_to_dbc_inventory_summary
+
+
+
+#region                  mfr_inserts_export
+#     Exports "Inserts" MFR spend summary CSV to INC_MEDIA SFTP
+#                         Weekly (Mondays 10:00am ET)
+@app.timer_trigger(
+    schedule = '0 10 * * 1',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def mfr_inserts_export(timer: af.TimerRequest):
+    from integration_platform.pipelines.mfr_inserts_export import MFRInsertsExport
+    mfr_export = MFRInsertsExport(function='mfr_inserts_export') #mfr-inserts-export
+    mfr_export.run()
+#endregion       mfr_inserts_export

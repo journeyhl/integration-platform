@@ -89,6 +89,8 @@ class CentralStoreQueries(Queries):
     Metrics_B2BCustomers: Query
     Metrics_B2BCustomerAge: Query
     Aftership_LinkID: Query
+    MFRInsertsExport: Query
+    '''Summarized pull from analytics.mfr_with_spend filtered to category = 'Inserts', grouped by ad/version/product/start_date. Exported weekly to the INC_MEDIA SFTP.'''
 
 
 class AcumaticaDbQueries(Queries):
