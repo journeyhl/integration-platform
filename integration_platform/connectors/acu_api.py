@@ -461,8 +461,8 @@ class AcumaticaAPI:
             self.logger.error(f'Error getting {order_data['OrderNbr']}')
             return order_data
         bp = 'here'
-        order_data = {**order_data, 'acu_info': order_info}
-        return order_data
+        # order_data = {**order_data, 'acu_response': order_info}
+        return order_info
     #endregion
 
     #region order_remove_hold

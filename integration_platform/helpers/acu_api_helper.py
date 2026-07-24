@@ -391,7 +391,13 @@ class AcumaticaAPIHelper:
                 }
             ]      
         }
-        return update_soline_wh_payload
+        acu_data_log_entry = {            
+            'Entity': 'SalesOrder',
+            'KeyValue': order['OrderNbr'],
+            'Operation': f'PUT - Update SOLine Warehouse',
+            'Payload': update_soline_wh_payload,
+        }
+        return update_soline_wh_payload, acu_data_log_entry
 
 
     
