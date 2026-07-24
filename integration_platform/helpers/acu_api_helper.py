@@ -369,7 +369,7 @@ class AcumaticaAPIHelper:
         :return `update_soline_wh_payload` (dict): payload to be sent to Acumatica api to update the warehouse on a given order line
         '''
         self.logger.info(f"Updating Chair Removal's warehouse to {order['OrderLineWH']}")
-        lines = order['acu_details']
+        lines = order['acu_soline_response']
         chair = [line for line in lines if line['InventoryID']['value'] != '27222'][0] or {}
         chair_removal = [line for line in lines if line['InventoryID']['value'] == '27222'][0] or {}
         if chair == {} or chair_removal == {}:

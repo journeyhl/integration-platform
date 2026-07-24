@@ -461,8 +461,8 @@ class AcumaticaAPI:
             self.logger.error(f'Error getting {order_data['OrderNbr']}')
             return order_data
         bp = 'here'
-        # order_data = {**order_data, 'acu_response': order_info}
-        return order_info
+        order_data = {**order_data, 'acu_response': order_info}
+        return order_data
     #endregion
 
     #region order_remove_hold
@@ -518,6 +518,7 @@ class AcumaticaAPI:
             url = f'{self.base_uri}/SalesOrder/{action}'
             response = self.session.post(url=url, json=payload)
             response_str = f'{response.status_code} {response.reason}'
+            self.logger.info(f'{response_str}. {response.text}')
             bp = 'here'
         except Exception as e:
 
