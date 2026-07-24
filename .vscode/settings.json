@@ -10,6 +10,7 @@
     "autoDocstring.docstringFormat": "one-line-sphinx",
     "autoDocstring.customTemplatePath": ".vscode/docstring.mustache",
     "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.completeFunctionParens": true,
 
 "editor.hover.hidingDelay": 2000,
 "editor.hover.enabled": "on",

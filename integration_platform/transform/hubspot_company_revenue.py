@@ -8,7 +8,7 @@ import json
 class Transform:
     def __init__(self, pipeline: HubspotCompanyRevenue):
         self.pipeline = pipeline
-        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.transform')
+        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.Transform')
         self.prefix = ''
         self.distinct_company_contacts = {}
         self.sql_data_transformed = []

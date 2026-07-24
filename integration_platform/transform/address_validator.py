@@ -8,7 +8,7 @@ import polars as pl
 class Transform:    
     def __init__(self, pipeline: AddressValidator):
         self.pipeline = pipeline
-        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.transform')
+        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.Transform')
         pass
     
     def transform(self, data_extract: dict[str, pl.DataFrame]):

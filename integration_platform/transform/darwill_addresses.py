@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 class Transform:
     def __init__(self, pipeline: DarwillAddresses):
         self.pipeline = pipeline
-        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.transform')
+        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.Transform')
         self.date_added = datetime.now(ZoneInfo('America/New_York')).date()
         pass
     

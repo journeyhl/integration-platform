@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 class Transform:
     def __init__(self, pipeline: Criteo):
         self.pipeline = pipeline
-        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.transform')
+        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.Transform')
         pass
     
 
