@@ -1,6 +1,7 @@
+import io
 import logging
 import paramiko
-from integration_platform.config.settings import JHL_SFTP, DARWILL_SFTP
+from integration_platform.config.settings import JHL_SFTP, DARWILL_SFTP, INC_MEDIA_SFTP
 import polars as pl
 from datetime import datetime, timezone
 
@@ -21,6 +22,11 @@ class SFTP():
             self.port = DARWILL_SFTP['port']
             self.username = DARWILL_SFTP['username']
             self.password = DARWILL_SFTP['password']
+        elif server == 'INC_MEDIA':
+            self.host = INC_MEDIA_SFTP['host']
+            self.port = INC_MEDIA_SFTP['port']
+            self.username = INC_MEDIA_SFTP['username']
+            self.password = INC_MEDIA_SFTP['password']
         else:
             self.logger.error(f'Invalid server!')
 
@@ -94,3 +100,34 @@ class SFTP():
 
         bp = 'here'
         # self.sftp.get(path, )
+
+    def upload_dataframe_as_csv(self, df: pl.DataFrame, remote_path: str):
+        '''`upload_dataframe_as_csv`(self, df: *pl.DataFrame*, remote_path: *str*):
+        ---
+        <hr>
+
+        Serialize a Polars DataFrame to CSV and upload it to the connected SFTP
+        server at `remote_path`.
+
+        <hr>
+
+        Parameters
+        ---
+        :param (*pl.DataFrame*) `df`: DataFrame to write out as CSV
+        :param (*str*) `remote_path`: Destination path (or filename, relative to
+            the account's landing directory) on the SFTP server
+
+        <hr>
+
+        Returns
+        ---
+        The `remote_path` the file was written to.
+        '''
+        try:
+            buffer = io.BytesIO(df.write_csv().encode('utf-8'))
+            self.sftp.putfo(buffer, remote_path)
+            self.logger.info(f'Uploaded {df.height} rows to {remote_path}')
+            return remote_path
+        except Exception as e:
+            self.logger.error(f"Error! {e} Couldn't upload to {remote_path}")
+            raise
