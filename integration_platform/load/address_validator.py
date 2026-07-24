@@ -24,6 +24,8 @@ class Load:
                 self.logger.warning(f'{order_avs['OrderNbr']}: No response from AVS, skipping...')
                 continue
             self.logger.info(f'{order_avs['OrderNbr']}: Beginning target run')
+            order_details = self.pipeline.acu_api.get_order_details(order_avs)
+            order_avs['update_order_address_payload'] = self.check_not_overriden(update_order_address_payload=order_avs['update_order_address_payload'], order_details=order_details)
             light_payload = {
                 'key': f'{order_avs['OrderNbr']}',
                 'target_api_update_payload': order_avs['update_order_address_payload'],
@@ -40,6 +42,15 @@ class Load:
                 self.validate_remove_hold_create(order_avs)
                 bp = 'here'
 
+
+    def check_not_overriden(self, update_order_address_payload: dict, order_details):
+        acu_bill_override = order_details['BillToAddressOverride']
+        acu_ship_override = order_details['ShipToAddressOverride']
+        if acu_bill_override:
+            update_order_address_payload.pop('BillToAddressOverride')
+        if acu_ship_override:
+            update_order_address_payload.pop('ShipToAddressOverride')
+        return update_order_address_payload
 
     def validate_remove_hold_create(self, order_avs: dict):
         ''':class:`~Load`.:meth:`~validate_remove_hold_create` (self, order_avs: *dict*):

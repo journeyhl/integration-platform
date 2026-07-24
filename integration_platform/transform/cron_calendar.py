@@ -219,3 +219,7 @@ class Transform:
         times = [i for i in range(step, units, freq)]
         bp = 'here'
         return times
+
+
+    def _days_weekdays_(self, ):
+        bp = 'her'

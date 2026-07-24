@@ -5,7 +5,7 @@ from integration_platform.pipelines import AddressValidator
 from integration_platform.connectors import SQLConnector, AcumaticaAPI, AddressVerificationSystem
 import polars as pl
 
-addr_validator = AddressValidator(function='.debug', env='dev')
+addr_validator = AddressValidator(function='.debug')
 addr_validator.run()
 
 

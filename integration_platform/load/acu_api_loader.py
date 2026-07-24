@@ -48,8 +48,9 @@ class AcuAPILoader:
                 time.sleep(5)
             if order['ChairRemovalWH'] != order['OrderLineWH']:
                 self.logger.warning(f'Warehouse mismatch! {order['InventoryCD']}: {order['OrderLineWH']}, Chair Removal: {order['ChairRemovalWH']}')
-                order['acu_response'] = self.pipeline.acu_api.get_order_details(order_data=order, additional_details='?$expand=Details')
-                order['acu_details'] = order['acu_response']['Details']
+                order_with_acu_response = self.pipeline.acu_api.get_order_details(order_data=order, additional_details='?$expand=Details')
+                order['acu_soorder_response'] = order_with_acu_response['acu_response']
+                order['acu_soline_response'] = order_with_acu_response['acu_response']['Details']
                 update_wh_payload, data_log = self.pipeline.acu_api.helper.format_soline_wh_update(order=order)
                 response = self.pipeline.acu_api.target_api(endpoint='/SalesOrder', payload_data={'target_api_update_payload': update_wh_payload, 'acu_api_data_log': data_log}, operation='put', descr='Update Warehouse')
                 status = response['Status']['value'] if isinstance(response, dict) else status

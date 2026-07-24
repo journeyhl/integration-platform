@@ -5,7 +5,7 @@ from integration_platform.pipelines import ShipChairRemovalSeparate
 
 
 ship_sep = ShipChairRemovalSeparate('.debug', 
-# env='dev'
+env='dev'
 )
 ship_sep.run()
 bp = 'here'
