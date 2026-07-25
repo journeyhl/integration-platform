@@ -794,7 +794,7 @@ def metrics_call_center(timer: af.TimerRequest):
 
 #region                     metrics_sales_summary
 #                           Upserts Sales metrics
-#                3x/day (7:55am/11:55am/7:55pm EST)
+#                3x/day (7:50am/11:50am/7:50pm EST)
 @app.timer_trigger(
     schedule = '50 7,11,19 * * *',
     arg_name = 'timer',
@@ -805,6 +805,21 @@ def metrics_sales_summary(timer: af.TimerRequest):
     sales_summary = SalesSummaryMetrics(function='metrics_sales_summary') #sales-summary-metrics
     sales_summary.run()
 #endregion                  metrics_sales_summary
+
+#region                                         metrics_b2b
+#                               Upserts/Inserts B2B metrics
+#                            3x/day (7:47am/11:47am/7:47pm)
+@app.timer_trigger(
+    schedule = '47 7,11,19 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def metrics_b2b(timer: af.TimerRequest):
+    from integration_platform.pipelines.metrics_b2b import B2BMetrics
+    b2b = B2BMetrics(function='metrics_b2b') #metrics-b2b
+    b2b.run()
+#endregion                                      metrics_b2b
+
 
 
 
@@ -868,5 +883,6 @@ def cron_calendar(timer: af.TimerRequest):
     from integration_platform.pipelines.cron_calendar import CronCalendar
     cron_cal = CronCalendar(function='cron_calendar') #cron-calendar
     cron_cal.run()
-#endregion                              mfr_inserts_export
+#endregion                                  cron_calendar
+
 
