@@ -21,7 +21,7 @@ dependencies = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["integration_platform"]
+include = ["integration_platform*"]
 
 [tool.setuptools.package-data]
 integration_platform = ["sql/**/*.sql"]
