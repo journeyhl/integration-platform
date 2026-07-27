@@ -114,6 +114,7 @@ def read_azure_env() -> list | None:
         except Exception:
             it +=1
             input('Could not parse clipboard. Copy the Azure Environment Variables JSON, then press Enter...')
+    bp = 'here'
     return None
 
 def read_local_env() -> list:
@@ -254,109 +255,119 @@ def driver():
 
 driver()
 
-#region done
-while True:
-    try:
-        azure_envs = json.loads(pyperclip.paste())
-        break
-    except Exception:
-        input('Could not parse clipboard. Copy the Azure Environment Variables JSON, then press Enter...')
-
-
-
-current_env = []
-with open('.env' , 'r') as f:
-    current_env_file = f.read()
-
-
-if current_env_file:
-    current_env_line = current_env_file.split('\n')
-
-for line in current_env_line:
-    if len(line) > 0 and line[0] !='#':
-        line_split = line.split('=')
-        st =  line_split[1][0]
-        end = line_split[1][-1]
-        if line_split[1][0] == '"' and line_split[1][-1] == "'":
-            test = f'{line_split[1][1:-1]}'
-            line_split[1] = f'{line_split[1][1:-1]}'
-            bp = 'here'
-        elif line_split[1][0] == "'":
-            line_split[1] = line_split[1].replace("'", '"') 
-        entry = {
-            'name': f'{line_split[0]}',
-            'value': line_split[1],
-            "slotSetting": False
-        }
-        current_env.append(entry)
-
 
 bp = 'here'
-azure_env_backup = azure_envs.copy()
-print(f'Current number of env variables in Azure input: {len(azure_envs)}')
-print(f'Current number of env variables in local .env file: {len(current_env)}')
-new_entries = []
-value_conflicts = []
-for entry in current_env:
-    name_matches = [az for az in azure_envs if az['name'] == entry['name']]
-    if name_matches == []:
-        print(f'New variable! {entry['name']}:{entry['value']}')
-        bp = 'here'
-        new_entries.append(entry)
-    else:
-        if len(name_matches) > 1:
-            print(f'Multiple matches!!! Double check this!')
-            continue
-        name_match = name_matches[0]
-        if entry['value'] != name_match['value']:
-            print(f'!!\nValue conflict in {entry['name']}!')
-            print(f'\t.env:  {entry['value']}')
-            print(f'\tazure: {name_match['value']}')
-            print(f'Keeping value found in Azure ({name_match['value']})')
-            value_conflicts.append({
-                'name': entry['name'],
-                '.env': entry['value'],
-                'azure': name_match['value']
-            })
-            bp = 'here'
-        bp = 'here'
-#endregion done
 
-azure_envs.extend(new_entries)
 
-function_option_selection = input('''
-Would you like to disable/enable functions?
-press 1 to disable all functions
-press 2 to enable all functions
-press 3 to toggle all functions
-press 4 to iterate and decide for each
-press any other key to do nothing: ''')[0]
 
-option_map = {
-    '1': 'disable',
-    '2': 'enable',
-    '3': 'toggle'
-}
 
-if function_option_selection in['1', '2', '3']:
-    azure_envs = update_entries(azure_envs, option_map[function_option_selection])
-elif function_option_selection == '4':
-    azure_envs = decide_function_status(azure_envs)
-else:
+
+
+
+def old_stuff_i_think():
+    #region done
+    while True:
+        try:
+            azure_envs = json.loads(pyperclip.paste())
+            break
+        except Exception:
+            input('Could not parse clipboard. Copy the Azure Environment Variables JSON, then press Enter...')
+
+
+
+    current_env = []
+    with open('.env' , 'r') as f:
+        current_env_file = f.read()
+
+
+    if current_env_file:
+        current_env_line = current_env_file.split('\n')
+
+    for line in current_env_line:
+        if len(line) > 0 and line[0] !='#':
+            line_split = line.split('=')
+            st =  line_split[1][0]
+            end = line_split[1][-1]
+            if line_split[1][0] == '"' and line_split[1][-1] == "'":
+                test = f'{line_split[1][1:-1]}'
+                line_split[1] = f'{line_split[1][1:-1]}'
+                bp = 'here'
+            elif line_split[1][0] == "'":
+                line_split[1] = line_split[1].replace("'", '"') 
+            entry = {
+                'name': f'{line_split[0]}',
+                'value': line_split[1],
+                "slotSetting": False
+            }
+            current_env.append(entry)
+
+
     bp = 'here'
+    azure_env_backup = azure_envs.copy()
+    print(f'Current number of env variables in Azure input: {len(azure_envs)}')
+    print(f'Current number of env variables in local .env file: {len(current_env)}')
+    new_entries = []
+    value_conflicts = []
+    for entry in current_env:
+        name_matches = [az for az in azure_envs if az['name'] == entry['name']]
+        if name_matches == []:
+            print(f'New variable! {entry['name']}:{entry['value']}')
+            bp = 'here'
+            new_entries.append(entry)
+        else:
+            if len(name_matches) > 1:
+                print(f'Multiple matches!!! Double check this!')
+                continue
+            name_match = name_matches[0]
+            if entry['value'] != name_match['value']:
+                print(f'!!\nValue conflict in {entry['name']}!')
+                print(f'\t.env:  {entry['value']}')
+                print(f'\tazure: {name_match['value']}')
+                print(f'Keeping value found in Azure ({name_match['value']})')
+                value_conflicts.append({
+                    'name': entry['name'],
+                    '.env': entry['value'],
+                    'azure': name_match['value']
+                })
+                bp = 'here'
+            bp = 'here'
+    #endregion done
+
+    azure_envs.extend(new_entries)
+
+    function_option_selection = input('''
+    Would you like to disable/enable functions?
+    press 1 to disable all functions
+    press 2 to enable all functions
+    press 3 to toggle all functions
+    press 4 to iterate and decide for each
+    press any other key to do nothing: ''')[0]
+
+    option_map = {
+        '1': 'disable',
+        '2': 'enable',
+        '3': 'toggle'
+    }
+
+    if function_option_selection in['1', '2', '3']:
+        azure_envs = update_entries(azure_envs, option_map[function_option_selection])
+    elif function_option_selection == '4':
+        azure_envs = decide_function_status(azure_envs)
+    else:
+        bp = 'here'
 
 
 
 
-new = []
-for entry in azure_envs:
-    match = next((be for be in azure_env_backup if entry == be), None)
-    if not match:
-        new.append(f'{entry['name']}: {entry['value']}')
+    new = []
+    for entry in azure_envs:
+        match = next((be for be in azure_env_backup if entry == be), None)
+        if not match:
+            new.append(f'{entry['name']}: {entry['value']}')
 
-pyperclip.copy(json.dumps(azure_envs, indent=2))
-print(f'New env json ready for paste to azure! {len(azure_envs) - len(azure_env_backup)} variables added')
-print(f'\n\nAdditions:\n----')
-for new_item in new:
-    print(new_item)
-bp = 'here'
+    pyperclip.copy(json.dumps(azure_envs, indent=2))
+    print(f'New env json ready for paste to azure! {len(azure_envs) - len(azure_env_backup)} variables added')
+    print(f'\n\nAdditions:\n----')
+    for new_item in new:
+        print(new_item)
+    bp = 'here'
