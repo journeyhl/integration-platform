@@ -16,9 +16,7 @@
 "editor.hover.enabled": "on",
 "editor.hover.above": true,
 "editor.hover.sticky": true,
-"editor.minimap.showSlider":"mouseover",
-"editor.minimap.autohide": "scroll",
 "workbench.editor.showTabIndex": true,
-
+"editor.colorDecorators": true
     
 }

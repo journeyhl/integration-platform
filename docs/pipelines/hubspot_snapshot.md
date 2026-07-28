@@ -6,7 +6,7 @@ flowchart TD
     B --> B2[ 
         self.hubapi = HubSpotAPI
         self.transformer = Transform
-        self.hubapi._set_snapshot_windows
+        self.hubapi._set_snapshot_windows_
     ]
     A --> RUN[Pipeline.run]
 
