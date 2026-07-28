@@ -4,7 +4,7 @@ from integration_platform.connectors import HubSpotAPI
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-class HubSpotSnapshot(Pipeline):
+class HubspotSnapshot(Pipeline):
     '''`HubSpotSnapshot`(Pipeline)
     ---
     <hr>
@@ -13,7 +13,7 @@ class HubSpotSnapshot(Pipeline):
 
     # Extraction
      - Pulls all data from HubSpot
-        - Owners: :class:`~connectors.hubspot_api.HubSpotAPI`.:meth:`~connectors.hubspot_api.HubSpotAPI._get_owners`
+        - Owners: :class:`~connectors.hubspot_api.HubSpotAPI`.:meth:`~connectors.hubspot_api.HubSpotAPI._get_owners_`
         - Deals: :class:`~connectors.hubspot_api.HubSpotAPI`.:meth:`~connectors.hubspot_api.HubSpotAPI.search_deals`
         - Calls: :class:`~connectors.hubspot_api.HubSpotAPI`.:meth:`~connectors.hubspot_api.HubSpotAPI.search_activities` ('calls')
         - Emails: :class:`~connectors.hubspot_api.HubSpotAPI`.:meth:`~connectors.hubspot_api.HubSpotAPI.search_activities` ('emails')

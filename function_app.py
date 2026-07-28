@@ -600,8 +600,8 @@ def aftership_to_dbc(timer: af.TimerRequest):
     run_on_startup = False
 )
 def hubspot_snapshots(timer: af.TimerRequest):
-    from integration_platform.pipelines.hubspot_snapshot import HubSpotSnapshot #hubspot-snapshot
-    hubspot_snapshot_upsert = HubSpotSnapshot('hubspot_snapshots')
+    from integration_platform.pipelines.hubspot_snapshot import HubspotSnapshot #hubspot-snapshot
+    hubspot_snapshot_upsert = HubspotSnapshot('hubspot_snapshots')
     hubspot_snapshot_upsert.run()
 #endregion      hubspot_snapshots
 

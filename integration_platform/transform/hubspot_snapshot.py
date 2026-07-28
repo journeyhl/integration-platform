@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from integration_platform.pipelines.hubspot_snapshot import HubSpotSnapshot
+    from integration_platform.pipelines.hubspot_snapshot import HubspotSnapshot
 import logging
 import polars as pl
 from datetime import datetime, timedelta, timezone
@@ -17,7 +17,7 @@ def _parse_hs_date(value: str | None) -> datetime | None:
     return None
 
 class Transform:
-    def __init__(self, pipeline: HubSpotSnapshot):
+    def __init__(self, pipeline: HubspotSnapshot):
         self.pipeline = pipeline
         self.logger = logging.getLogger(f'{pipeline.pipeline_name}.Transform')
         self.inside_reps = ['Angela Rivieccio', 'Cameron Wright', 'Wilson Noriega', 'Annemarie Castellano']

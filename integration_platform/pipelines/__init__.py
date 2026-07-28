@@ -33,10 +33,11 @@ from .redstag_order_search import RedStagOrderSearch
 
 
 
-from .hubspot_snapshot import HubSpotSnapshot
-from .hubspot_contacts import HubSpotContacts
+from .hubspot_snapshot import HubspotSnapshot
+from .hubspot_contacts import HubspotContacts
 from .hubspot_company_revenue import HubspotCompanyRevenue
 from .hubspot_property_update import HubspotPropertyUpdate
+from .hubspot_leads_to_dbc import HubspotLeadsToDbc
 
 from .criteo import Criteo
 from .hubspot_properties import HubSpotProperties

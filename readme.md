@@ -1164,7 +1164,7 @@ Daily snapshot pipeline that pulls B2B deals and activity counts (calls, emails,
 
 #### Extraction
 - [`HubSpotAPI`](#hubspotapi) pre-loads `owners` and `deal pipelines` at init
-- [`HubSpotAPI._set_snapshot_windows`](#hubspotapi) sets fiscal-year, month, and week window boundaries (America/New_York)
+- [`HubSpotAPI._set_snapshot_windows_`](#hubspotapi) sets fiscal-year, month, and week window boundaries (America/New_York)
 - `search_deals`: pulls all B2B deals
 - `search_activities`: pulls calls, emails, meetings, tasks within window
 - Returns `data_extract = { owners, deals, calls, emails, meetings, tasks, timestamp }`
@@ -1811,18 +1811,18 @@ HubSpot CRM client used by [`HubSpotSnapshot`](#pipeline---hubspot_snapshotpy) a
 ### Methods
 
 #### `__init__(self, pipeline: HubSpotSnapshot | HubSpotProperties)`
-Initializes the connector, sets `Authorization: Bearer {HUBSPOT["access_token"]}`, and calls `_get_deal_pipelines` + `_get_owners`.
+Initializes the connector, sets `Authorization: Bearer {HUBSPOT["access_token"]}`, and calls `_get_deal_pipelines_` + `_get_owners_`.
 
-#### `_set_snapshot_windows(self)`
+#### `_set_snapshot_windows_(self)`
 Computes `fiscal_year_start`, `week_start`, `month_start` (America/New_York) for [`HubSpotSnapshot`](#pipeline---hubspot_snapshotpy).
 
-#### `_request(self, method, path, **kwargs) → dict`
+#### `_request_(self, method, path, **kwargs) → dict`
 Generic JSON HTTP wrapper around `self.session`.
 
 #### Search / catalog helpers
 - `search_deals(self, ...)`: paginated deal search
 - `search_activities(self, ...)`: paginated activity search (calls, emails, meetings, tasks)
-- `_get_owners(self)` / `_get_deal_pipelines(self)`: catalog preload
+- `_get_owners_(self)` / `_get_deal_pipelines_(self)`: catalog preload
 - `_get_properties(self, object_type)`: GET `/crm/v3/properties/{object_type}` (used by [`HubSpotProperties`](#pipeline---hubspot_propertiespy))
 
 ---
