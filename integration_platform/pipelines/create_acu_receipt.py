@@ -9,41 +9,7 @@ from integration_platform.transform.create_acu_receipt import Transform
 from integration_platform.load.shipment_api import Load
 from integration_platform.connectors import AcumaticaAPI
 import json
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 
 class CreateAcuReceipt(Pipeline):
     '''`CreateAcuReceipt`(Pipeline)
@@ -81,8 +47,11 @@ class CreateAcuReceipt(Pipeline):
     # Results Logging
      - Upserts Acumatica API interactions to **_util.acu_api_log** 
     '''
-    def __init__(self, function: str):
-        super().__init__('create-receipts', function)
+    def __init__(self, function: str, env: str='prod'):
+        super().__init__(pipeline_name='create-receipts', function=function, env=env)
+        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
+            pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
+        )
         self.acu_api = AcumaticaAPI(self)
         self.transformer = Transform(self)
         self.loader = Load(self)

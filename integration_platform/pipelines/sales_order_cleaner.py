@@ -2,6 +2,7 @@ from integration_platform.pipelines import Pipeline
 from integration_platform.connectors import AcumaticaAPI
 from integration_platform.transform.cleaner import Transform
 import polars as pl
+from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 
 class SalesOrderCleaner(Pipeline):    
     '''`SalesOrderCleaner`(Pipeline)
@@ -26,8 +27,11 @@ class SalesOrderCleaner(Pipeline):
     # Results Logging
      - None needed
     '''
-    def __init__(self, function: str):
-        super().__init__('sales-orders-cleaner', function)
+    def __init__(self, function: str, env: str = 'prod'):
+        super().__init__('sales-orders-cleaner', function=function, env=env)
+        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
+            pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
+        )
         self.transformer = Transform(self)
 
 

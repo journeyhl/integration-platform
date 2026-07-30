@@ -1,6 +1,7 @@
 from integration_platform.pipelines import Pipeline
 from integration_platform.connectors import AcumaticaAPI
 from integration_platform.transform.consignment_reclassification import Transform
+from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 
 
 
@@ -9,6 +10,9 @@ class ConsignmentReclassification(Pipeline):
     def __init__(self, function: str, env: str='prod'):
         # function = 'consignment_reclassifications'
         super().__init__(pipeline_name='consignment-reclassifications', function=function, env=env)
+        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
+            pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
+        )
         self.acu_api = AcumaticaAPI(self, env=env)
         self.transformer = Transform(self)
 

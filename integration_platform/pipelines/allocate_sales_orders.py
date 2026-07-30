@@ -2,6 +2,7 @@ from integration_platform.pipelines import Pipeline
 from integration_platform.connectors import AcumaticaAPI
 from integration_platform.transform.manage_sales_allocations import Transform
 
+from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 
 
 
@@ -9,6 +10,9 @@ class AllocateSalesOrders(Pipeline):
     def __init__(self, function: str, env: str='dev'):
         # function = 'allocate_sales_orders'
         super().__init__(pipeline_name='allocate-sales-orders', function=function, env=env)
+        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
+            pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
+        )
         self.acu_api = AcumaticaAPI(self, env=env)
         self.transformer = Transform(self)
 

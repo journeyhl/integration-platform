@@ -4,6 +4,7 @@ from integration_platform.connectors import AcumaticaAPI
 import polars as pl
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
+from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 
 class AcuToDbcBackordersPointInTime(Pipeline):
     '''`AcuToDbcSalesOrders`(Pipeline)
@@ -25,8 +26,11 @@ class AcuToDbcBackordersPointInTime(Pipeline):
     # Results Logging
      - None needed
     '''
-    def __init__(self, function: str):
-        super().__init__('acu-to-dbc-backorders', function)
+    def __init__(self, function: str, env: str='prod'):
+        super().__init__(pipeline_name='acu-to-dbc-backorders', function=function, env=env)
+        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
+            pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
+        )
 
 
     def extract(self) -> dict[str, pl.DataFrame]:

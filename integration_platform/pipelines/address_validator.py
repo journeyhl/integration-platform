@@ -5,6 +5,8 @@ from integration_platform.transform.address_validator import Transform
 from integration_platform.load.address_validator import Load
 import json
 import time
+from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
+
 class AddressValidator(Pipeline):
     ''':meth:`~AddressValidator` (Pipeline)
     ---
@@ -32,7 +34,10 @@ class AddressValidator(Pipeline):
      - Upserts Acumatica API interactions to **_util.acu_api_log**
     '''
     def __init__(self, function: str, env: str = 'prod'):
-        super().__init__('address-validator', function, env=env)
+        super().__init__(pipeline_name='address-validator', function=function, env=env)
+        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
+            pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
+        )
         self.avs = AddressVerificationSystem(self)
         self.acu_api = AcumaticaAPI(self, env=env)
         self.transformer = Transform(self)

@@ -6,6 +6,7 @@ import polars as pl
 from typing import Literal
 import json
 
+from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 class SendOrderDetailsToKustomer(Pipeline):
     '''`SendOrderDetailsToKustomer`(Pipeline)
     ---
@@ -27,8 +28,11 @@ class SendOrderDetailsToKustomer(Pipeline):
     # Results Logging
      - None needed
     '''    
-    def __init__(self, function: str):
-        super().__init__('kustomer-orders', function)
+    def __init__(self, function: str, env: str='prod'):
+        super().__init__(pipeline_name='kustomer-orders', function=function, env=env)
+        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
+            pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
+        )
         self.transformer = Transform(self)
         self.api = Kustomer(self)
         self.loader = Load(self)

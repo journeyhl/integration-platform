@@ -3,6 +3,7 @@ import polars as pl
 from integration_platform.connectors import AcumaticaAPI
 import json
 import time
+from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 class ShipmentsReadyToConfirm(Pipeline):
     '''`ShipmentsReadyToConfirm`(Pipeline)
     ---
@@ -22,8 +23,11 @@ class ShipmentsReadyToConfirm(Pipeline):
     # Results Logging
      - Upserts Acumatica API interactions to **_util.acu_api_log** 
     '''
-    def __init__(self, function: str):
-        super().__init__('shipment-confirmations', function)
+    def __init__(self, function: str, env: str='prod'):
+        super().__init__(pipeline_name='shipment-confirmations', function=function, env=env)
+        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
+            pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
+        )
         self.acu_api = AcumaticaAPI(self)
 
 

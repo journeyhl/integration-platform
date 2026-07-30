@@ -3,7 +3,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 import logging
 import polars as pl
-from integration_platform.connectors.sql import SQLConnector, CentralStoreQueries, AcumaticaDbQueries
+from integration_platform.connectors.sql import SQLConnector, CentralStoreQueries
 from integration_platform.transform import DefaultTransformer
 import colorlog
 from typing import TypeVar, Generic, Any
@@ -79,9 +79,6 @@ class Pipeline(ABC):
         self.pipeline_name = pipeline_name
         self.function = function
         self.centralstore: SQLConnector[CentralStoreQueries] = SQLConnector(self, 'db_CentralStore')
-        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(self, 'AcumaticaDb')
-        if env == 'dev':
-            self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(self, 'AcudevDb')
         self.logger = logging.getLogger(pipeline_name)
         self.logs = []
         self.ts_pipeline_start = datetime.now(ZoneInfo('America/New_York'))

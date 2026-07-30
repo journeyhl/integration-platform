@@ -3,10 +3,14 @@ from integration_platform.connectors import HubSpotAPI
 import polars as pl
 
 
+from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 class HubspotPropertyUpdate(Pipeline):
     def __init__(self, function: str, env: str='prod'):
         # function = 'hubspot_property_update'
         super().__init__(pipeline_name='hubspot-property-update', function=function, env=env)
+        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
+            pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
+        )
         self.hubspot = HubSpotAPI(self)
 
     def extract(self):
