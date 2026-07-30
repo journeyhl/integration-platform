@@ -659,10 +659,13 @@ end
         test = f'create table {table_name}(\n'
         for column, dtype in df.schema.items():
             if dtype == pl.String:
-                dtype_str = 'varchar(replace_me_please),'
+                maxlen = df.select(pl.col(column).str.len_chars()).max().to_dicts()[0][column]
+                dtype_str = f'varchar({maxlen}),'
             elif str(dtype) == 'Decimal(precision=38, scale=2)':
                 dtype_str = 'decimal(18,2),'
             elif str(dtype) == "Datetime(time_unit='us', time_zone='America/New_York')":
+                dtype_str = 'datetime,'
+            elif str(dtype) == "Datetime(time_unit='us', time_zone=None)":
                 dtype_str = 'datetime,'
             elif str(dtype) == 'Boolean':
                 dtype_str = 'bit,'
@@ -672,7 +675,7 @@ end
                 dtype_str = 'Date,'
             else:
                 dtype_str = str(dtype)
-            dtype_str = 'varchar(replace_me_please),' if dtype == pl.String else 'decimal(18,2),' if str(dtype) == 'Decimal(precision=38, scale=2)' else 'datetime,'
+            # dtype_str = 'varchar(replace_me_please),' if dtype == pl.String else 'decimal(18,2),' if str(dtype) == 'Decimal(precision=38, scale=2)' else 'datetime,'
             row_text = f'{column} {dtype_str}'
             test += f'{row_text}\n'
             bp = 'here'

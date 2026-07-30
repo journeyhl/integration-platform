@@ -7,6 +7,7 @@ import logging
 import requests
 import time
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 import polars as pl
 
 class AcumaticaAPIHelper:
@@ -18,8 +19,28 @@ class AcumaticaAPIHelper:
             self.logger = logging.getLogger(f'{acu_api.pipeline.pipeline_name}.AcumaticaAPIHelper')
         
         pass
+    
+    #region format_data_log_entry
+    def format_data_log_entry(self, entity: str, key_value: str, operation: str, payload: dict, response: str, tstamp: datetime, options: Literal['append', 'return']):
+        entry = {            
+            'Entity': entity,
+            'KeyValue': key_value,
+            'Operation': operation,
+            'Payload': payload,
+            'Response': response,
+            'Timestamp': tstamp,
+        }
+        if options == 'append':
+            self.acu.data_log.append(entry)
+            return
+        elif options == 'return':
+            return entry
+        else:
+            self.acu.data_log.append(entry)
+            return entry
+    #endregion
 
-
+    #region format_manage_sales_allocations
     def format_manage_sales_allocations(self, order_data: dict) -> dict:
         ''':class:`~AcumaticaAPIHelper`.:meth:`~format_manage_sales_allocations` (self, order_data: *dict*):
         ---
@@ -96,8 +117,9 @@ class AcumaticaAPIHelper:
             'acu_api_data_log': acu_data_log_entry,
         }
         return full_payload
+    #endregion
 
-
+    #region format_reclassify_transaction
     def format_reclassify_transaction(self, cogs_entry: dict) -> dict:
         ''':class:`~AcumaticaAPIHelper`.:meth:`~format_reclassify_transaction` (self, cogs_entry: *dict*):
         ---
@@ -151,9 +173,9 @@ class AcumaticaAPIHelper:
             'acu_api_data_log': acu_data_log_entry,
         }
         return full_payload
+    #endregion
 
-
-
+    #region format_prepare_shopify
     def format_prepare_shopify(self, entity: str = 'Product Availability') -> dict:     
         ''':class:`~AcumaticaAPIHelper`.:meth:`~format_prepare_shopify` (self, entity: *str = 'Product Availability'*):
         ---
@@ -215,9 +237,9 @@ class AcumaticaAPIHelper:
             'acu_api_data_log': acu_data_log_entry,
         }
         return full_payload
+    #endregion
 
-
-
+    #region format_process_shopify
     def format_process_shopify(self, entity_data: dict, entity: str = 'Product Availability') -> dict:
         ''':class:`~AcumaticaAPIHelper`.:meth:`~format_process_shopify` (entity_data: *dict*, entity: *str = 'Product Availability'*):
         ---
@@ -281,30 +303,10 @@ class AcumaticaAPIHelper:
             'acu_api_data_log': acu_data_log_entry,
         }
         return full_payload
+    #endregion
 
 
-
-
-    def format_data_log_entry(self, entity: str, key_value: str, operation: str, payload: dict, response: str, tstamp: datetime, options: Literal['append', 'return']):
-        entry = {            
-            'Entity': entity,
-            'KeyValue': key_value,
-            'Operation': operation,
-            'Payload': payload,
-            'Response': response,
-            'Timestamp': tstamp,
-        }
-        if options == 'append':
-            self.acu.data_log.append(entry)
-            return
-        elif options == 'return':
-            return entry
-        else:
-            self.acu.data_log.append(entry)
-            return entry
-
-
-
+    #region format_put_on_hold
     def format_put_on_hold(self, order: dict) -> dict:
         ''':class:`~AcumaticaAPIHelper`.:meth:`~format_put_on_hold` (self, order: *dict*):
         ---
@@ -328,23 +330,42 @@ class AcumaticaAPIHelper:
         ---
         :return `hold_payload` (dict): payload to be sent to Acumatica API
         '''
-        self.logger.info(f'Placing {order['OrderNbr']} On Hold!')       
-        hold_payload = {
-            "entity": {
-                "Type": {
-                    "value": "SalesOrder"
-                },
-                "OrderType": {
-                    "value": order['OrderType']
-                },
-                "OrderNbr": {
-                    "value": order['OrderNbr']
-                }
-            }
-        }
+        self.logger.info(f'Placing {order['OrderNbr']} On Hold!')
+        hold_payload = self._format_sales_order_entity_payload_(order=order)
         return hold_payload
+    #endregion
+    
+    #region format_order_remove_hold
+    def format_order_remove_hold(self, order: dict) -> dict:
+        ''':class:`~AcumaticaAPIHelper`.:meth:`~format_order_remove_hold` (self, order: *dict*, ):
+        ---
+        <hr>
+        
+        Given a dict of order data, pass it to :class:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper`.:meth:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper._format_sales_order_entity_payload_` to format standard Sales Order entity payload
+        
+        ### Downstream Calls 
+         #### :class:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper`.:meth:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper._format_sales_order_entity_payload_`
+        
+        ### Upstream Calls 
+         #### :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.order_remove_hold`
+            
+        <hr>
+        
+        Parameters
+        ---
+        :param (*dict*) `order`: dict of order data. Must contain ***`OrderType`*** and ***`OrderNbr`***
+        
+        <hr>
+        
+        Returns
+        ---
+        :return `payload` (dict): payload to send to remove order from hold
+        '''
+        payload = self._format_sales_order_entity_payload_(order)
+        return payload
+    #endregion
 
-
+    #region format_soline_wh_update
     def format_soline_wh_update(self, order: dict):
         ''':class:`~AcumaticaAPIHelper`.:meth:`~format_soline_wh_update` (self, order: *dict*):
         ---
@@ -398,9 +419,9 @@ class AcumaticaAPIHelper:
             'Payload': update_soline_wh_payload,
         }
         return update_soline_wh_payload, acu_data_log_entry
+    #endregion
 
-
-    
+    #region format_ship_separately
     def format_ship_separately(self, order: dict) -> dict:
         ''':class:`~AcumaticaAPIHelper`.:meth:`~format_ship_separately` (self, order: *dict*):
         ---
@@ -446,3 +467,180 @@ class AcumaticaAPIHelper:
 
         }
         return ship_sep_payload
+    #endregion
+
+    #region format_order_create_receipt
+    def format_order_create_receipt(self, order: dict) -> dict:
+        ''':class:`~AcumaticaAPIHelper`.:meth:`~format_order_create_receipt` (self, order: *dict*):
+        ---
+        <hr>
+        
+        Given a dict of order data, formats payload to be sent to Acumatica API to create a receipt for the given order
+        
+        ### Upstream Calls 
+         #### :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.order_create_receipt`
+            
+        <hr>
+        
+        Parameters
+        ---
+        :param (*dict*) `order`: dict of order data. Must contain `***OrderType***`, `***OrderNbr***`, and `***AcctCD***`
+        
+        <hr>
+        
+        Returns
+        ---
+        :return `create_receipt_payload` (dict): payload to send to acu api to create receipt for a given order
+        '''
+        create_receipt_payload = {
+            "entity":{
+                "CustomerID": { "value": f"{order['AcctCD']}" },
+                "OrderType": {"value": f"{order['OrderType']}"},
+                "OrderNbr": { "value": f"{order['OrderNbr']}"}
+            }
+        }
+        return create_receipt_payload
+    #endregion
+
+    #region format_order_create_shipment
+    def format_order_create_shipment(self, order: dict) -> dict:
+        ''':class:`~AcumaticaAPIHelper`.:meth:`~format_order_create_shipment` (self, order: *dict*):
+        ---
+        <hr>
+        
+        Given a dict of order data, formats payload to be sent to Acumatica API to create a ***shipment*** for the given order
+        
+        ### Upstream Calls 
+         #### :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.order_create_receipt`
+            
+        <hr>
+        
+        Parameters
+        ---
+        :param (*dict*) `order`: dict of order data. Must contain `***OrderType***`, `***OrderNbr***`, and `***AcctCD***`
+        
+        <hr>
+        
+        Returns
+        ---
+        :return `create_shipment_payload` (dict): payload to send to acu api to create ***shipment*** for a given order
+        '''
+        create_shipment_payload = {
+            "entity":{
+                "CustomerID": {"value": f"{order['AcctCD']}" },
+                "OrderType": {"value": f"{order['OrderType']}"},
+                "OrderNbr": {"value": f"{order['OrderNbr']}"}
+            }
+        }
+        if order.get('properties'):
+            create_shipment_payload['properties'] = {
+                "ShipmentDate": {"value": f'{datetime.now(ZoneInfo('America/New_York'))}'}, 
+                "WarehouseID": {"value": order['properties']['WarehouseID']}, 
+            }
+        return create_shipment_payload
+    #endregion
+
+    #region format_rc_send_to_wh
+    def format_rc_send_to_wh(self, order: dict) -> dict:
+        ''':class:`~AcumaticaAPIHelper`.:meth:`~format_rc_send_to_wh` (self, order: *dict*):
+        ---
+        <hr>
+        
+        put_summary_here
+        
+        ### Downstream Calls 
+         #### :class:`~class`.:meth:`~method`
+            - Description
+         #### :class:`~folder.file.class`.:meth:`~folder.file.class.method`
+            - Description
+        
+        ### Upstream Calls 
+         #### :class:`~class`.:meth:`~method`
+            - Description
+         #### :class:`~folder.file.class`.:meth:`~folder.file.class.method`
+            - Description
+            
+        <hr>
+        
+        Parameters
+        ---
+        :param (*dict*) `order`: dict of order data. Must contain `***OrderType***`, `***OrderNbr***`, and `***CustomerID***`
+        
+        <hr>
+        
+        Returns
+        ---
+        :return `create_shipment_payload` (dict): payload to send to acu api to mark an RC order as sent to Warehouse (toggle AttributeRCSHP2WH to True) ***shipment*** for a given order
+        '''
+        mark_rc_as_sent_payload = {
+            "CustomerID": { "value": order['CustomerID'] },
+            "OrderType": {"value": order['OrderType']},
+            "OrderNbr": { "value": order['OrderNbr']},
+            "custom": {
+                "Document": {
+                    "AttributeRCSHP2WH": {
+                        "value": True
+                    },
+                    "AttributeRCSHP2WHDT": {
+                        "value": True
+                    }
+                }
+            } 
+        }
+        return mark_rc_as_sent_payload
+    #endregion
+
+
+    #region format_validate_order_address
+    def format_validate_order_address(self, order: dict) -> dict:
+        payload = self._format_sales_order_entity_payload_(order)
+        return payload
+
+    #endregion
+
+    #region format_sales_order_entity_payload
+    def _format_sales_order_entity_payload_(self, order: dict) -> dict:
+        ''':class:`~`.:meth:`~_format_sales_order_entity_payload_` (self, order: *dict*, ):
+        ---
+        <hr>
+        
+        put_summary_here
+        
+        ### Downstream Calls 
+         #### :class:`~class`.:meth:`~method`
+            - Description
+         #### :class:`~folder.file.class`.:meth:`~folder.file.class.method`
+            - Description
+        
+        ### Upstream Calls 
+         #### :class:`~class`.:meth:`~method`
+            - Description
+         #### :class:`~folder.file.class`.:meth:`~folder.file.class.method`
+            - Description
+            
+        <hr>
+        
+        Parameters
+        ---
+        :param (*dict*) `order`: _description_
+        
+        <hr>
+        
+        Returns
+        ---
+        :return `payload` (dict): Standard Sales Order Entity type payload
+        '''               
+        payload = {
+            "entity": {
+                "Type": {
+                    "value": "SalesOrder"
+                },
+                "OrderType": {
+                    "value": order['OrderType']
+                },
+                "OrderNbr": {
+                    "value": order['OrderNbr']
+                }
+            }
+        }
+        return payload

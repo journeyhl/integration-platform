@@ -4,6 +4,7 @@ from zoneinfo import ZoneInfo
 import logging
 import polars as pl
 from integration_platform.connectors.sql import SQLConnector, CentralStoreQueries, AcumaticaDbQueries
+from integration_platform.transform import DefaultTransformer
 import colorlog
 from typing import TypeVar, Generic, Any
 
@@ -100,6 +101,7 @@ class Pipeline(ABC):
             ))
             logging.root.setLevel(logging.INFO)
             logging.root.addHandler(handler)
+        self.default_transformer = DefaultTransformer(self)
 
 
     @abstractmethod

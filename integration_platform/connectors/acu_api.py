@@ -62,6 +62,7 @@ class AcumaticaAPI:
         self.company = 'JHL'
         self.data_log = []
         self.session = requests.Session()
+        self.calls = 0
         if env == 'dev':
             self.session.headers.update({
                 'CF-Access-Client-Id': ACUMATICA_API['cf_client_id'] or '',
@@ -92,21 +93,15 @@ class AcumaticaAPI:
 
     '''
         self.logger.info(f'Creating Receipt for {order_data['OrderNbr']}')
-        body = {
-            "entity":{
-                "CustomerID": { "value": f"{order_data['AcctCD']}" },
-                "OrderType": {"value": f"{order_data['OrderType']}"},
-                "OrderNbr": { "value": f"{order_data['OrderNbr']}"}
-            }
-        }
+        payload = self.helper.format_order_create_receipt(order=order_data)
         try:
-            response = self.session.post(f'{self.base_uri}/SalesOrder/SalesOrderCreateReceipt', json=body)
+            response = self.session.post(f'{self.base_uri}/SalesOrder/SalesOrderCreateReceipt', json=payload)
             response_str = f'{response.status_code} {response.reason}'
             
             self.logger.info(response_str)
         except Exception as e:
             bp = 'here'
-        self.helper.format_data_log_entry(entity='SalesOrder', key_value=order_data['OrderNbr'], operation=f'POST - Create Receipt', payload=body, response=response_str, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
+        self.helper.format_data_log_entry(entity='SalesOrder', key_value=order_data['OrderNbr'], operation=f'POST - Create Receipt', payload=payload, response=response_str, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
     #endregion
 
     #region order_create_shipment
@@ -129,21 +124,9 @@ class AcumaticaAPI:
         ---
         '''
         self.logger.info(f'Creating Shipment for {order_data['OrderNbr']}')
-
-        body = {
-            "entity":{
-                "CustomerID": {"value": f"{order_data['AcctCD']}" },
-                "OrderType": {"value": f"{order_data['OrderType']}"},
-                "OrderNbr": {"value": f"{order_data['OrderNbr']}"}
-            }
-        }
-        if order_data.get('properties'):
-            body['properties'] = {
-                "ShipmentDate": {"value": f'{datetime.now()}'}, 
-                "WarehouseID": {"value": order_data['properties']['WarehouseID']}, 
-            }
+        payload = self.helper.format_order_create_shipment(order=order_data)
         try:
-            response = self.session.post(f'{self.base_uri}/SalesOrder/SalesOrderCreateShipment', json=body)
+            response = self.session.post(f'{self.base_uri}/SalesOrder/SalesOrderCreateShipment', json=payload)
             response_str = f'{response.status_code} {response.reason}'
         except Exception as e:
             bp = 'here'
@@ -151,7 +134,7 @@ class AcumaticaAPI:
             self.logger.info(f'{order_data['OrderNbr']}: Shipment created! {response_str}')
         else:
             self.logger.warning(response_str)
-        self.helper.format_data_log_entry(entity='SalesOrder', key_value=order_data['OrderNbr'], operation=f'POST - Create Shipment', payload=body, response=response_str, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
+        self.helper.format_data_log_entry(entity='SalesOrder', key_value=order_data['OrderNbr'], operation=f'POST - Create Shipment', payload=payload, response=response_str, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
     #endregion
 
     #region sales_order_get_shipment
@@ -247,43 +230,22 @@ class AcumaticaAPI:
             __body__ (dict): Dictionary of what was sent to Acumatica API
 
         '''
-        body = {
-            "CustomerID": { "value": f"{CustomerID}" },
-            "OrderType": {"value": f"{OrderType}"},
-            "OrderNbr": { "value": f"{OrderNbr}"},
-            "custom": {
-                "Document": {
-                    "AttributeRCSHP2WH": {
-                        "value": True
-                    },
-                    "AttributeRCSHP2WH": {
-                        "value": True
-                    }
-                }
-            } 
-        }
+        payload = self.helper.format_rc_send_to_wh(order={'OrderNbr': OrderNbr, 'OrderType': OrderType, 'CustomerID': CustomerID})
         
         try:
-            response = self.session.put(f'{self.base_uri}/SalesOrder', json=body)
+            response = self.session.put(f'{self.base_uri}/SalesOrder', json=payload)
             self.parse_response(response, {'type': 'Order', 'attribute': 'AttributeRCSHP2WH'})
         except Exception as e:
             try:                    
                 self._logout()
                 self._auth_()
-                response = self.session.put(f'{self.base_uri}/SalesOrder', json=body)
+                response = self.session.put(f'{self.base_uri}/SalesOrder', json=payload)
                 self.parse_response(response, {'type': 'Order', 'attribute': 'AttributeRCSHP2WH'})
             except Exception as e:
                 self.status_description = 'FAILURE'
                 bp = 'here'
-        self.data_log.append({
-            'Entity': 'SalesOrder',
-            'KeyValue': OrderNbr,
-            'Operation': 'PUT - Mark RC Order as Sent To WH',
-            'Payload': body,
-            'Response': self.status_description,
-            'Timestamp': datetime.now(ZoneInfo('America/New_York'))
-        })
-        return self.status_description, body
+        self.helper.format_data_log_entry(entity='SalesOrder', key_value=OrderNbr, operation='PUT - Mark RC Order as Sent To WH', payload=payload, response=self.status_description, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
+        return self.status_description, payload
     #endregion
     
 
@@ -307,19 +269,7 @@ class AcumaticaAPI:
         Returns
         ---
         """
-        payload = {
-            "entity": {
-                "Type": {
-                    "value": "SalesOrder"
-                },
-                "OrderType": {
-                    "value": order_data['OrderType']
-                },
-                "OrderNbr": {
-                    "value": order_data['OrderNbr']
-                }
-            }
-        }
+        payload = self.helper.format_validate_order_address(order=order_data)
 
         response = self.session.post(f'{self.base_uri}/SalesOrder/ValidateAddresses', json=payload)
         response_str = f'{response.status_code} {response.reason}'
@@ -484,19 +434,7 @@ class AcumaticaAPI:
         '''
         self.logger.info(f'{order_data['OrderNbr']}: Removing Order from hold')
         bp = 'here'   
-        payload = {
-            "entity": {
-                "Type": {
-                    "value": "SalesOrder"
-                },
-                "OrderType": {
-                    "value": order_data['OrderType']
-                },
-                "OrderNbr": {
-                    "value": order_data['OrderNbr']
-                }
-            }
-        }
+        payload = self.helper.format_order_remove_hold(order=order_data)
 
         response = self.session.post(f'{self.base_uri}/SalesOrder/RemoveFromHold', json=payload)
         response_str = f'{response.status_code} {response.reason}'        
