@@ -142,8 +142,6 @@ class HubSpotAPI:
             contact_details = self.get_contact_by_id(contact_id=contact, properties=self.contact_property_str)
             data = {**contact_details, 'membershipTimestamp': data['membershipTimestamp']}
             detailed_rows.append(data)
-            if i == 10:
-                break
         list_data['detailed_rows'] = detailed_rows
         list_data['timestamp_extract'] = extracted_timestamp
         self.logger.info(f'{list_data['name']} parsed successfully, {len(list_data['detailed_rows'])} rows returned')

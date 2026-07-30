@@ -50,7 +50,7 @@ class HubspotLeadsToDbc(Pipeline):
         return data_transformed
     
     def load(self, data_transformed):
-        self.centralstore.checked_upsert_paginated('hs.Properties', data_transformed)
+        self.centralstore.checked_upsert_paginated('hs.ContactLists', data_transformed)
         return data_transformed
     
     def log_results(self, data_loaded):
