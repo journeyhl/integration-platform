@@ -2,13 +2,15 @@ from integration_platform.pipelines import Pipeline
 from integration_platform.connectors import AcumaticaAPI
 import polars as pl
 import time
-
-
+from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 
 class CreateAcuShipment(Pipeline):
     def __init__(self, function: str, env: str='prod'):
-        # function = 'consignment_reclassifications'
         super().__init__(pipeline_name='create-shipments', function=function, env=env)
+        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
+            pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
+        )
+        # function = 'consignment_reclassifications'
         self.acu_api = AcumaticaAPI(self, env=env)
 
     def extract(self):

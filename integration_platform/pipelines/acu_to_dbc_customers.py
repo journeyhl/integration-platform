@@ -5,6 +5,7 @@ from integration_platform.transform.audit_fulfillment import Transform
 import polars as pl
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
+from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 
 class AcuToDbcCustomers(Pipeline):
     '''`AcuToDbcCustomers`(Pipeline)
@@ -25,8 +26,11 @@ class AcuToDbcCustomers(Pipeline):
     # Results Logging
      - None needed
     '''
-    def __init__(self, function: str):
-        super().__init__('acu-to-dbc-customers', function)
+    def __init__(self, function: str, env: str = 'prod'):
+        super().__init__(pipeline_name='acu-to-dbc-customers', function=function, env=env)
+        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
+            pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
+        )
 
 
     def extract(self) -> dict[str, pl.DataFrame]:

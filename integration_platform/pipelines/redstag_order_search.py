@@ -6,6 +6,7 @@ from integration_platform.connectors import RedStagAPI, AcumaticaAPI
 from integration_platform.transform.redstag_order_search import Transform
 from integration_platform.transform import redstag_send
 
+from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 
 
 class RedStagOrderSearch(Pipeline):
@@ -28,8 +29,11 @@ class RedStagOrderSearch(Pipeline):
      - None needed
     '''
 
-    def __init__(self, function: str):
-        super().__init__('redstag-order-search', function)
+    def __init__(self, function: str, env: str='prod'):
+        super().__init__(pipeline_name='redstag-order-search', function=function, env=env)
+        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
+            pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
+        )
         self.transformer = Transform(self)
         self.transformer2 = redstag_send.Transform(self)
         self.redstag = RedStagAPI(self)

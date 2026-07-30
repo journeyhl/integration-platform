@@ -4,6 +4,7 @@ from integration_platform.transform.redstag_send import Transform
 from integration_platform.load.load_redstag_send import Load
 import json
 
+from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 class SendRedStagShipments(Pipeline):
     '''`SendRedStagShipments`(Pipeline)
     ---
@@ -58,8 +59,11 @@ class SendRedStagShipments(Pipeline):
      - Upserts Acumatica API interactions to **_util.acu_api_log** 
     '''
     
-    def __init__(self, function: str):
-        super().__init__('redstag-send-shipments', function)
+    def __init__(self, function: str, env: str='prod'):
+        super().__init__(pipeline_name='redstag-send-shipments', function=function, env=env)
+        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
+            pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
+        )
         self.transformer = Transform(self)
         self.redstag = RedStagAPI(self)
         self.acu_api = AcumaticaAPI(self)

@@ -1,6 +1,7 @@
 import polars as pl
 from integration_platform.pipelines import Pipeline
 
+from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 class RMILinkToAcu(Pipeline):
     '''`RMILinkToAcu`(Pipeline)
     ---
@@ -23,8 +24,11 @@ class RMILinkToAcu(Pipeline):
     # Results Logging
      - None needed
     '''
-    def __init__(self, function: str):
-        super().__init__('rmi-link-to-acu', function)
+    def __init__(self, function: str, env: str='prod'):
+        super().__init__(pipeline_name='rmi-link-to-acu', function=function, env=env)
+        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
+            pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
+        )
         
     def extract(self):
         acu_extract = self.acudb.query_to_dataframe(self.acudb.queries.RMI_Link3PL)

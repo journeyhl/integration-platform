@@ -1,5 +1,6 @@
 from . import Pipeline
 import polars as pl
+from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 
 class AcumaticaDeletions(Pipeline):
     '''`AcumaticaDeletions`(Pipeline)
@@ -33,8 +34,9 @@ class AcumaticaDeletions(Pipeline):
     # Results Logging
      - None needed
     '''
-    def __init__(self, function: str):
-        super().__init__('acumatica-deletions', function)
+    def __init__(self, function: str, env: str = 'prod'):
+        super().__init__(pipeline_name='acumatica-deletions', function=function, env=env)
+        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(pipeline=self, database_name='AcumaticaDb')
 
 
     def extract(self):

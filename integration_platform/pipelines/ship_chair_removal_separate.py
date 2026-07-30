@@ -4,13 +4,17 @@ from integration_platform.pipelines import Pipeline
 from integration_platform.connectors import AcumaticaAPI
 from integration_platform.load.acu_api_loader import AcuAPILoader
 import polars as pl
+from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 
 
 
 class ShipChairRemovalSeparate(Pipeline):
     def __init__(self, function: str, env: str='prod'):
-        # function = 'ship_chair_removal_separate'
         super().__init__(pipeline_name='ship-chair-removal-separate', function=function, env=env)
+        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
+            pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
+        )
+        # function = 'ship_chair_removal_separate'
         self.acu_api = AcumaticaAPI(self, env=env)
         self.loader = AcuAPILoader(self)
 

@@ -4,10 +4,12 @@ from integration_platform.transform.acu_to_dbc_inventory_summary import Transfor
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import polars as pl
+from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 class AcuToDbcInventorySummary(Pipeline):
-    def __init__(self, function):
-        super().__init__('acu-to-dbc-inventory-summary', function)
+    def __init__(self, function, env: str = 'prod'):
+        super().__init__(pipeline_name='acu-to-dbc-inventory-summary', function=function, env=env)
         self.transformer = Transform(self)
+        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(pipeline=self, database_name='AcumaticaDb')
 
     def extract(self) -> pl.DataFrame:
         data_extract = self.acudb.query_to_dataframe(query=self.acudb.queries.AcuToDbc_InventorySummary)

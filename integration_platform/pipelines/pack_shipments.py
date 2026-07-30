@@ -6,6 +6,7 @@ from integration_platform.pipelines.redstag_order_search import RedStagOrderSear
 import json
 import polars as pl
 
+from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 class PackShipments(Pipeline):
     '''`PackShipments`(Pipeline)
     ---
@@ -36,8 +37,11 @@ class PackShipments(Pipeline):
      - Upserts Acumatica API interactions to **_util.acu_api_log** 
     '''
 
-    def __init__(self, function: str):
-        super().__init__('pack-shipments', function)
+    def __init__(self, function: str, env: str='prod'):
+        super().__init__(pipeline_name='pack-shipments', function=function, env=env)
+        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
+            pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
+        )
         self.acu_api = AcumaticaAPI(self)
         self.transformer = Transform(self)
         self.loader = Load(self)

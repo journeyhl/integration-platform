@@ -4,13 +4,17 @@ from integration_platform.transform.acu_to_dbc_b2b_collections import Transform
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import polars as pl
+from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 class AcuToDbcB2BCollections(Pipeline):
-    def __init__(self, function, backfill: bool = False):
-        super().__init__('acu-to-dbc-b2b-collections', function)
+    def __init__(self, function, backfill: bool = False, env: str = 'prod'):
+        super().__init__(pipeline_name='acu-to-dbc-b2b-collections', function=function, env=env)
         self.transformer = Transform(self)
         self.backfill = backfill
         if self.backfill:
             self.logger.warning(f'Running in backfill mode!!!')
+        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
+            pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
+        )
 
     def extract(self) -> pl.DataFrame:
         data_extract = self.acudb.query_to_dataframe(query=self.acudb.queries.AcuToDbc_B2BCollections)

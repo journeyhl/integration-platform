@@ -1,8 +1,9 @@
 from integration_platform.pipelines import Pipeline
-from integration_platform.connectors import SQLConnector, RMIXML, AcumaticaAPI
+from integration_platform.connectors import RMIXML, AcumaticaAPI
 from integration_platform.transform.rmi_send import Transform
 import polars as pl
 import json
+from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 class SendRMIReturns(Pipeline):
     '''`SendRMIReturns`(Pipeline)
     ---
@@ -27,8 +28,11 @@ class SendRMIReturns(Pipeline):
      - Upserts Acumatica API interactions to **_util.acu_api_log** 
      - Inserts RMI XML interactions to **_util.rmi_send_log**
     '''
-    def __init__(self, function: str):
-        super().__init__('rmi-send-returns', function)
+    def __init__(self, function: str, env: str='prod'):
+        super().__init__(pipeline_name='rmi-send-returns', function=function, env=env)
+        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
+            pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
+        )
         self.transformer = Transform(self)
         self.rmi = RMIXML(self)
         self.acu_api = AcumaticaAPI(self)
