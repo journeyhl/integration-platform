@@ -27,7 +27,7 @@ where s.CompanyID = 2
 and s.OrderType = 'WB'
 and si.SiteCD = 'RMI'
 and s.Status not in ('L', 'C', 'S')
---and s.Status = 'H'
+and s.Status = 'H'
 and l.POCreate = 0
 )
 , InventoryLevels as(
