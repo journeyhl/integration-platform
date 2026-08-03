@@ -26,8 +26,9 @@ inner join JJStatusLookup j on s.Status = j.CStatus and j.Tbl = 'SOOrder'
 where s.CompanyID = 2
 and s.OrderType = 'WB'
 and si.SiteCD = 'RMI'
-and s.Status not in ('L', 'C', 'S')
+-- and s.Status not in ('L', 'C', 'S')
 and s.Status = 'H'
+and (i.descr like '%Certified pre%' or i.descr like '%CPO%' or i.Descr like '%preowned%' or i.Descr like '%pre-owned' or i.Descr like '%pre owned%')
 and l.POCreate = 0
 )
 , InventoryLevels as(
@@ -83,5 +84,6 @@ select s.*
      , i.QtyOnHand
 from SecondLevel s
 left join InventoryLevels i on s.InventoryCD = i.InventoryCD and s.SiteCD = i.SiteCD
-where param_Action is not null
+where --param_Action is not null
+param_Action = 'Allocate Sales Orders'
 order by OrderNbr

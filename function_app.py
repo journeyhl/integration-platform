@@ -873,7 +873,7 @@ def mfr_inserts_export(timer: af.TimerRequest):
 
 #region                                     cron_calendar
 #     Exports current function_app.py cron schedule to db
-#                             2x/day (5:00am)
+#                           3x/day (5:05am,12:05pm,3:05pm)
 @app.timer_trigger(
     schedule = '5 5,12,15 * * 1-5',
     arg_name = 'timer',
@@ -886,3 +886,36 @@ def cron_calendar(timer: af.TimerRequest):
 #endregion                                  cron_calendar
 
 
+
+
+#region                                     rmi_inventory
+#                              Pulls RMI inventory to SQL
+#                         3x/day (8:10am, 1:10pm, 6:10pm)
+@app.timer_trigger(
+    schedule = '10 8,13,18 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def rmi_inventory(timer: af.TimerRequest):
+    from integration_platform.pipelines.rmi_inventory import RMIInventory
+    rmi_inventory = RMIInventory(function='rmi_inventory') #rmi-inventory
+    rmi_inventory.run()
+#endregion                                  rmi_inventory
+
+
+
+
+
+#region                                     allocate_sales_orders
+#                           Allocates stock for any RMI wb orders
+#                                           3x/hr (:10, :30, :50)
+@app.timer_trigger(
+    schedule = '10/20 * * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def allocate_sales_orders(timer: af.TimerRequest):
+    from integration_platform.pipelines.allocate_sales_orders import AllocateSalesOrders
+    sales_order_allocations = AllocateSalesOrders(function='allocate_sales_orders') #allocate-sales-orders
+    sales_order_allocations.run()
+#endregion                                  allocate_sales_orders
