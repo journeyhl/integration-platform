@@ -4,7 +4,8 @@ from zoneinfo import ZoneInfo
 import logging
 import polars as pl
 from integration_platform.connectors.sql import SQLConnector, CentralStoreQueries
-from integration_platform.transform import DefaultTransformer
+from integration_platform.transform.default_transformer import DefaultTransformer
+from integration_platform.load.default_loader import DefaultLoader
 import colorlog
 from typing import TypeVar, Generic, Any
 
@@ -99,6 +100,7 @@ class Pipeline(ABC):
             logging.root.setLevel(logging.INFO)
             logging.root.addHandler(handler)
         self.default_transformer = DefaultTransformer(self)
+        self.default_loader = DefaultLoader(self)
 
 
     @abstractmethod

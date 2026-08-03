@@ -5,6 +5,7 @@ from .get_receipts_from_RMI import GetReceiptsFromRMI
 from .get_closed_shipments_from_RMI import GetClosedShipmentsFromRMI
 from .get_rmas_from_RMI import GetRMAsFromRMI
 from .link_rmi_to_acu import RMILinkToAcu
+from .rmi_inventory import RMIInventory
 
 from .create_acu_receipt import CreateAcuReceipt
 from .create_acu_shipment import CreateAcuShipment
