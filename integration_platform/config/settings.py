@@ -2663,6 +2663,73 @@ TABLES = {
             'ExtractDatetime',
         ],
     },
+    'inv.RMI_Summary': {
+        'keys': [
+            'InventoryCD',
+        ],
+        'columns': [
+            'InventoryCD',
+            'Qty',
+            'InsertedDT',
+            'LastChecked',
+        ],
+        'update_columns': [
+            'Qty',
+            'LastChecked',
+        ],
+    },
+    'inv.RMI_SummarySnapshot': {
+        'keys': [
+            'InventoryCD',
+            'Timestamp',
+        ],
+        'columns': [
+            'InventoryCD',
+            'Qty',
+            'Timestamp',
+        ],
+        'update_columns': [
+            'Qty',
+        ],
+    },
+    'inv.RMI_Detail': {
+        'keys': [
+            'Location',
+            'InventoryCD',
+        ],
+        'columns': [
+            'Location',
+            'InventoryCD',
+            'Qty',
+            'InsertedDT',
+            'Serials',
+            'LastChecked',
+        ],
+        'update_columns': [
+            'Qty',
+            'Serials',
+            'LastChecked',
+        ],
+    },
+    'inv.RMI_DetailSnapshot': {
+        'keys': [
+            'Location',
+            'InventoryCD',
+            'Timestamp',
+        ],
+        'columns': [
+            'Location',
+            'InventoryCD',
+            'Qty',
+            'Serials',
+            'Timestamp',
+        ],
+        'update_columns': [
+            'Qty',
+            'Serials',
+        ],
+    },
+    
     
     
     
