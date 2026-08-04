@@ -907,10 +907,10 @@ def rmi_inventory(timer: af.TimerRequest):
 
 
 #region                                     allocate_sales_orders
-#                           Allocates stock for any RMI wb orders
+#                           Allocates stock for any RMI wb orders     = '10/20 * * * *',
 #                                           3x/hr (:10, :30, :50) (once a day for now)
 @app.timer_trigger(
-    schedule = '10/20 * * * *',
+    schedule = '25 17 * * *',
     arg_name = 'timer',
     run_on_startup = False
 )
