@@ -62,3 +62,4 @@ from .metrics_b2b import B2BMetrics
 from .ship_chair_removal_separate import ShipChairRemovalSeparate
 from .sharepoint_dm_tracker import SharepointDmTracker
 from .mfr_inserts_export import MFRInsertsExport
+from .ryder_to_dbc import RyderToDbc

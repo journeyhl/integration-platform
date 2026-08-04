@@ -1,5 +1,3 @@
-from polars.io.avro import read_avro
-
 from integration_platform.pipelines import Pipeline
 from integration_platform.connectors import AcumaticaAPI
 from integration_platform.load.acu_api_loader import AcuAPILoader

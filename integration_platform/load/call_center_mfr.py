@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 class Load:
     def __init__(self, pipeline: CallCenterMetrics):
         self.pipeline = pipeline
-        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.load')
+        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.Load')
         bp = 'here'
 
 

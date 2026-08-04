@@ -46,8 +46,8 @@ class RMIInventory(Pipeline):
         return data_transformed
     
     def load(self, data_transformed):
-        summary = self.default_loader.add_InsertedDT_to_list(data_transformed['inv.RMI_Summary'])
-        detail = self.default_loader.add_InsertedDT_to_list(data_transformed['inv.RMI_Detail'])
+        summary = self.default_loader.add_to_list(data_transformed['inv.RMI_Summary'], {'InsertedDT': datetime.now(ZoneInfo('America/New_York'))})
+        detail = self.default_loader.add_to_list(data_transformed['inv.RMI_Detail'], {'InsertedDT': datetime.now(ZoneInfo('America/New_York'))})
         self.centralstore.checked_upsert_paginated(table_name='inv.RMI_Summary', data=summary)
         self.centralstore.checked_upsert_paginated(table_name='inv.RMI_Detail', data=detail)
 

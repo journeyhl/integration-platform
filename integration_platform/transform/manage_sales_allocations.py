@@ -12,17 +12,59 @@ class Transform:
         pass
     
     def transform(self, data_extract: dict[str, pl.DataFrame]):
+        self._set_context_(data_extract)
+        order_item_sync_history = self.items_on_orders()
         bp = 'here'
-        orders = data_extract['order_extract']
-        sync_history = data_extract['sync_history_extract']
-        for row in orders.iter_rows(named=True):
-            if row['QtyAvail'] in [None, 0]:
-                self.logger.warning(f'No units of {row['InventoryCD']} available to allocate to {row['OrderNbr']}!')
-                continue
-            self.pipeline.acu_api.manage_sales_allocations(order_data=row)
-            bp = 'here'
-        bp = 'here'
+        data_transformed = {
+            'orders': self.orders,
+            'order_item_sync_history': order_item_sync_history
+        }
+        return data_transformed
 
+    def _set_context_(self, data_extract: dict[str, pl.DataFrame]):
+        self.logger.info(f'Setting context (self.orders and self.tables)...')
+        self.orders = data_extract['order_extract'].to_dicts()
+        self.tables = pl.SQLContext(
+            Orders = data_extract['order_extract'],
+            SyncHistory = data_extract['sync_history_extract']
+        )
+
+    def items_on_orders(self):
+        self.logger.info(f'Querying distinct items found in order extract, then retrieving sync records for each...')
+        df_order_items_sync_history = self.tables.execute(
+            query=f"""
+        with TopLevel as(
+            select distinct InventoryCD, Descr
+            from Orders
+        )
+        select s.SyncID
+             , s.EntityType
+             , s.Entity
+             , s.InventoryCD
+             , s.ExternID
+             , s.PendingSync
+             , s.Status
+             , s.LastOperation
+             , s.Deleted
+             , s.SyncInProcess
+             , s.AttemptCount
+             , s.HasSyncDetailRecord
+             , s.ExternDescription
+             , t.Descr
+             , s.acuStatus
+             , s.LocalID
+             , s.NoteID
+             , s.LocalTS
+             , s.LastOperationTS
+        from SyncHistory s
+        inner join TopLevel t on s.InventoryCD = t.InventoryCD
+"""
+        ).collect()
+
+        self.tables.register(name='ItemsOnOrders', frame=df_order_items_sync_history)
+        self.logger.info(f'ItemsOnOrders registered with {df_order_items_sync_history.height} rows.')
+        order_items_sync_history = df_order_items_sync_history.to_dicts()
+        return order_items_sync_history
 
 
 

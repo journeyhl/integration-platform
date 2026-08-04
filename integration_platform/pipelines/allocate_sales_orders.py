@@ -13,6 +13,8 @@ class AllocateSalesOrders(Pipeline):
         self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
             pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
         )
+        # self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(pipeline=self, database_name='AcumaticaDb')
+        # self.acudev: SQLConnector[AcumaticaDbQueries] = SQLConnector(pipeline=self, database_name='AcudevDb')
         self.acu_api = AcumaticaAPI(self, env=env)
         self.transformer = Transform(self)
 
