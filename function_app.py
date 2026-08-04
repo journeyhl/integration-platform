@@ -910,13 +910,12 @@ def rmi_inventory(timer: af.TimerRequest):
 #                           Allocates stock for any RMI wb orders
 #                                           3x/hr (:10, :30, :50) (once a day for now)
 @app.timer_trigger(
-    schedule = '25 17 * * *',
-    # schedule = '10/20 * * * *',
+    schedule = '10/20 * * * *',
     arg_name = 'timer',
     run_on_startup = False
 )
 def allocate_sales_orders(timer: af.TimerRequest):
     from integration_platform.pipelines.allocate_sales_orders import AllocateSalesOrders
-    sales_order_allocations = AllocateSalesOrders(function='allocate_sales_orders') #allocate-sales-orders
+    sales_order_allocations = AllocateSalesOrders(function='allocate_sales_orders', env='prod') #allocate-sales-orders
     sales_order_allocations.run()
 #endregion                                  allocate_sales_orders
