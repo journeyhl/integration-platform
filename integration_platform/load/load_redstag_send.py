@@ -15,7 +15,7 @@ class Load:
     '''
     def __init__(self, pipeline: SendRedStagShipments):
         self.pipeline = pipeline
-        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.load')
+        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.Load')
 
     def send_shipments(self, data_transformed):
         '''`send_shipments`(self, data_transformed)

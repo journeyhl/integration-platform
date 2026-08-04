@@ -51,9 +51,7 @@ class AcuToDbcBackordersPointInTime(Pipeline):
     def load(self, data_transformed):
         total = len(data_transformed)
         now = datetime.now(ZoneInfo('America/New_York'))
-        for item in data_transformed:
-            item['Timestamp'] = now
-            item['Date'] = now.date()
+        data_transformed = self.default_loader.add_to_list(data_transformed, {'Timestamp': now, 'Date': now.date()})
         self.logger.info(f'{total} rows to upsert')
         self.centralstore.checked_upsert_paginated('acu.BackordersPointInTime', data_transformed, page_size= 100)
         return data_transformed

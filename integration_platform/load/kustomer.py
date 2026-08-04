@@ -18,7 +18,7 @@ class Load:
     '''
     def __init__(self, pipeline: SendOrderDetailsToKustomer):
         self.pipeline = pipeline
-        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.load')
+        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.Load')
         self.full_sql_log = []
 
 

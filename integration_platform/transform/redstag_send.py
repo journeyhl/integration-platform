@@ -227,6 +227,11 @@ class Transform:
                 }
             ]
         ]
+        if shipment['ShipToAddress2'] not in[None, '']:
+            self.order_create_payload[1][2]['street2'] = shipment['ShipToAddress2']
+            bp = 'here'
+        else:
+            bp = 'here'
     
     def transform_acu_attribute_payload(self, data: dict) -> dict:
         

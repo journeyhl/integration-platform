@@ -55,8 +55,7 @@ class AcuToDbcSalesOrders(Pipeline):
     
     def load(self, data_transformed):
         total = len(data_transformed)
-        for item in data_transformed:
-            item['LastChecked'] = datetime.now(ZoneInfo('America/New_York'))
+        data_transformed = self.default_loader.add_to_list(data_transformed, {'LastChecked': datetime.now(ZoneInfo('America/New_York'))})
         self.logger.info(f'{total} rows to upsert')
         self.centralstore.checked_upsert_paginated('acu.SalesOrders', data_transformed, page_size= 100)
         return data_transformed

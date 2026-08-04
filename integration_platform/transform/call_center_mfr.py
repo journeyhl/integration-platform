@@ -123,11 +123,11 @@ class Transform:
         calls_by_ = self.sql_context.execute(
             query=f"""
         with TopLevel as(
-        select {metric_str}
-            , count(distinct SessionID) Calls
-            , {timeframe}
-        from CallCounts
-        group by {timeframe}, {grouped_metric_str}
+            select {metric_str}
+                , count(distinct SessionID) Calls
+                , {timeframe}
+            from CallCounts
+            group by {timeframe}, {grouped_metric_str}
         )
         select *
         from TopLevel
@@ -144,10 +144,10 @@ class Transform:
         agents_by_ = self.sql_context.execute(
             query=f"""
         with TopLevel as(
-        select {metrics_group_by}
-             , count(distinct coalesce(Agent, '-')) Agents
-        from CallCounts
-        group by {metrics_group_by}
+            select {metrics_group_by}
+                , count(distinct coalesce(Agent, '-')) Agents
+            from CallCounts
+            group by {metrics_group_by}
         )
         select *
         from TopLevel
@@ -199,13 +199,12 @@ class Transform:
         self.call_counts_agg = self.sql_context.execute(
             query="""
         with TopLevel as(
-        select Date
-            , CustomerPhone_ANI
-            , DNIS
-            , count(distinct SessionID) Calls
-            
-        from CallCounts
-        group by Date, CustomerPhone_ANI, DNIS
+            select Date
+                , CustomerPhone_ANI
+                , DNIS
+                , count(distinct SessionID) Calls                
+            from CallCounts
+            group by Date, CustomerPhone_ANI, DNIS
         )
         select *
         from TopLevel

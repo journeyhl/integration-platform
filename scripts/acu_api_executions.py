@@ -7,7 +7,11 @@ from integration_platform.connectors import AcumaticaAPI, SQLConnector
 acu = AcumaticaAPI(pipeline='.debug', 
 # env='dev'
 )
+acudev = AcumaticaAPI(pipeline='.debug', 
+env='dev'
+)
 db = SQLConnector('.debug', 'AcumaticaDb')
+devdb = SQLConnector('.debug', 'AcudevDb')
 
 
 order_data = {
