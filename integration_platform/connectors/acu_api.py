@@ -809,7 +809,7 @@ class AcumaticaAPI:
     #endregion
 
     #region rc_send_to_wh_v2
-    def rc_send_to_wh_v2(self, OrderNbr: str, OrderType: str, CustomerID: str, attribute_payload: dict = {}):
+    def rc_send_to_wh_v2(self, OrderNbr: str, OrderType: str, CustomerID: str, attribute_payload: dict = {}, log_prefix: str = ''):
         '''`rc_send_to_wh_v2`(self, OrderNbr, OrderType, CustomerID)
         ---
         <hr>
@@ -851,34 +851,26 @@ class AcumaticaAPI:
             } 
         }
         
-        self.logger.info(f'Sending attribute_payload to Acumatica for Order {OrderNbr}')
+        self.logger.info(f'{log_prefix}Sending attribute_payload to Acumatica for Order {OrderNbr}')
         try:
             response = self.session.put(f'{self.base_uri}/SalesOrder', json=body)
-            self.parse_response(response, {'type': 'Order', 'attribute': 'AttributeRCSHP2WH'})
+            self.parse_response(response=response, entity_type={'type': 'Order', 'attribute': 'AttributeRCSHP2WH'}, log_prefix=log_prefix)
         except Exception as e:
             try:                    
                 self._logout()
+                time.sleep(1)
                 self._auth_()
                 response = self.session.put(f'{self.base_uri}/SalesOrder', json=body)
-                self.parse_response(response, {'type': 'Order', 'attribute': 'AttributeRCSHP2WH'})
+                self.parse_response(response=response, entity_type={'type': 'Order', 'attribute': 'AttributeRCSHP2WH'}, log_prefix=log_prefix)
             except Exception as e:
                 self.status_description = 'FAILURE'
-                bp = 'here'
-        self.data_log.append({
-            'Entity': 'SalesOrder',
-            'KeyValue': OrderNbr,
-            'Operation': 'PUT - Mark RC Order as Sent To WH',
-            'Payload': body,
-            'Response': self.status_description,
-            'Timestamp': datetime.now(ZoneInfo('America/New_York'))
-        })
         self.helper.format_data_log_entry(entity='SalesOrder', key_value=OrderNbr, operation='PUT - Mark RC Order as Sent To WH', payload=body, response=self.status_description, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
         return self.status_description, body
     #endregion
     
 
     #region send_to_wh_v2
-    def send_to_wh_v2(self, ShipmentNbr: str, CustomerID: str, attribute_payload: dict = {}):
+    def send_to_wh_v2(self, ShipmentNbr: str, CustomerID: str, attribute_payload: dict = {}, log_prefix: str = ''):
         '''`sent_to_wh_v2`(self, ShipmentNbr: *str*, CustomerID: *str*, attribute_payload: *dict*)
         ===
         * Marks a *Shipment*'s **Ship to Warehouse** attribute to true. (AttributeSHP2WH)
@@ -918,26 +910,17 @@ class AcumaticaAPI:
             } 
         }
         try:
-            self.logger.info(f'Sending attribute_payload to Acumatica for Shipment {ShipmentNbr}')
+            self.logger.info(f'{log_prefix}Sending attribute_payload to Acumatica for Shipment {ShipmentNbr}')
             response = self.session.put(f'{self.base_uri}/Shipment', json=body)
-            self.parse_response(response, {'type': 'Shipment', 'attribute': 'AttributeSHP2WH',})
+            self.parse_response(response=response, entity_type={'type': 'Shipment', 'attribute': 'AttributeSHP2WH'}, log_prefix=log_prefix)
         except Exception as e:
             try:                    
                 self._logout()
                 self._auth_()
                 response = self.session.put(f'{self.base_uri}/Shipment', json=body)
-                self.parse_response(response, {'type': 'Shipment', 'attribute': 'AttributeSHP2WH'})
+                self.parse_response(response=response, entity_type={'type': 'Shipment', 'attribute': 'AttributeSHP2WH'}, log_prefix=log_prefix)
             except Exception as e:
                 self.status_description = 'FAILURE'
-                bp = 'here'
-        self.data_log.append({
-            'Entity': 'Shipment',
-            'KeyValue': ShipmentNbr,
-            'Operation': 'PUT - Mark Shipment as Sent to WH',
-            'Payload': body,
-            'Response': self.status_description,
-            'Timestamp': datetime.now(ZoneInfo('America/New_York'))
-        })
         self.helper.format_data_log_entry(entity='Shipment', key_value=ShipmentNbr, operation='PUT - Mark Shipment as Sent to WH', payload=body, response=self.status_description, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
         return self.status_description, body
     #endregion
@@ -1018,7 +1001,7 @@ class AcumaticaAPI:
     #endregion
 
     #region parse_response
-    def parse_response(self, response: requests.Response, entity_type: dict):
+    def parse_response(self, response: requests.Response, entity_type: dict, log_prefix: str = ''):
         status_code = response.status_code
         if status_code == 200:
             self.acu_response = json.loads(response.text)

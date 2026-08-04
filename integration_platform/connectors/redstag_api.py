@@ -88,21 +88,43 @@ class RedStagAPI:
         bp = 'here'
 
 
-    def target_api(self, payload_target: list, operation: str):
-        '''`target_api`((self, payload_target))
-        ===
-        <hr>
-
-        Instead of a method for each operation (order.create, order.search, etc), **target_api** allows for all api operations to be completed in the one tight func
-        
-        Parameters
+    def target_api(self, payload_target: list, operation: str, log_prefix: str = ''):
+        ''':class:`~RedStagAPI`.:meth:`~target_api` (self, payload_target: *list*, operation: *str*, log_prefix: *str = ''*):
         ---
         <hr>
 
-         **operation** (*str*): description of what the function will be doing during execution. Used for logging
+        Consolidates requests for all operation types within one method for RedStag
+        
+        ### Upstream Calls 
+         #### :class:`~integration_platform.load.load_redstag_send.Load`.:meth:`~integration_platform.load.load_redstag_send.Load.send_shipments`
+            - Sends new shipment to RedStag
+         #### :class:`~integration_platform.pipelines.redstag_inventory.RedStagInventory`.:meth:`~integration_platform.pipelines.redstag_inventory.RedStagInventory.extract`
+            - Pulls inventory details from RedStag
 
-         **payload_target** (*list*): list formatted for RedStag's API
-            
+         #### :class:`~integration_platform.transform.redstag_send.Transform`.:meth:`~integration_platform.transform.redstag_send.Transform.transform_lookup_payload`
+            - Searches order in RedStag's system
+
+         #### _______replace_me_______
+  
+        <hr>
+        
+        Parameters
+        ---
+        :param (*list*) `payload_target`: list formatted for RedStag's API
+        :param (*str*) `operation`: description of what the function will be doing during execution. Used for logging
+        :param (*str*) `log_prefix`: ***Not Req***. String to prefix all logs. *default = ''*
+        
+        <hr>
+        
+        Returns
+        ---
+        :return `json_response` (dict): .json() formatted response from Redstag api
+
+        <hr>
+
+        # Examples
+
+        - ### payload_target:
 
         >>> "order.create",
             [
@@ -153,12 +175,12 @@ class RedStagAPI:
                 json = payload
             )
             json_response = response.json()
-            self.logger.info(f'Operation: {operation}: Response parsed successfully')
+            self.logger.info(f'{log_prefix}Operation: {operation}: Response parsed successfully')
             if json_response.get('result'):
                 return json_response['result']
             return json_response
         except Exception as e:
-            self.logger.error(f'Operation: {operation}: Failed to get a response from RedStag API')
+            self.logger.error(f'{log_prefix}Operation: {operation}: Failed to get a response from RedStag API')
             raise
 
         
