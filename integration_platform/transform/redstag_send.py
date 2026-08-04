@@ -50,7 +50,10 @@ class Transform:
 
         '''
         self.shipments_done = {}
-        for shipment in data_extract.iter_rows(named=True):
+        total = len(data_extract)
+        self.logger.info(f'Beginning transformation of {total} rows...')
+        for i, shipment in enumerate(data_extract.iter_rows(named=True)):
+            self.log_prefix = f'{shipment['ShipmentNbr']}, {i+1}/{total}: '
             shipment_nbr = shipment['ShipmentNbr']
             customer_id =  shipment['CustomerID']
             self.note = None
@@ -64,7 +67,7 @@ class Transform:
                         bp = 'here'
                     else:
                         self.order_create_payload = None
-                        self.logger.info(f'Shipment already found at RedStag!')
+                        self.logger.info(f'{self.log_prefix}Shipment already found at RedStag!')
                         self.note = 'Already at RedStag'
                     bp = 'here'
             self.shipments_done[shipment_nbr] = {
@@ -233,7 +236,7 @@ class Transform:
         else:
             bp = 'here'
     
-    def transform_acu_attribute_payload(self, data: dict) -> dict:
+    def transform_acu_attribute_payload(self, data: dict, log_prefix: str = '') -> dict:
         
         '''`transform_sent_to_wh_payload`(self, data: **dict**)
         ---
@@ -259,7 +262,7 @@ class Transform:
         :rtype attribute_payload: _dict_
         '''
         bp = 'here'
-        
+        self.logger.info(f'{log_prefix}Formatting attribute payload to send to Acumatica API')
         attribute_payload = {
             'AttributeRSORDERID': {
                 'value': data['data_3pl']['order_id']
@@ -342,7 +345,7 @@ class Transform:
                 ]
             ]
         ]
-        self.lookup_response = self.pipeline.redstag.target_api(self.lookup_payload, f'{shipment_nbr}, order.search')
+        self.lookup_response = self.pipeline.redstag.target_api(payload_target=self.lookup_payload, operation=f'{shipment_nbr}, order.search', log_prefix=self.log_prefix)
         self.transform_lookup_response()
         self.logger.info(f'{self.lookup_response['totalCount']} Shipments found at RedStag')
         return self.lookup_response
