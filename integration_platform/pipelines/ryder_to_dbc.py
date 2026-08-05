@@ -22,12 +22,8 @@ class RyderToDbc(Pipeline):
             data_extract.append(jfile)
         return data_extract
 
-    def transform(self, data_extract :pl.DataFrame):
-        # data_transformed = self.transformer.transform(data_extract)
-        status_groups = data_extract.sql('select Status, count(distinct OrderNbr) OrderCount from self group by Status').to_dicts()
-        extract_dicts = data_extract.to_dicts()
-        data_transformed = {sg['Status']: {'OrderCount': sg['OrderCount'], 'Orders': [ex for ex in extract_dicts if ex['Status'] == sg['Status']]} for sg in status_groups}
-       
+    def transform(self, data_extract: list):
+        data_transformed = self.transformer.landing(data_extract=data_extract)       
         return data_transformed
     
     def load(self, data_transformed):

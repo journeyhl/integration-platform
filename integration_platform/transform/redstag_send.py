@@ -122,7 +122,7 @@ class Transform:
             ship_via = shipment['rsShipVia']
             line_str = 'line'
         else:
-            self.logger.info(f'Determining ShipVia value...')
+            self.logger.info(f'{self.log_prefix}Determining ShipVia value...')
             line_str = 'lines'
             for i, item in enumerate(item_payload[1:]):
                 for j in range(i+1):
@@ -135,7 +135,7 @@ class Transform:
                         ship_via = shipment['rsShipVia']
                     bp = 'here'
 
-        self.logger.info(f'{shipment['ShipmentNbr']} has {len(item_payload)} {line_str}. ShipVia: {ship_via}')
+        self.logger.info(f'{self.log_prefix}{shipment['ShipmentNbr']} has {len(item_payload)} {line_str}. ShipVia: {ship_via}')
         for item in item_payload:
             if item['shipVia'] != ship_via:
                 item['shipVia'] = ship_via
@@ -202,7 +202,7 @@ class Transform:
         # if len(item_payload) == 2 and item_payload[0]['item_ref'] == item_payload[1]['item_ref']:
         #     item_payload[0]['qty'] += item_payload[1]['qty']
         #     item_payload = item_payload[:1]
-        item_payload, ship_via = self._determine_shipvia(shipment=shipment, item_payload=item_payload)
+        item_payload, ship_via = self._determine_shipvia(shipment=shipment, item_payload=item_payload) 
         reference_numbers = {} if shipment['OrigOrderType'] != 'RT' else shipment['CustomerOrderNbr']
 
         self.order_create_payload = [            
@@ -233,11 +233,8 @@ class Transform:
         if shipment['ShipToAddress2'] not in[None, '']:
             self.order_create_payload[1][2]['street2'] = shipment['ShipToAddress2']
             bp = 'here'
-        else:
-            bp = 'here'
     
-    def transform_acu_attribute_payload(self, data: dict, log_prefix: str = '') -> dict:
-        
+    def transform_acu_attribute_payload(self, data: dict, log_prefix: str = '') -> dict:        
         '''`transform_sent_to_wh_payload`(self, data: **dict**)
         ---
         <hr>
@@ -347,7 +344,7 @@ class Transform:
         ]
         self.lookup_response = self.pipeline.redstag.target_api(payload_target=self.lookup_payload, operation=f'{shipment_nbr}, order.search', log_prefix=self.log_prefix)
         self.transform_lookup_response()
-        self.logger.info(f'{self.lookup_response['totalCount']} Shipments found at RedStag')
+        self.logger.info(f'{self.log_prefix}{self.lookup_response['totalCount']} Shipments found at RedStag')
         return self.lookup_response
     
     
@@ -377,15 +374,5 @@ class Transform:
             self.lookup_result = self.lookup_response['results'][0]
         else:
             self.lookup_result = []
-            # for result in self.lookup_response['results']:
-            #     self.lookup_result.append({
-            #         'ShipmentNbr': result['unique_id'],
-            #         'rsOrderId': result['order_id'],
-            #         'State': result['state'],
-            #         'Carrier': result['shipping_description'],
-            #         'CarrierCode': result['shipping_method'],
-            #         'Items': result['items'],
-            #         'Shipments': result['shipments']
-            #     })
     #endregion Lookup
 
