@@ -41,37 +41,51 @@ class AcumaticaAPI:
         **self._auth** Authenticates using creds from :data:`~config.settings.ACUMATICA_API`
         """
         self.pipeline = pipeline
+        self.env = env
         self.helper = AcumaticaAPIHelper(self)
         if type(pipeline) == str:
             self.logger = logging.getLogger(f'{pipeline}.AcumaticaAPI')
         else:
             self.logger = logging.getLogger(f'{pipeline.pipeline_name}.AcumaticaAPI')
-        self.version = '24.200.001'
         self.auth_type = 'Cookie'
-        self.uri_env = 'erp' if env == 'prod' else 'acudev'
-        self.uri = f'https://{self.uri_env}.journeyhl.com/entity'
-        self.auth_url = f'https://{self.uri_env}.journeyhl.com/entity/auth/login'
-        self.endpoint_name = 'IntegrationPlatform'
-        self.base_uri = f'{self.uri}/{self.endpoint_name}/{self.version}'
+        uri_env = 'erp' if env == 'prod' else 'acudev'
+        '''Acumatica subdomain. If running in dev, use acudev.journeyhl.com instead of erp.journeyhl.com for production'''
+        
+        uri = f'https://{uri_env}.journeyhl.com/entity'
+
+        self.auth_url = f'https://{uri_env}.journeyhl.com/entity/auth'
+        '''Base portion of authentication url. When used, ***'/login'*** or ***'/logout'*** *must* be appended'''
+
+        endpoint_name = 'IntegrationPlatform'
+        '''Endpoint name within Acumatica'''
+        version = '24.200.001'
+        '''Acumatica API version (set in Acumatica - [Web Service Endpoints - IntegrationPlatform](https://erp.journeyhl.com/(W(5))/Main?CompanyID=JHL&ScreenId=SM207060&InterfaceName=IntegrationPlatform&GateVersion=24.200.001)'''
+
+        self.base_uri = f'{uri}/{endpoint_name}/{version}'
+        '''Global base_uri to use with all Acumatica API calls. ***/*** must be appended with any endpoint'''
+
         self.username = ACUMATICA_API['username']
+        '''Primary username'''
         self.password = ACUMATICA_API['password']
-        self.username2 = ACUMATICA_API['username2'] #backup
-        self.password2 = ACUMATICA_API['password2'] #backup
-        self.username3 = ACUMATICA_API['username3'] #alternate backup
-        self.password3 = ACUMATICA_API['password3'] #alternate backup
+        '''Primary password'''
+        self.username2 = ACUMATICA_API['username2']
+        '''Fallback username'''
+        self.password2 = ACUMATICA_API['password2']
+        '''Fallback password'''
+        self.username3 = ACUMATICA_API['username3']
+        '''Alternate fallback username'''
+        self.password3 = ACUMATICA_API['password3']
+        '''Alternate fallback password'''
         self.company = 'JHL'
         self.data_log = []
-        self.session = requests.Session()
         self.calls = 0
-        if env == 'dev':
-            self.session.headers.update({
-                'CF-Access-Client-Id': ACUMATICA_API['cf_client_id'] or '',
-                'CF-Access-Client-Secret': ACUMATICA_API['cf_client_secret'] or '',
-            })
         self.login_attempts = 0
         self._auth_()
         if env == 'dev':
             self.logger.warning(f'Running in dev environment!!!')
+
+
+
 
 #region SalesOrder
     #region order_create_receipt
@@ -97,7 +111,6 @@ class AcumaticaAPI:
         try:
             response = self.session.post(f'{self.base_uri}/SalesOrder/SalesOrderCreateReceipt', json=payload)
             response_str = f'{response.status_code} {response.reason}'
-            
             self.logger.info(response_str)
         except Exception as e:
             bp = 'here'
@@ -237,7 +250,7 @@ class AcumaticaAPI:
             self.parse_response(response, {'type': 'Order', 'attribute': 'AttributeRCSHP2WH'})
         except Exception as e:
             try:                    
-                self._logout()
+                self._logout_()
                 self._auth_()
                 response = self.session.put(f'{self.base_uri}/SalesOrder', json=payload)
                 self.parse_response(response, {'type': 'Order', 'attribute': 'AttributeRCSHP2WH'})
@@ -797,7 +810,7 @@ class AcumaticaAPI:
             self.parse_response(response, {'type': 'Shipment', 'attribute': 'AttributeSHP2WH'})
         except Exception as e:
             try:                    
-                self._logout()
+                self._logout_()
                 self._auth_()
                 response = self.session.put(f'{self.base_uri}/Shipment', json=body)
                 self.parse_response(response, {'type': 'Shipment', 'attribute': 'AttributeSHP2WH'})
@@ -857,7 +870,7 @@ class AcumaticaAPI:
             self.parse_response(response=response, entity_type={'type': 'Order', 'attribute': 'AttributeRCSHP2WH'}, log_prefix=log_prefix)
         except Exception as e:
             try:                    
-                self._logout()
+                self._logout_()
                 time.sleep(1)
                 self._auth_()
                 response = self.session.put(f'{self.base_uri}/SalesOrder', json=body)
@@ -915,7 +928,7 @@ class AcumaticaAPI:
             self.parse_response(response=response, entity_type={'type': 'Shipment', 'attribute': 'AttributeSHP2WH'}, log_prefix=log_prefix)
         except Exception as e:
             try:                    
-                self._logout()
+                self._logout_()
                 self._auth_()
                 response = self.session.put(f'{self.base_uri}/Shipment', json=body)
                 self.parse_response(response=response, entity_type={'type': 'Shipment', 'attribute': 'AttributeSHP2WH'}, log_prefix=log_prefix)
@@ -1109,21 +1122,27 @@ class AcumaticaAPI:
 
 
 
-#region Authentication/Logout
+    #region Authentication/Logout
     def _auth_(self):
+        self.session = requests.Session()
+        if self.env == 'dev':
+            self.session.headers.update({
+                'CF-Access-Client-Id': ACUMATICA_API['cf_client_id'] or '',
+                'CF-Access-Client-Secret': ACUMATICA_API['cf_client_secret'] or '',
+            })
         body = {
             "name": self.username,
             "password": self.password,
             "company": self.company
         }
         try:
-            response = self.session.post(url=self.auth_url, json=body)
+            response = self.session.post(url=f'{self.auth_url}/login', json=body)
             response.raise_for_status()
             self.logger.info('Acumatica API is online. Logged into Acumatica and authenticated successfully')
         except Exception as e:
             self.login_attempts += 1
             sleep = 15
-            self._logout()
+            self._logout_()
             if self.login_attempts == 1:
                 self.username = self.username2
                 self.password = self.password2
@@ -1142,11 +1161,13 @@ class AcumaticaAPI:
             else:
                 raise e
             self._auth_()
+        pass
 
-    #region _logout
-    def _logout(self):
-        self.session.post(f'https://{self.uri_env}.journeyhl.com/entity/auth/logout')
+    #region _logout_
+    def _logout_(self):
+        self.session.post(f'{self.auth_url}/logout')
         self.logger.info('Logged out of Acumatica API session')
+        pass
     #endregion
 #endregion Authentication/Logout
 

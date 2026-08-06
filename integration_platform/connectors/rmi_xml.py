@@ -103,7 +103,7 @@ class RMIXML:
             self.post_3(return_order)
 
         bp = 'here'
-        self.pipeline.acu_api._logout()
+        self.pipeline.acu_api._logout_()
         return self.results
 
 

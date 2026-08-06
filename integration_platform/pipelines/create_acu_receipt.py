@@ -75,7 +75,7 @@ class CreateAcuReceipt(Pipeline):
         return self.acu_api.data_log
     
     def log_results(self, data_loaded):
-        self.acu_api._logout()
+        self.acu_api._logout_()
 
         self.logger.info(f'Logging acu_api interactions...')
         for entry in data_loaded:

@@ -1,0 +1,406 @@
+import logging
+import polars as pl
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+import json
+
+class Transform:
+    def __init__(self, pipeline):
+        self.pipeline = pipeline
+        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.Transform')
+        pass
+
+
+    def transform(self, data_extract: dict[str, pl.DataFrame]):
+        central_transformed = data_extract['central_extract']
+        redstag_transformed = self.transform_redstag_events(data_extract['redstag_event_extract'])
+        rmi_extract = data_extract['rmi_extract']
+        acu_transformed = data_extract['acu_extract']
+        data_transformed = []
+        total = acu_transformed.height
+        self.logger.info(f'{total} rows to iterate')
+        for i, acu_shipment in enumerate(acu_transformed.iter_rows(named=True)):
+            self.prefix = f'{i+1}/{total}: '
+            matches = [cs_shipment for cs_shipment in central_transformed.iter_rows(named=True)
+                    if acu_shipment['ShipmentNbr'] == cs_shipment['ShipmentNbr'].replace('-1', '').replace('-2', '').replace('-3', '')
+                    and acu_shipment['ShipmentLineNbr'] == cs_shipment['ShipLineNbr']
+                    and acu_shipment['SplitLineNbr'] == cs_shipment['SplitLineNbr']
+                    and acu_shipment['InventoryCD'] == cs_shipment['InventoryCD']
+            ]
+            matches_redstag = [rs_shipment for rs_shipment in redstag_transformed
+                    if acu_shipment['ShipmentNbr'] == rs_shipment['ShipmentNbr'].replace('-1', '').replace('-2', '').replace('-3', '')
+                    and acu_shipment['InventoryCD'] == rs_shipment['InventoryCD']                
+            ]
+            matches_rmi = [rmi_shipment for j, rmi_shipment in enumerate(rmi_extract.iter_rows(named=True))
+                    if acu_shipment['ShipmentNbr'] == rmi_shipment['RMANumber']
+                    and acu_shipment['InventoryCD'] == rmi_shipment['InventoryCD']
+            ]
+            self.shipment_formatted = {
+                    'ShipmentNbr': acu_shipment['ShipmentNbr'],
+                    'InventoryCD': acu_shipment['InventoryCD'],
+                    'OrderQty': acu_shipment['OrderQty'],
+                    'ShipQty': acu_shipment['ShipQty'],
+                    'SplitLineNbr': acu_shipment['SplitLineNbr']
+            }
+            prefix = f'{acu_shipment['ShipmentNbr']}-{acu_shipment['ShipmentLineNbr']}-{acu_shipment['InventoryCD']}'
+            if matches_redstag != []:
+                log_str = f'{self.prefix}{len(matches_redstag)} matches' if len(matches_redstag) > 1 else f'{len(matches_redstag)} match'
+                self.logger.info(f'{self.prefix}{prefix}: Found {log_str} from RedStagEvents')
+                shipment_formatted = self.smash_rs_matches(acu_shipment, matches_redstag)
+                data_transformed.extend(shipment_formatted)
+                
+            elif matches != []:
+                log_str = f'{self.prefix}{len(matches)} matches' if len(matches) > 1 else f'{len(matches)} match'
+                self.logger.info(f'{self.prefix}{prefix}: Found {log_str} from PackShipmentRedStag')
+                shipment_formatted = self.smash_def_matches(acu_shipment, matches = matches)                
+                data_transformed.extend(shipment_formatted)
+
+            if matches_rmi != []:
+                log_str = f'{self.prefix}{prefix}: {len(matches_rmi)} matches' if len(matches_rmi) > 1 else f'{len(matches_rmi)} match'
+                self.logger.info(f'{self.prefix}{prefix}: Found {log_str} from PackShipmentRMI')
+                shipment_formatted = self.smash_rmi_matches(acu_shipment, matches_rmi)
+                data_transformed.extend(shipment_formatted)
+
+
+        self.logger.info(f'Matched {len(data_transformed)} rows')
+        shipments = self.group_tracking(data_transformed)
+        return shipments
+    
+
+    def smash_def_matches(self, acu_shipment: dict, matches: list):
+        if len(matches) == 1:
+            match = matches[0]
+            shipment_formatted = [{
+                **self.shipment_formatted,
+                'InventoryCD_3pl': match['InventoryCD'],
+                'Qty_3pl': match['rsQty'],
+                'TrackingNbr_3pl': match['TrackingNbr'],
+                'ItemsOnPackage_3pl': match['ItemsOnPackage'],
+                'MaxPackageNum_3pl': match['MaxPackageNum'],
+                'Courier_3pl': match['CourierName'],
+                'Instructions_3pl': match['Complete'],
+            }]
+            return shipment_formatted
+        
+        formatted_matches = []
+        for i, match in enumerate(matches): 
+            dupe_items = [mat['InventoryCD'] for j, mat in enumerate(matches) if i != j and mat['InventoryCD'] == match['InventoryCD'] and mat['TrackingNbr'] == match['TrackingNbr'] ]
+            formatted_matches.append({
+                **self.shipment_formatted,
+                'InventoryCD_3pl': match['InventoryCD'],
+                'Qty_3pl': match['rsQty'],
+                'TrackingNbr_3pl': match['TrackingNbr'],
+                'ItemsOnPackage_3pl': match['ItemsOnPackage'],
+                'MaxPackageNum_3pl': match['MaxPackageNum'],
+                'Courier_3pl': match['CourierName'],
+                'Instructions_3pl': match['Complete'],
+            })
+            if len(dupe_items) + 1 == len(matches):
+                break
+            bp = 'here'
+        return formatted_matches
+
+    def smash_rs_matches(self, acu_shipment: dict, matches: list):
+        if len(matches) == 1:
+            match = matches[0]
+            shipment_formatted = [{
+                **self.shipment_formatted,
+                'InventoryCD_3pl': match['InventoryCD'],
+                'Qty_3pl': match['Qty'],
+                'TrackingNbr_3pl': match['TrackingNbr'],
+                'ItemsOnPackage_3pl': match['order_item_qty'],
+                'Courier_3pl': match['Courier'],
+            }]
+            return shipment_formatted
+        formatted_matches = []
+        for i, match in enumerate(matches):
+            dupe_items = [mat['InventoryCD'] for j, mat in enumerate(matches) if i != j and mat['InventoryCD'] == match['InventoryCD'] and mat['TrackingNbr'] == match['TrackingNbr'] ]
+            formatted_matches.append({
+                **self.shipment_formatted,
+                'InventoryCD_3pl': match['InventoryCD'],
+                'Qty_3pl': match['Qty'],
+                'TrackingNbr_3pl': match['TrackingNbr'],
+                'ItemsOnPackage_3pl': match['order_item_qty'],
+                'Courier_3pl': match['Courier'],
+            })
+            if len(dupe_items) + 1 == len(matches):
+                break
+        return formatted_matches
+
+    def smash_rmi_matches(self, acu_shipment: dict, matches: list):
+        if len(matches) == 1:
+            match = matches[0]
+            shipment_formatted = [{
+                **self.shipment_formatted,
+                'InventoryCD_3pl': match['InventoryCD'],
+                'Qty_3pl': match['QtyShipped'],
+                'TrackingNbr_3pl': match['Tracking'],
+                'ItemsOnPackage_3pl': match['Lines'],
+                'Courier_3pl': match['CarrierCode'],
+            }]
+            return shipment_formatted
+        formatted_matches = []
+        for i, match in enumerate(matches):
+            dupe_items = [mat['InventoryCD'] for j, mat in enumerate(matches) if i != j and mat['InventoryCD'] == match['InventoryCD'] and mat['Tracking'] == match['Tracking']]
+            if dupe_items != []:        
+                self.logger.warning(f'Duplicate item found!')
+            fmatch = {
+                **self.shipment_formatted,
+                'InventoryCD_3pl': match['InventoryCD'],
+                'Qty_3pl': match['QtyShipped'],
+                'TrackingNbr_3pl': match['Tracking'],
+                'ItemsOnPackage_3pl': match['Lines'],
+                'Courier_3pl': match['CarrierCode'],
+            }
+            if len(dupe_items) + 1 == len(matches) and i != 0:
+                formatted_matches[i-1]['Qty_3pl'] += match['QtyShipped']
+                break
+            formatted_matches.append(fmatch)
+            bp = 'here'
+        return formatted_matches
+
+
+
+    def _clean_rmi_duplicate_items_(self, dupe_items: list, match: dict, matches: list, match_index: int):
+        # formatted_matches = {
+        #     **self.shipment_formatted,
+        #     'InventoryCD_3pl': match['InventoryCD'],
+        #     'Qty_3pl': match['QtyShipped'],
+        #     'TrackingNbr_3pl': match['Tracking'],
+        #     'ItemsOnPackage_3pl': match['Lines'],
+        #     'Courier_3pl': match['CarrierCode'],
+        # }
+
+
+        bp = 'here'
+
+
+
+
+
+
+
+    def group_tracking(self, data_transformed: list):
+        '''`group_tracking`(self, data_transformed: *list*))
+        ---
+        <hr>
+        
+        Adds one entry per shipment to shipments dictionary, the key being the **ShipmentNbr**
+        
+        <hr>
+        
+        Parameters
+        ----------
+        
+        :param data_transformed: list of dicts containing Game info.
+        :type data_transformed: list
+        
+        <hr>
+        
+        Returns
+        ----------
+        
+        :return shipments (*dict*): Dictionary of Shipments, the key value being the ShipmentNbr. Prevents duplicating the same shipment
+
+
+         shipments must contain the following entries: **ShipmentNbr**, **PackagePayload**, **_FriendlyPackagePayload**     
+
+         **PackagePayload**: payload to be sent to Acumatica API via add_package_v2
+
+         **_FriendlyPackagePayload**: More readable version of PackagePayload, not for use.
+            
+            
+        >>> shipments = {
+            'ShipmentNbr': '078983',
+            'PackagePayload': {
+                'ShipmentNbr': {'value': '078983'}, 
+                'Packages': [
+                    {
+                        'BoxID': {'value': 'DEFAULT BOX'}, 
+                        'TrackingNbr': {'value': '380175841075'}, 
+                        'Description': {'value': 'Package added via API @ 04/02/2026 11:01:03'}, 
+                        'Weight': {'value': 0}, 
+                        'UOM': {'value': 'LBS'}, 
+                        'PackageContents': [
+                            {
+                                'InventoryID': {'value': '09054'}, 
+                                'Quantity': {'value': '2'}, 
+                                'UOM': {'value': 'EA'}, 
+                                'ShipmentSplitLineNbr': {'value': 2}
+                            }
+                        ]
+                    }
+                ]
+            },
+            '_FriendlyPackagePayload': [{...}]
+        }
+        '''
+        shipments = {}
+        self.package_contents = {}
+        for i, line in enumerate(data_transformed):
+            if shipments.get(f'{line['ShipmentNbr']}') == None:
+                package_payload = self._format_package(line, data_transformed)
+                friendly_package_payload = self._format_friendly_package_payload(line, data_transformed)
+                shipments[f'{line['ShipmentNbr']}'] = {
+                    'ShipmentNbr': line['ShipmentNbr'],
+                    'PackagePayload': package_payload,
+                    '_FriendlyPackagePayload': friendly_package_payload
+                }
+        
+        return shipments
+    
+    def _format_package(self, shipment_line_data: dict, shipment_data: list):
+        '''`_format_package`(self, shipment_line_data: *dict*, shipment_data: *list*)
+        ---
+        <hr>
+        
+        For the Shipment passed in **shipment_line_data**, formats the Acumatica API payload to add package(s) to an Acumatica shipment.
+        
+        <hr>
+        
+        Parameters
+        ----------
+        
+        :param shipment_line_data: dict containing data for a single line from a Shipment
+        :type shipment_line_data: *dict*
+        :param shipment_data: Full list of Shipments that meet the criteria to be packed
+        :type shipment_data: *list*
+        
+        <hr>
+        
+        Returns
+        ----------        
+        
+        :return package_payload (*dict*): *dictionary containing ShipmentNbr and Packages, a list of all packages to be added to Acumatica.*
+        '''
+        now = datetime.now(ZoneInfo('America/New_York')).strftime('%m/%d/%Y %H:%M:%S')
+        descr = f'Package added via API @ {now}'
+        matched_shipment_data = [diff_track_nbr for diff_track_nbr in shipment_data if shipment_line_data['ShipmentNbr'] == diff_track_nbr['ShipmentNbr']]
+        # for pkg_line_data in shipment_data:
+        bp = 'here'
+        packages = []
+
+        if shipment_line_data['ShipmentNbr'] == '082732':
+            bp = 'here'
+        for i, line in enumerate(matched_shipment_data):
+            if self.package_contents.get((line['ShipmentNbr'], line['TrackingNbr_3pl'])) == None:
+                distinct_items = len({line['InventoryCD'] for line in matched_shipment_data})
+                lines = len(matched_shipment_data)
+                self.package_contents[(line['ShipmentNbr'], line['TrackingNbr_3pl'])] = []
+                for j, pkg_line_data in enumerate(matched_shipment_data):
+                    if line['TrackingNbr_3pl'] == pkg_line_data['TrackingNbr_3pl'] and line['ShipmentNbr'] == pkg_line_data['ShipmentNbr']:
+                        qty = None
+                        if pkg_line_data['Qty_3pl'] != pkg_line_data['OrderQty']:
+                            qty = min(pkg_line_data['OrderQty'], pkg_line_data['Qty_3pl'])
+                        self.package_contents[(line['ShipmentNbr'], line['TrackingNbr_3pl'])].append({
+                            "InventoryID": { "value": pkg_line_data['InventoryCD'] },
+                            "Quantity": { "value": qty if qty else pkg_line_data['Qty_3pl']},
+                            "UOM": { "value": "EA" },
+                            "ShipmentSplitLineNbr": {  "value": pkg_line_data['SplitLineNbr']}
+                        })
+                        bp = 'here'
+                package = {
+                    "BoxID": { "value": "DEFAULT BOX" },
+                    "TrackingNbr": { "value": f"{line['TrackingNbr_3pl']}" },
+                    "Description": { "value": f"{descr}" },
+                    "Weight": { "value": 0 },
+                    "UOM": { "value": "LBS" },
+                    "PackageContents": self.package_contents[(line['ShipmentNbr'], line['TrackingNbr_3pl'])]
+                }
+                packages.append(package)
+                bp = 'here'
+        package_payload = {
+            "ShipmentNbr": { "value": f"{shipment_line_data['ShipmentNbr']}" },
+            "Packages": packages
+        }
+
+        return package_payload
+    
+
+    def _format_friendly_package_payload(self, shipment_line_data, shipment_data):
+        '''
+        Not for use, just for ease of debugging/logging. Contains same info as _format_package(), but formatted for readibility
+        '''
+        now = datetime.now(ZoneInfo('America/New_York')).strftime('%m/%d/%Y %H:%M:%S')
+        descr = f'Package added via API @ {now}'
+        friendly_packages =  [
+                {
+                    "TrackingNbr": f"{line['TrackingNbr_3pl']}",
+                    "Description": descr,
+                    "PackageContents": [
+                        {
+                            "InventoryID": pkg_line_data['InventoryCD'],
+                            "Quantity": pkg_line_data['Qty_3pl'],
+                            "ShipmentSplitLineNbr": pkg_line_data['SplitLineNbr']
+                        }
+                        for pkg_line_data in shipment_data
+                    if line['TrackingNbr_3pl'] == pkg_line_data['TrackingNbr_3pl']  
+                    ]
+                }
+                for line in shipment_data
+            if shipment_line_data['ShipmentNbr'] == line['ShipmentNbr']
+        ]        
+        return friendly_packages
+    
+
+
+    def transform_redstag_events(self, redstag_extract: pl.DataFrame, sender: str = ''):
+        redstag_events = []
+        for row in redstag_extract.iter_rows(named=True):
+            if row['ShipmentNbr_3pl'] == '083418':
+                bp = 'here'
+            try:
+                tracking_nbrs = json.loads(row['TrackingNumbers'])
+            except TypeError as t:
+                tracking_nbrs = row['TrackingNumbers']
+            except Exception as e:
+                tracking_nbrs = []
+            if len(tracking_nbrs) == 0:
+                continue
+            if len(tracking_nbrs) > 1:
+                bp = 'here'
+            if sender == 'alt':
+                packages = row['Packages']
+                items = row['Items']
+                trackers = row['Trackers']
+                tracking_nbrs = [t['number'] for t in tracking_nbrs]
+            else:
+                packages = json.loads(row['Packages'])
+                items = json.loads(row['Items'])
+                trackers = json.loads(row['Trackers'])
+            if len(items) == 1:
+                redstag_row = {
+                    'ShipmentNbr': row['ShipmentNbr_3pl'],
+                    'InventoryCD': items[0]['sku'],
+                    'TrackingNbr': tracking_nbrs[0],
+                    'Qty': int(float(items[0]['quantity'])) if items[0].get('quantity') else int(float(items[0]['qty_ordered'])),
+                    'Courier': packages[0]['manifest_courier'] if packages[0].get('manifest_courier') else packages[0]['manifest_courier_name'],
+                    'order_item_qty': int(float(items[0]['order_item_qty'])) if items[0].get('order_item_qty') else int(float(items[0]['qty_ordered'])),
+                    'key': f'{row['ShipmentNbr_3pl']}-{items[0]['sku']}-{tracking_nbrs[0]}'
+                }
+                redstag_events.append(redstag_row)
+            else:
+                for i, item in enumerate(items):
+                    if len(packages) == 1:                        
+                        courier = packages[0]['manifest_courier'] if packages[0].get('manifest_courier') else packages[0]['manifest_courier_name']
+                    elif i < len(packages):
+                        courier = packages[i]['manifest_courier'] if packages[i].get('manifest_courier') else packages[i]['manifest_courier_name']
+                    else:
+                        courier = packages[1]['manifest_courier'] if packages[1].get('manifest_courier') else packages[1]['manifest_courier_name']
+
+                    tracking = tracking_nbrs[0] if len(tracking_nbrs) == 1 or (tracking_nbrs[0][0] == '3' and tracking_nbrs[1][0] == '9' and len(tracking_nbrs) == 2) else tracking_nbrs[i] if i < len(tracking_nbrs) else tracking_nbrs[1]
+                    redstag_row = {
+                        'ShipmentNbr': row['ShipmentNbr_3pl'],
+                        'InventoryCD': item['sku'],
+                        'TrackingNbr': tracking,
+                        'Qty': int(float(item['quantity'])) if item.get('quantity') else int(float(item['qty_ordered'])),
+                        'Courier': courier,
+                        'order_item_qty': int(float(item['order_item_qty'])) if item.get('order_item_qty') else int(float(item['qty_ordered'])),
+                        'key': f'{row['ShipmentNbr_3pl']}-{item['sku']}-{tracking}'
+                    }
+                    redstag_events.append(redstag_row)
+                    bp = 'here'
+            bp = 'here'
+        bp = 'here'
+        return redstag_events
+    

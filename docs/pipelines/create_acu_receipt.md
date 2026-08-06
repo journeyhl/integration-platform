@@ -49,7 +49,7 @@ flowchart TD
     CONF -->|no| L17[skip — log mismatch]
 
     RUN --> LR[log_results]
-    LR --> LO[acu_api._logout]
+    LR --> LO[acu_api._logout_]
     LR --> UPS[(
         <b><i>CentralStore</i></b>
         upsert _util.acu_api_log

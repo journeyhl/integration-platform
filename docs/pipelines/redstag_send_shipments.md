@@ -35,7 +35,7 @@ flowchart TD
     LD2 --> ACU1[(AcuAPI: send_to_wh_v2<br/>set AttributeSHP2WH = true)]
 
     RUN --> LR[log_results]
-    LR --> LO[AcumaticaAPI._logout]
+    LR --> LO[AcumaticaAPI._logout_]
     LR --> UPS[(
         <b><i>CentralStore</i></b>
         upsert _util.acu_api_log

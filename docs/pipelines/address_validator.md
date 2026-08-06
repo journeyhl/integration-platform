@@ -36,7 +36,7 @@ flowchart TD
     L2 -->|no| L6[skip order]
 
     RUN --> LR[log_results]
-    LR --> LO[acu_api._logout]
+    LR --> LO[acu_api._logout_]
     LR --> UPS[(
         <b><i>CentralStore</i></b>
         upsert _util.acu_api_log
