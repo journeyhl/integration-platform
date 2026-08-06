@@ -13,7 +13,8 @@ class RyderToDbc(Pipeline):
         # self.loader = AcuAPILoader(self)
 
     def extract(self):
-        test_files = list(Path(r'C:\Users\jordanj\Desktop\Ryder').iterdir())
+        # test_files = list(Path(r'C:\Users\jordanj\Desktop\Ryder').iterdir())
+        test_files = list(Path(r'C:\Users\derfj\Desktop\Ryder').iterdir())
         data_extract = []
         for file in test_files:
             with open(file, 'r') as f:

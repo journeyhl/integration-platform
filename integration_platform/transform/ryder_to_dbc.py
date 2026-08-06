@@ -16,21 +16,26 @@ class Transform:
     def landing(self, data_extract):
         bp = 'here'
         self.shipments = []
+        self.ship_lines = []
         self.shipment_addresses = {}
         for i, shipment in enumerate(data_extract):
             self.shipment = shipment
             header = self.parse_header_level()
-            references = self.parse_references()
+            references = self.parse_refnbrs()
             dates = self.parse_order_dates()
             line_items = self.parse_line_items()
+            parent_address = self.shipment_addresses[shipment['key_shipment']][shipment['key_addr']]
             parsed_shipment = {
                 **references,
                 **header,
+                **parent_address,
                 **dates,
-                'Lines': line_items
             }
+            parsed_ship_line = [{'ShipmentNbr': self.references['jhl_ShipmentNbr'], 'OrderNbr': self.references['jhl_OrderNbr'], **item} for item in line_items]
             self.shipments.append(parsed_shipment)
+            self.ship_lines.extend(parsed_ship_line)
         bp = 'here'
+        self.pipeline.centralstore.__dataframe_to_table_create_statement__(pl.DataFrame(self.shipments), '')
         return self.shipments
 
 
@@ -54,6 +59,10 @@ class Transform:
         Returns
         ---
         :return `header` (_dict_): dict containing `rlm_OrderType`, `rlm_Workflow`, `rlm_ClientRefType`, corresponding to `enterpriseClientID`, `OrderreqWorkflow` and `ClientRefType` from Ryder
+
+            - ***`rlm_OrderType`***
+            - ***`rlm_Workflow`***
+            - ***`rlm_ClientRefType`***
         '''
         header = {
             'rlm_OrderType': self.shipment['enterpriseClientID'],
@@ -64,7 +73,7 @@ class Transform:
     #endregion
 
     #region parse_references
-    def parse_references(self) -> dict:
+    def parse_refnbrs(self) -> dict:
         '''
         :class:`~Transform`.:meth:`~parse_references` (self):
         ---
@@ -197,7 +206,7 @@ class Transform:
         line_shipments = {
             'Consignee': shipments['consigneeName'],
             'Phone': shipments['toPhone'][0]['phoneNumber'] if len(shipments['toPhone']) > 0 else None,
-            'Email': shipments['contactEmail'],
+            'Email': shipments['contactEmail'] if shipments['contactEmail'] != '' else None,
             'AddressLine1': shipments['shipTo']['address1'],
             'AddressLine2': shipments['shipTo']['address2'] if shipments['shipTo']['address2'] != '' else None,
             'City': shipments['shipTo']['city'],
@@ -210,7 +219,6 @@ class Transform:
         self._check_shipment_addresses_(key_shipment=key_shipment, key_addr=key_addr, addr=line_shipments)
         if len(shipments['shipmentDates']) > 0:
             self.logger.warning(f'No code written for line shipment dates!')
-            bp = 'here'
         return line_shipments
     #endregion
     
@@ -247,11 +255,10 @@ class Transform:
         if '-' in ref_nbr:
             dash = ref_nbr.find('-')
             documents['jhl_OrderNbr'] = ref_nbr[:dash] 
-            documents['jhl_LineNbr'] = ref_nbr[:dash]
+            documents['jhl_LineNbr'] = int(ref_nbr[dash+1:])
         else:
             documents['jhl_OrderNbr'] = ref_nbr
             documents['jhl_LineNbr'] = None
-            bp = 'here'
         return documents
     #endregion
 
@@ -266,5 +273,5 @@ class Transform:
                 self.shipment_addresses[key_shipment][key_addr] = addr
             else:
                 self.logger.info(f'Same address found on all lines, no issues.')
-                bp = 'here'
-        bp = 'here'
+        self.shipment['key_shipment'] = key_shipment
+        self.shipment['key_addr'] = key_addr
