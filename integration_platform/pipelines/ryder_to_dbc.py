@@ -13,14 +13,13 @@ class RyderToDbc(Pipeline):
         # self.loader = AcuAPILoader(self)
 
     def extract(self):
-        # test_files = list(Path(r'C:\Users\jordanj\Desktop\Ryder').iterdir())
-        test_files = list(Path(r'C:\Users\derfj\Desktop\Ryder').iterdir())
+        orders = ['087442', '087465', '087449', '087353']
         data_extract = []
-        for file in test_files:
-            with open(file, 'r') as f:
-                contents = f.read()
-            jfile = json.loads(contents)
-            data_extract.append(jfile)
+        for order in orders:
+            order_history = self.ryder.get_order_history(shipment_nbr=order)
+            if order_history.get('error') == None:
+                data_extract.append(order_history)
+            bp = 'here'
         return data_extract
 
     def transform(self, data_extract: list):
@@ -32,3 +31,15 @@ class RyderToDbc(Pipeline):
     
     def log_results(self, data_loaded):
         pass
+
+
+
+    def testing_extract(self):        
+        test_files = list(Path(r'C:\Users\derfj\Desktop\Ryder').iterdir())
+        data_extract = []
+        for file in test_files:
+            with open(file, 'r') as f:
+                contents = f.read()
+            jfile = json.loads(contents)
+            data_extract.append(jfile)
+        return data_extract

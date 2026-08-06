@@ -35,7 +35,7 @@ flowchart TD
         <b><i>CentralStore</i></b>
         insert _util.rmi_send_log
     )]
-    LR --> LO[AcumaticaAPI._logout]
+    LR --> LO[AcumaticaAPI._logout_]
     LR --> UPS[(
         <b><i>CentralStore</i></b>
         upsert _util.acu_api_log)]

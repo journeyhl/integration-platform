@@ -90,7 +90,7 @@ class SendRedStagShipments(Pipeline):
         return data_loaded
     
     def log_results(self, data_loaded):
-        self.acu_api._logout()
+        self.acu_api._logout_()
 
         self.logger.info(f'Logging acu_api interactions...')
         for entry in data_loaded['api_data_log']:

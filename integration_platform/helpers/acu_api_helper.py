@@ -22,6 +22,7 @@ class AcumaticaAPIHelper:
     
     #region format_data_log_entry
     def format_data_log_entry(self, entity: str, key_value: str, operation: str, payload: dict, response: str, tstamp: datetime, options: Literal['append', 'return']):
+        self.acu.calls += 1
         entry = {            
             'Entity': entity,
             'KeyValue': key_value,

@@ -60,7 +60,7 @@ class SendRMIReturns(Pipeline):
             self.centralstore.insert_df(df_loaded, '_util.rmi_send_log')
         else:
             self.logger.warning('Nothing was logged!')
-        self.acu_api._logout()
+        self.acu_api._logout_()
 
         self.logger.info(f'Logging acu_api interactions...')
         for entry in self.acu_api.data_log:

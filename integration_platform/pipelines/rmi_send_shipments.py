@@ -70,7 +70,7 @@ class SendRMIShipments(Pipeline):
             df_loaded = df_loaded.rename({'key': 'KeyValue', 'lines': 'Lines', 'rmi_response': 'RMI_Response', 'rmi_payload': 'RMI_Payload', 'acu_response': 'ACU_Response', 'timestamp': 'Timestamp'})
             df_loaded = df_loaded.select(['Type', 'KeyValue', 'Lines', 'RMI_Response', 'RMI_Payload', 'ACU_Response', 'Timestamp'])
             self.centralstore.insert_df(df_loaded, '_util.rmi_send_log')
-        self.acu_api._logout()
+        self.acu_api._logout_()
         
         self.logger.info(f'Logging acu_api interactions...')
         for entry in self.acu_api.data_log:

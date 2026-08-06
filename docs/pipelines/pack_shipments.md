@@ -48,7 +48,7 @@ flowchart TD
     PKG -->|No| GP[acu_api.get_package_details]
 
     RUN --> LR[log_results]
-    LR --> LO[acu_api._logout]
+    LR --> LO[acu_api._logout_]
     LR --> UPS[(
         <b><i>CentralStore</i></b>
         upsert _util.acu_api_log

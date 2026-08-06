@@ -37,4 +37,5 @@ sl.LastModifiedDateTime >= @DateCutoff or
 splp.LastModifiedDateTime >= @DateCutoff)
 and s.Status in('N')
 and p.TrackNumber is null
+-- and s.shipmentNbr = '087065'
 order by ShipmentNbr desc

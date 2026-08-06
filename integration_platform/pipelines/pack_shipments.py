@@ -1,6 +1,6 @@
 from integration_platform.pipelines import Pipeline
 from integration_platform.connectors import AcumaticaAPI
-from integration_platform.transform.pack_shipment import Transform
+from integration_platform.transform.pack_shipment_v2 import Transform
 from integration_platform.load.shipment_api import Load
 from integration_platform.pipelines.redstag_order_search import RedStagOrderSearch
 import json
@@ -73,7 +73,7 @@ class PackShipments(Pipeline):
         return self.acu_api.data_log
     
     def log_results(self, data_loaded):
-        self.acu_api._logout()
+        self.acu_api._logout_()
 
         self.logger.info(f'Logging acu_api interactions...')
         for entry in data_loaded:

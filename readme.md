@@ -1589,7 +1589,7 @@ GET Customer Contact details. Same parameters as `customers`.
 ##### `_auth(self)`
 Logs into the Acumatica API and stashes a session cookie.
 
-##### `_logout(self)`
+##### `_logout_(self)`
 Logs out of the Acumatica API.
 
 #### Work in Progress
