@@ -13,16 +13,20 @@ class RyderToDbc(Pipeline):
         # self.loader = AcuAPILoader(self)
 
     def extract(self):
-        orders = ['087442', '087465', '087449', '087353']
-        data_extract = []
+        orders = ['087465', '087449', '087353', '087442']
+        data_extract = {}
         for order in orders:
             order_history = self.ryder.get_order_history(shipment_nbr=order)
-            if order_history.get('error') == None:
-                data_extract.append(order_history)
+            order_milestones = self.ryder.get_order_milestones(shipment_nbr=order)
+            # if order_history.get('error') == None:
+            data_extract[order] = {
+                'history': order_history,
+                'milestones': order_milestones
+            }
             bp = 'here'
         return data_extract
 
-    def transform(self, data_extract: list):
+    def transform(self, data_extract: dict):
         data_transformed = self.transformer.landing(data_extract=data_extract)       
         return data_transformed
     
