@@ -50,15 +50,15 @@ class RyderAPI:
         pass
 
 
-    def get_order_history(self, shipment_nbr: str):
+    def get_order_history(self, shipment_nbr: str, log_prefix: str = ''):
         url = f'{self.ep_order_history_by_orderRef}{shipment_nbr}'
-        normalized_response = self._target_api_(url=url, operation='get', sender='get_order_history', descr=f'{shipment_nbr}: Get full history')
+        normalized_response = self._target_api_(url=url, operation='get', sender='get_order_history', descr=f'{shipment_nbr}: Get full history', log_prefix=log_prefix)
         bp = 'here'
         return normalized_response
 
-    def get_order_milestones(self, shipment_nbr: str):
+    def get_order_milestones(self, shipment_nbr: str, log_prefix: str = ''):
         url = f'{self.ep_order_status_by_orderRef}{shipment_nbr}'
-        normalized_response = self._target_api_(url=url, operation='get', sender='get_order_milestones', descr=f'{shipment_nbr}: Get milestones')
+        normalized_response = self._target_api_(url=url, operation='get', sender='get_order_milestones', descr=f'{shipment_nbr}: Get milestones', log_prefix=log_prefix)
         bp = 'here'
         return normalized_response
 
@@ -66,7 +66,7 @@ class RyderAPI:
 
 
 
-    def _target_api_(self, url: str, operation: Literal['get', 'post', 'put', 'delete'], sender: str, payload: dict = {}, descr: str = None): #type: ignore
+    def _target_api_(self, url: str, operation: Literal['get', 'post', 'put', 'delete'], sender: str, payload: dict = {}, descr: str = '', log_prefix: str = ''):
         ''':class:`~RyderAPI`.:meth:`~_target_api_` (self, endpoint: *str*, operation: *str*, ):
         ---
         <hr>
@@ -92,7 +92,7 @@ class RyderAPI:
         :param (*str*) `url`: Absolute URL to hit Ryder api at 
         :param (*str*) `operation`: Type of operation
         :param (*dict = {}*) `payload`: _Optional payload to send to Ryder api_
-        :param (*str = None*) `descr`: _Optional description of what this call will be doing when targeting Ryder api_
+        :param (*str = ''*) `descr`: _Optional description of what this call will be doing when targeting Ryder api_
         
         <hr>
         
@@ -100,7 +100,7 @@ class RyderAPI:
         ---
         '''
         bp = 'here'
-        self.logger.info(f'Hitting Ryder API with a {operation} request at {url}')
+        self.logger.info(f'{log_prefix}Hitting Ryder API with a {operation} request at {url}')
         if operation.lower() == 'get':
             response = self.session.get(url=url, headers=self.headers)
             parsed_response = self.helper.parse_get(response=response, sender=sender) or {}

@@ -1,6 +1,6 @@
 from integration_platform.pipelines import Pipeline
 from integration_platform.connectors.ryder_api import RyderAPI
-from integration_platform.transform.ryder_to_dbc import Transform
+from integration_platform.transform.ryder_to_dbc_v3 import Transform
 import polars as pl
 from pathlib import Path
 import json
@@ -13,11 +13,14 @@ class RyderToDbc(Pipeline):
         # self.loader = AcuAPILoader(self)
 
     def extract(self):
-        orders = ['087465', '087449', '087353', '087442']
+        #'087276', '087442', '087353'
+        orders = ['087575', '087465', '087449', '087509', '087479', '087451']
+        total = len(orders)
         data_extract = {}
-        for order in orders:
-            order_history = self.ryder.get_order_history(shipment_nbr=order)
-            order_milestones = self.ryder.get_order_milestones(shipment_nbr=order)
+        for i, order in enumerate(orders):
+            log_prefix = f'{order}, {i+1}/{total}: '
+            order_history = self.ryder.get_order_history(shipment_nbr=order, log_prefix=log_prefix)
+            order_milestones = self.ryder.get_order_milestones(shipment_nbr=order, log_prefix=log_prefix)
             # if order_history.get('error') == None:
             data_extract[order] = {
                 'history': order_history,

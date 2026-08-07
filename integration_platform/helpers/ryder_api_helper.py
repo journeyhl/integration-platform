@@ -68,15 +68,15 @@ class RyderAPIHelper:
             self.logger.info(msg=rstr)
         else:
             bp = 'here'
-        if 'no order is found' in response.text.lower():
-            self.logger.warning(f'{response.text}, returning dict with `error` key')
-            return {'error': response.text}
+        if 'no order is found' in response.text.lower() or 'no shipment status is found' in response.text.lower():
+            self.logger.warning(f'{response.text}, returning empty dict...')
+            return {}
 
         try:
             jresponse = response.json()
         except Exception as e:
-            self.logger.error(f"Error! returning dict with `error` key... {e}")
-            return {'error': {e}}
+            self.logger.error(f"Error! returning empty dict...{e}")
+            return {}
 
         if sender in ['get_order_history', 'get_order_milestones']:
             return jresponse[0]
