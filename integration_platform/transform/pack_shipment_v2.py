@@ -352,7 +352,7 @@ class Transform:
             try:
                 tracking_nbrs = json.loads(row['TrackingNumbers'])
             except TypeError as t:
-                tracking_nbrs = row['TrackingNumbers']
+                tracking_nbrs = row['TrackingNumbers'] or []
             except Exception as e:
                 tracking_nbrs = []
             if len(tracking_nbrs) == 0:

@@ -26,12 +26,35 @@ class Transform:
             self.current_milestones = history__and_milestones['milestones']
 
             self._parse_order_info_(order_info=self.current_history['orderInfo'], sender='history')
+            self._parse_shipment_info_(shipment_info=self.current_history['shipmentInfo'])
+
             # self._compare_diff_()
-            # parsed_milestones = self._parse_milestones_()
             bp = 'here'
         bp = 'here'
         
 
+    def _parse_shipment_info_(self, shipment_info: list[dict]):
+        total = len(shipment_info)
+        self.logger.info(f'{total} shipments found')
+        for i, shipment in enumerate(shipment_info):
+            rlm_shipment_id = shipment['shipmentId']
+            delivery_type = shipment['deliveryType']
+            order_type = shipment['orderType']
+            sku_info = self.__parse_sku_info__(shipment['skuInfo'])
+            sku_info = [event for event in self.__parse_sku_info__(shipment['events'])]
+
+
+
+            bp = 'here'
+        bp = 'here'
+
+    def __parse_sku_info__(self, sku_info):
+        bp = 'here'
+        return []
+
+    def __parse_shipment_events__(self, event):
+        bp = 'here'
+        return []
 
     def _parse_order_info_(self, order_info: dict, sender: Literal['history', 'milestone']):
         '''We can expect  account, brand, consigneeInfo, serviceLocation, shipperInfo to not be in milestone'''

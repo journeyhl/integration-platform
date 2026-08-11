@@ -204,7 +204,7 @@ dbc_executions = cron_to_db_central(ip_cron)
 
 
 
-with open(r'C:\Users\jordanj\Desktop\integration-dashboard\utilities\sidebar_left.py', 'r') as file_with_schedule:
+with open(r'C:\Users\jordanj\Desktop\integration-dashboard\utilities\schedule.py', 'r') as file_with_schedule:
     file_text = file_with_schedule.read()
 
 file_lines = file_text.split('\n')
@@ -218,7 +218,7 @@ first_segment = file_lines[:replace_start]
 second_segment = file_lines[replace_end:]
 new_file = first_segment + schedule_string.split('\n') + ['', ''] + second_segment
 
-with open(r'C:\Users\jordanj\Desktop\integration-dashboard\utilities\sidebar_left.py', 'w', newline='\n') as file_with_schedule:
+with open(r'C:\Users\jordanj\Desktop\integration-dashboard\utilities\schedule.py', 'w', newline='\n') as file_with_schedule:
     file_with_schedule.write('\n'.join(new_file))
 
 
