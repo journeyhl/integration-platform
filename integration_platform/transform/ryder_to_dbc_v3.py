@@ -16,7 +16,7 @@ class Transform:
 
     def landing(self, data_extract: dict[str, dict]):
         bp = 'here'
-        self.orders = []
+        self.orders = {}
         total = len(data_extract)
         for i, (shipment_nbr, history__and_milestones) in enumerate(data_extract.items()):
             self.log_prefix = f'{shipment_nbr}, {i+1}/{total}: '
@@ -25,39 +25,77 @@ class Transform:
             self.current_history = history__and_milestones['history']
             self.current_milestones = history__and_milestones['milestones']
 
-            self._parse_order_info_(order_info=self.current_history['orderInfo'], sender='history')
-            self._parse_shipment_info_(shipment_info=self.current_history['shipmentInfo'])
-
+            parsed_order_info = self._parse_order_info_(order_info=self.current_history['orderInfo'], sender='history')
+            parsed_shipment_info = self._parse_shipment_info_(shipment_info=self.current_history['shipmentInfo'])
+            self.orders[shipment_nbr] = {
+                'parsed_order_info': parsed_order_info,
+                'parsed_shipment_info': parsed_shipment_info,
+            }
+            
             # self._compare_diff_()
             bp = 'here'
         bp = 'here'
         
 
     def _parse_shipment_info_(self, shipment_info: list[dict]):
+        fmt_shipments = []
         total = len(shipment_info)
-        self.logger.info(f'{total} shipments found')
+        self.logger.info(f'{self.log_prefix}{total} shipments found')
         for i, shipment in enumerate(shipment_info):
+            self.current_order_shipment = shipment
             rlm_shipment_id = shipment['shipmentId']
             delivery_type = shipment['deliveryType']
             order_type = shipment['orderType']
-            sku_info = self.__parse_sku_info__(shipment['skuInfo'])
-            sku_info = [event for event in self.__parse_sku_info__(shipment['events'])]
-
-
-
-            bp = 'here'
-        bp = 'here'
+            sku_info = [self.__parse_sku_info__(item) for item in shipment['skuInfo']]
+            events = [self.__parse_shipment_events__(event, event_nbr=i+1) for i, event in enumerate(shipment['events'])]
+            fmt_shipment = {
+                'ShipmentID': rlm_shipment_id,
+                'DeliveryType': delivery_type,
+                'OrderType': order_type,
+                'Events': events,
+                'Items': sku_info
+            }
+            fmt_shipments.append(fmt_shipment)
+        return fmt_shipments
 
     def __parse_sku_info__(self, sku_info):
-        bp = 'here'
-        return []
+        fmt_sku = {
+            'InventoryCD': sku_info['code'],
+            'Description': sku_info['description'],
+            'Length': self.pipeline.default_transformer.string_to_int(sku_info['dims']['length']),
+            'Wdith': self.pipeline.default_transformer.string_to_int(sku_info['dims']['width']),
+            'Height': self.pipeline.default_transformer.string_to_int(sku_info['dims']['height']),
+            'Weight': self.pipeline.default_transformer.string_to_int(sku_info['dims']['weight']),
+            'FAK': self.pipeline.default_transformer.string_to_int(sku_info['dims']['fak']),
+            'CartonID': self.pipeline.default_transformer.clean_string(sku_info['references']['cartonID']),
+            'Serial': self.pipeline.default_transformer.clean_string(sku_info['references']['serial']),
+            'RANbr': self.pipeline.default_transformer.clean_string(sku_info['references']['raNumber']),
+            'ClientLineID': self.pipeline.default_transformer.string_to_int(sku_info['references']['clientLineID']),
+            'CosigneePO': self.pipeline.default_transformer.clean_string(sku_info['references']['consigneePO']),
+            'CosigneeOrd': self.pipeline.default_transformer.clean_string(sku_info['references']['consigneeOrd']),
+            'BrandCode': self.pipeline.default_transformer.clean_string(sku_info['references']['brandCode']),
+            'TrackingID': self.pipeline.default_transformer.clean_string(sku_info['references']['trackingID']),
+        }
+        return fmt_sku
 
-    def __parse_shipment_events__(self, event):
-        bp = 'here'
-        return []
+    def __parse_shipment_events__(self, event: dict, event_nbr: int):
+        fmt_event = {
+            'EventID': event['id'],
+            'EventNbr': event_nbr,
+            'Code': self.pipeline.default_transformer.clean_string(event['code']),
+            'Reason': self.pipeline.default_transformer.clean_string(event['reason']),
+            'Description': self.pipeline.default_transformer.clean_string(event['description']),
+            'Comments': self.pipeline.default_transformer.clean_string(event['comments']),
+            'Location': self.pipeline.default_transformer.string_case_pascal(event['eventLocation']),
+            'Datetime': self.pipeline.default_transformer.parse_date_str(date_str=event['dateTime'], tries=0),
+        }
+        self.logger.info(f'{self.log_prefix}Parsed Shipment Event {event_nbr} ({event['id']}) successfully!')
+        return fmt_event
 
     def _parse_order_info_(self, order_info: dict, sender: Literal['history', 'milestone']):
         '''We can expect  account, brand, consigneeInfo, serviceLocation, shipperInfo to not be in milestone'''
+
+        self.logger.info(f'{self.log_prefix}Parsing Order information')
         tracking_nbr = order_info['lobTracking']
         self.tracking_nbr = tracking_nbr
         rlm_order_nbr= order_info['orderNumber']
@@ -72,11 +110,12 @@ class Transform:
 
         fmt_references = self.__parse_references__(references=references)
         fmt_current_status = self.__parse_event__(event=current_status, event_nbr=current_status['sequence'], refs=fmt_references)
+        self.logger.info(f'{self.log_prefix}{len(events)} found')
         fmt_events = [self.__parse_event__(event=event, event_nbr=i+1, refs=fmt_references) for i, event in enumerate(events)]
         fmt_cosignee = self._parse_cosignee_info_(cosignee=consignee_info)
         fmt_service_location = self.__parse_service_location__(service_location=service_location)
         fmt_shipper = self.__parse_shipper_info__(shipper_info=shipper_info)
-
+        #TODO 8/11 left off here at 5pm
         bp = 'here'
 
 
@@ -119,6 +158,7 @@ class Transform:
                 refs['RyderID'] = ref['referenceNumber']
             elif ref['referenceType'].lower() == 'po':
                 refs = self.___get_order_nbr_from_reference___(ref_nbr=ref['referenceNumber'], refs=refs)
+        self.logger.info(f'{self.log_prefix}Parsed references successfully!')
         return refs
 
     def __parse_event__(self, event: dict, event_nbr: int, refs: dict):
@@ -161,6 +201,7 @@ class Transform:
             'DatetimeLocal': self.pipeline.default_transformer.parse_date_str(date_str=event['dateTime'], tries=0, log_prefix=self.log_prefix),
             'DatetimeUTC': self.pipeline.default_transformer.parse_date_str(date_str=event['localDateTime'], tries=0, offset=True, log_prefix=self.log_prefix),
         }
+        self.logger.info(f'{self.log_prefix}Parsed Order Event {event_nbr} successfully!') if event.get('sequence') == None else self.logger.info(f'{self.log_prefix}Parsed Current Order Status event({event_nbr}) successfully!')
         return fmt_event
 
 
@@ -257,6 +298,7 @@ class Transform:
             'PhoneExt': self.pipeline.default_transformer.parse_phone(phone_str=cosignee['extensionPhone'], log_prefix=self.log_prefix),
             # 'AltPhone': cosignee['alternatePhone'] if cosignee['alternatePhone'] != '' else None,
         }
+        self.logger.info(f'{self.log_prefix}Parsed Cosignee Info successfully!')
         return fmt_cosignee
 
 
@@ -272,14 +314,14 @@ class Transform:
         if ' ' not in emails.strip():
             return emails.strip().lower()
         spl_email = emails.strip().split(' ')
-        self.logger.warning(f'{len(spl_email)} email addresses found!')
+        self.logger.warning(f'{self.log_prefix}{len(spl_email)} email addresses found!')
         return ';'.join([e.lower() for e in spl_email])
         
 
 
     def __parse_service_location__(self, service_location: dict):
         if service_location == {}:
-            self.logger.info(f'No Service Location provided, returning None...')
+            self.logger.info(f'{self.log_prefix}No Service Location provided, returning None...')
             return None
         emails = self.__parse_emails__(emails=service_location['email'])
         fmt_service_location = {
@@ -296,12 +338,12 @@ class Transform:
             'Phone3': self.pipeline.default_transformer.clean_string(string=service_location['phone3'], log_prefix=self.log_prefix),
             'Email': self.__parse_emails__(emails=emails),            
         }
-        bp = 'here'
+        self.logger.info(f'{self.log_prefix}Parsed Service Location successfully!')
         return fmt_service_location
         
     def __parse_shipper_info__(self, shipper_info: dict):
         if shipper_info == {}:
-            self.logger.info(f'No Shipper Info provided, returning None...')
+            self.logger.info(f'{self.log_prefix}No Shipper Info provided, returning None...')
             return None
         fmt_shipper_info = {
             'Name': self.pipeline.default_transformer.clean_string(string=shipper_info['shipperName'], log_prefix=self.log_prefix),
@@ -314,6 +356,7 @@ class Transform:
             'Zip': self.pipeline.default_transformer.clean_string(string=shipper_info['shipperZip'], log_prefix=self.log_prefix),
             'Phone': self.pipeline.default_transformer.clean_string(string=shipper_info['shipperPhone'], log_prefix=self.log_prefix),         
         }
+        self.logger.info(f'{self.log_prefix}Parsed Shipper Info successfully!')
         return fmt_shipper_info
 
 
