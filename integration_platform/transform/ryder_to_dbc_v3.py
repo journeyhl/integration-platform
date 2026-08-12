@@ -29,12 +29,13 @@ class Transform:
             parsed_shipment_info = self._parse_shipment_info_(shipment_info=self.current_history['shipmentInfo'])
             self.orders[shipment_nbr] = {
                 'parsed_order_info': parsed_order_info,
+                'count_shipments': len(parsed_shipment_info),
                 'parsed_shipment_info': parsed_shipment_info,
             }
             
             # self._compare_diff_()
             bp = 'here'
-        bp = 'here'
+        return self.orders
         
 
     def _parse_shipment_info_(self, shipment_info: list[dict]):
@@ -44,42 +45,52 @@ class Transform:
         for i, shipment in enumerate(shipment_info):
             self.current_order_shipment = shipment
             rlm_shipment_id = shipment['shipmentId']
-            delivery_type = shipment['deliveryType']
-            order_type = shipment['orderType']
-            sku_info = [self.__parse_sku_info__(item) for item in shipment['skuInfo']]
-            events = [self.__parse_shipment_events__(event, event_nbr=i+1) for i, event in enumerate(shipment['events'])]
+            self.current_order_ship_delivery_type = shipment['deliveryType']
+            self.current_order_ship_order_type = shipment['orderType']
+            fmt_sku_info = [self.__parse_sku_info__(item) for item in shipment['skuInfo']]
+            fmt_events = [self.__parse_shipment_events__(event, event_nbr=i+1) for i, event in enumerate(shipment['events'])]
+            self.logger.info(f'{self.log_prefix}Parsed Shipment {rlm_shipment_id} sku and event data, {len(fmt_sku_info)} items and {len(fmt_events)} events')
             fmt_shipment = {
-                'ShipmentID': rlm_shipment_id,
-                'DeliveryType': delivery_type,
-                'OrderType': order_type,
-                'Events': events,
-                'Items': sku_info
+                'ship_events': fmt_events,
+                'ship_items': fmt_sku_info,
+                'count_items': len(fmt_sku_info),
+                'count_events': len(fmt_events)
             }
             fmt_shipments.append(fmt_shipment)
         return fmt_shipments
 
     def __parse_sku_info__(self, sku_info):
         fmt_sku = {
-            'InventoryCD': sku_info['code'],
-            'Description': sku_info['description'],
-            'Length': self.pipeline.default_transformer.string_to_int(sku_info['dims']['length']),
-            'Wdith': self.pipeline.default_transformer.string_to_int(sku_info['dims']['width']),
-            'Height': self.pipeline.default_transformer.string_to_int(sku_info['dims']['height']),
-            'Weight': self.pipeline.default_transformer.string_to_int(sku_info['dims']['weight']),
-            'FAK': self.pipeline.default_transformer.string_to_int(sku_info['dims']['fak']),
-            'CartonID': self.pipeline.default_transformer.clean_string(sku_info['references']['cartonID']),
-            'Serial': self.pipeline.default_transformer.clean_string(sku_info['references']['serial']),
-            'RANbr': self.pipeline.default_transformer.clean_string(sku_info['references']['raNumber']),
-            'ClientLineID': self.pipeline.default_transformer.string_to_int(sku_info['references']['clientLineID']),
-            'CosigneePO': self.pipeline.default_transformer.clean_string(sku_info['references']['consigneePO']),
-            'CosigneeOrd': self.pipeline.default_transformer.clean_string(sku_info['references']['consigneeOrd']),
-            'BrandCode': self.pipeline.default_transformer.clean_string(sku_info['references']['brandCode']),
-            'TrackingID': self.pipeline.default_transformer.clean_string(sku_info['references']['trackingID']),
+            'ShipmentNbr': self.current_refs['ShipmentNbr'],
+            'RyderID': self.current_refs['RyderID'],
+            'ShipmentID': self.current_order_shipment['shipmentId'],
+            'DeliveryType': self.current_order_ship_delivery_type,
+            'OrderType': self.current_order_ship_order_type,
+            'InventoryCD': self.pipeline.default_transformer.clean_string(string=sku_info['code'], string_descr='sku', log_prefix=self.log_prefix),
+            'Description': self.pipeline.default_transformer.clean_string(string=sku_info['description'], string_descr='sku description', log_prefix=self.log_prefix),
+            'Length': self.pipeline.default_transformer.string_to_int(int_str=sku_info['dims']['length'], str_descr='sku length', log_prefix=self.log_prefix),
+            'Wdith': self.pipeline.default_transformer.string_to_int(int_str=sku_info['dims']['width'], str_descr='sku width', log_prefix=self.log_prefix),
+            'Height': self.pipeline.default_transformer.string_to_int(int_str=sku_info['dims']['height'], str_descr='sku height', log_prefix=self.log_prefix),
+            'Weight': self.pipeline.default_transformer.string_to_int(int_str=sku_info['dims']['weight'], str_descr='sku weight', log_prefix=self.log_prefix),
+            'FAK': self.pipeline.default_transformer.string_to_int(int_str=sku_info['dims']['fak'], str_descr='sku fak', log_prefix=self.log_prefix),
+            'CartonID': self.pipeline.default_transformer.clean_string(string=sku_info['references']['cartonID'], string_descr='sku cartonID', log_prefix=self.log_prefix),
+            'Serial': self.pipeline.default_transformer.clean_string(string=sku_info['references']['serial'], string_descr='sku serial', log_prefix=self.log_prefix),
+            'RANbr': self.pipeline.default_transformer.clean_string(string=sku_info['references']['raNumber'], string_descr='sku raNumber', log_prefix=self.log_prefix),
+            'ClientLineID': self.pipeline.default_transformer.string_to_int(int_str=sku_info['references']['clientLineID'], str_descr='sku client line id', log_prefix=self.log_prefix),
+            'CosigneePO': self.pipeline.default_transformer.clean_string(string=sku_info['references']['consigneePO'], string_descr='sku consigneePO', log_prefix=self.log_prefix),
+            'CosigneeOrd': self.pipeline.default_transformer.clean_string(string=sku_info['references']['consigneeOrd'], string_descr='sku consigneeOrd', log_prefix=self.log_prefix),
+            'BrandCode': self.pipeline.default_transformer.clean_string(string=sku_info['references']['brandCode'], string_descr='sku brandCode', log_prefix=self.log_prefix),
+            'TrackingID': self.pipeline.default_transformer.clean_string(string=sku_info['references']['trackingID'], string_descr= 'sku trackingId', log_prefix=self.log_prefix),
         }
         return fmt_sku
 
     def __parse_shipment_events__(self, event: dict, event_nbr: int):
         fmt_event = {
+            'ShipmentNbr': self.current_refs['ShipmentNbr'],
+            'RyderID': self.current_refs['RyderID'],
+            'ShipmentID': self.current_order_shipment['shipmentId'],
+            'DeliveryType': self.current_order_ship_delivery_type,
+            'OrderType': self.current_order_ship_order_type,
             'EventID': event['id'],
             'EventNbr': event_nbr,
             'Code': self.pipeline.default_transformer.clean_string(event['code']),
@@ -109,14 +120,24 @@ class Transform:
 
 
         fmt_references = self.__parse_references__(references=references)
-        fmt_current_status = self.__parse_event__(event=current_status, event_nbr=current_status['sequence'], refs=fmt_references)
+        fmt_current_status = self.__parse_event__(event=current_status, event_nbr=current_status['sequence'])
         self.logger.info(f'{self.log_prefix}{len(events)} found')
-        fmt_events = [self.__parse_event__(event=event, event_nbr=i+1, refs=fmt_references) for i, event in enumerate(events)]
+        fmt_events = [self.__parse_event__(event=event, event_nbr=i+1) for i, event in enumerate(events)]
         fmt_cosignee = self._parse_cosignee_info_(cosignee=consignee_info)
         fmt_service_location = self.__parse_service_location__(service_location=service_location)
         fmt_shipper = self.__parse_shipper_info__(shipper_info=shipper_info)
-        #TODO 8/11 left off here at 5pm
-        bp = 'here'
+
+        fmt_order = {
+            'RLM_OrderNumber': rlm_order_nbr,
+            'TrackingNbr': tracking_nbr,
+            **fmt_references,
+            'CurrentStatus': fmt_current_status,
+            'Events': fmt_events,
+            'ShipTo': fmt_cosignee,
+            'ServiceLocation': fmt_service_location,
+            'Shipper': fmt_shipper
+        }
+        return fmt_order
 
 
 
@@ -158,10 +179,11 @@ class Transform:
                 refs['RyderID'] = ref['referenceNumber']
             elif ref['referenceType'].lower() == 'po':
                 refs = self.___get_order_nbr_from_reference___(ref_nbr=ref['referenceNumber'], refs=refs)
-        self.logger.info(f'{self.log_prefix}Parsed references successfully!')
+        self.current_refs = refs
+        self.logger.info(f'{self.log_prefix}Parsed references successfully! set self.current_refs to refs ({refs.get('ShipmentNbr')})')
         return refs
 
-    def __parse_event__(self, event: dict, event_nbr: int, refs: dict):
+    def __parse_event__(self, event: dict, event_nbr: int):
         ''':class:`~Transform`.:meth:`~__parse_event__` (self, event: *dict*, event_nbr: *int*, refs: *dict*, ):
         ---
         <hr>
@@ -181,7 +203,6 @@ class Transform:
         ---
         :param (*dict*) `event`: dictionary of even data
         :param (*int*) `event_nbr`: The event number or sequence. 1 is frst, every other event incremenmts by 1
-        :param (*dict*) `refs`: Formatted reference number dict
         
         <hr>
         
@@ -190,18 +211,18 @@ class Transform:
         :return `fmt_event` (*dict*): Formatted dictionary of event/current status data.
         '''        
         fmt_event = {
-            'ShipmentNbr': refs['ShipmentNbr'],
-            'RyderID': refs['RyderID'],
+            'ShipmentNbr': self.current_refs['ShipmentNbr'],
+            'RyderID': self.current_refs['RyderID'],
             'EventNbr': event_nbr,
-            'StatusCode': event['statusCode'],
-            'Description': event['description'],
-            'City': event['city'],
-            'State': event['state'],
-            'Zip': event['zip'],
+            'StatusCode': self.pipeline.default_transformer.clean_string(string=event['statusCode'], string_descr='statusCode', log_prefix=self.log_prefix),
+            'Description': self.pipeline.default_transformer.clean_string(string=event['description'], string_descr='description', log_prefix=self.log_prefix),
+            'City': self.pipeline.default_transformer.string_case_pascal(string=event['city'], string_descr='city', log_prefix=self.log_prefix),
+            'State': self.pipeline.default_transformer.clean_string(string=event['state'], string_descr='state', log_prefix=self.log_prefix),
+            'Zip': self.pipeline.default_transformer.clean_string(string=event['zip'], string_descr='zip', log_prefix=self.log_prefix),
             'DatetimeLocal': self.pipeline.default_transformer.parse_date_str(date_str=event['dateTime'], tries=0, log_prefix=self.log_prefix),
             'DatetimeUTC': self.pipeline.default_transformer.parse_date_str(date_str=event['localDateTime'], tries=0, offset=True, log_prefix=self.log_prefix),
         }
-        self.logger.info(f'{self.log_prefix}Parsed Order Event {event_nbr} successfully!') if event.get('sequence') == None else self.logger.info(f'{self.log_prefix}Parsed Current Order Status event({event_nbr}) successfully!')
+        self.logger.info(f'{self.log_prefix}Parsed order level Event {event_nbr} successfully!') if event.get('sequence') == None else self.logger.info(f'{self.log_prefix}Parsed Current Order Status event(#{event_nbr}) successfully!')
         return fmt_event
 
 
@@ -282,23 +303,26 @@ class Transform:
             self.logger.info(f'{self.log_prefix}No cosignee, returning None...')
             return None
         fmt_cosignee = {
-            'Name': cosignee['name'],
-            'Address1': self.pipeline.default_transformer.clean_string(string=cosignee['address1']),
-            'Address2': self.pipeline.default_transformer.clean_string(string=cosignee['address2']),
-            'Address3': self.pipeline.default_transformer.clean_string(string=cosignee['address3']),
-            'Address4': self.pipeline.default_transformer.clean_string(string=cosignee['address4']),
-            'City': cosignee['city'],
+            'ShipmentNbr': self.current_refs['ShipmentNbr'],
+            'RyderID': self.current_refs['RyderID'],
+            'Name': self.pipeline.default_transformer.string_case_pascal(string=cosignee['name'], string_descr='cosignee name', log_prefix=self.log_prefix),
+            'Address1': self.pipeline.default_transformer.string_case_pascal(string=cosignee['address1'], string_descr='cosginee address1', log_prefix=self.log_prefix),
+            'Address2': self.pipeline.default_transformer.string_case_pascal(string=cosignee['address2'], string_descr='cosginee address2', log_prefix=self.log_prefix),
+            'Address3': self.pipeline.default_transformer.string_case_pascal(string=cosignee['address3'], string_descr='cosginee address3', log_prefix=self.log_prefix),
+            'Address4': self.pipeline.default_transformer.string_case_pascal(string=cosignee['address4'], string_descr='cosginee address4', log_prefix=self.log_prefix),
+            'City': self.pipeline.default_transformer.string_case_pascal(string=cosignee['city'], string_descr='cosginee city', log_prefix=self.log_prefix),
             'State': cosignee['state'],
-            'Zip': cosignee['zip'],
-            'Email': cosignee['email'] if cosignee['email'] != '' else None,
-            'PhonePrimary': self.pipeline.default_transformer.parse_phone(phone_str=cosignee['primaryContact'], log_prefix=self.log_prefix),
-            'PhoneCell': self.pipeline.default_transformer.parse_phone(phone_str=cosignee['cell'], log_prefix=self.log_prefix),
-            'PhoneAlt': self.pipeline.default_transformer.parse_phone(phone_str=cosignee['alternatePhone'], log_prefix=self.log_prefix),
-            'PhoneOffice': self.pipeline.default_transformer.parse_phone(phone_str=cosignee['officePhone'], log_prefix=self.log_prefix),
-            'PhoneExt': self.pipeline.default_transformer.parse_phone(phone_str=cosignee['extensionPhone'], log_prefix=self.log_prefix),
+            'State': self.pipeline.default_transformer.clean_string(string=cosignee['state'], string_descr='cosginee state', log_prefix=self.log_prefix),
+            'Zip': self.pipeline.default_transformer.string_case_pascal(string=cosignee['zip'], string_descr='cosignee zip'),
+            'Email': self.pipeline.default_transformer.clean_string(string=cosignee['email'], string_descr='cosginee email', log_prefix=self.log_prefix),
+            'PhonePrimary': self.pipeline.default_transformer.parse_phone(phone_str=cosignee['primaryContact'], string_descr='cosignee phone1 (primaryContact)', log_prefix=self.log_prefix),
+            'PhoneCell': self.pipeline.default_transformer.parse_phone(phone_str=cosignee['cell'], string_descr='cosignee cell', log_prefix=self.log_prefix),
+            'PhoneAlt': self.pipeline.default_transformer.parse_phone(phone_str=cosignee['alternatePhone'], string_descr='cosignee alternatePhone', log_prefix=self.log_prefix),
+            'PhoneOffice': self.pipeline.default_transformer.parse_phone(phone_str=cosignee['officePhone'], string_descr='cosignee officePhone', log_prefix=self.log_prefix),
+            'PhoneExt': self.pipeline.default_transformer.parse_phone(phone_str=cosignee['extensionPhone'], string_descr='cosignee extensionPhone', log_prefix=self.log_prefix),
             # 'AltPhone': cosignee['alternatePhone'] if cosignee['alternatePhone'] != '' else None,
         }
-        self.logger.info(f'{self.log_prefix}Parsed Cosignee Info successfully!')
+        self.logger.info(f'{self.log_prefix}Parsed order level Cosignee Info successfully!')
         return fmt_cosignee
 
 
@@ -325,20 +349,22 @@ class Transform:
             return None
         emails = self.__parse_emails__(emails=service_location['email'])
         fmt_service_location = {
-            'LocationType': self.pipeline.default_transformer.clean_string(string=service_location['locationType'], log_prefix=self.log_prefix),
-            'HubCode': self.pipeline.default_transformer.clean_string(string=service_location['hubCode'], log_prefix=self.log_prefix),
-            'Name': self.pipeline.default_transformer.clean_string(string=service_location['name'], log_prefix=self.log_prefix),
-            'Address1': self.pipeline.default_transformer.clean_string(string=service_location['address1'], log_prefix=self.log_prefix),
-            'Address2': self.pipeline.default_transformer.clean_string(string=service_location['address2'], log_prefix=self.log_prefix),
-            'City':  self.pipeline.default_transformer.string_case_pascal(string=service_location['city'], log_prefix=self.log_prefix),
-            'State': self.pipeline.default_transformer.clean_string(string=service_location['state'], log_prefix=self.log_prefix),
-            'Zip': self.pipeline.default_transformer.clean_string(string=service_location['zip'], log_prefix=self.log_prefix),
-            'Phone': self.pipeline.default_transformer.clean_string(string=service_location['phone1'], log_prefix=self.log_prefix),
-            'Phone2': self.pipeline.default_transformer.clean_string(string=service_location['phone2'], log_prefix=self.log_prefix),
-            'Phone3': self.pipeline.default_transformer.clean_string(string=service_location['phone3'], log_prefix=self.log_prefix),
+            'ShipmentNbr': self.current_refs['ShipmentNbr'],
+            'RyderID': self.current_refs['RyderID'],
+            'LocationType': self.pipeline.default_transformer.clean_string(string=service_location['locationType'], string_descr='locationType', log_prefix=self.log_prefix),
+            'HubCode': self.pipeline.default_transformer.clean_string(string=service_location['hubCode'], string_descr='hubCode', log_prefix=self.log_prefix),
+            'Name': self.pipeline.default_transformer.clean_string(string=service_location['name'], string_descr='name', log_prefix=self.log_prefix),
+            'Address1': self.pipeline.default_transformer.string_case_pascal(string=service_location['address1'], string_descr='address1',log_prefix=self.log_prefix),
+            'Address2': self.pipeline.default_transformer.string_case_pascal(string=service_location['address2'], string_descr='address2',log_prefix=self.log_prefix),
+            'City':  self.pipeline.default_transformer.string_case_pascal(string=service_location['city'], string_descr='city', log_prefix=self.log_prefix),
+            'State': self.pipeline.default_transformer.clean_string(string=service_location['state'], string_descr='state', log_prefix=self.log_prefix),
+            'Zip': self.pipeline.default_transformer.clean_string(string=service_location['zip'], string_descr='zip', log_prefix=self.log_prefix),
+            'Phone': self.pipeline.default_transformer.clean_string(string=service_location['phone1'], string_descr='phone1', log_prefix=self.log_prefix),
+            'Phone2': self.pipeline.default_transformer.clean_string(string=service_location['phone2'], string_descr='phone2', log_prefix=self.log_prefix),
+            'Phone3': self.pipeline.default_transformer.clean_string(string=service_location['phone3'], string_descr='phone3', log_prefix=self.log_prefix),
             'Email': self.__parse_emails__(emails=emails),            
         }
-        self.logger.info(f'{self.log_prefix}Parsed Service Location successfully!')
+        self.logger.info(f'{self.log_prefix}Parsed order level Service Location successfully!')
         return fmt_service_location
         
     def __parse_shipper_info__(self, shipper_info: dict):
@@ -346,17 +372,19 @@ class Transform:
             self.logger.info(f'{self.log_prefix}No Shipper Info provided, returning None...')
             return None
         fmt_shipper_info = {
-            'Name': self.pipeline.default_transformer.clean_string(string=shipper_info['shipperName'], log_prefix=self.log_prefix),
-            'Address1': self.pipeline.default_transformer.clean_string(string=shipper_info['shipperAddress1'], log_prefix=self.log_prefix),
-            'Address2': self.pipeline.default_transformer.clean_string(string=shipper_info['shipperAddress2'], log_prefix=self.log_prefix),
-            'Address3': self.pipeline.default_transformer.clean_string(string=shipper_info['shipperAddress3'], log_prefix=self.log_prefix),
-            'Address4': self.pipeline.default_transformer.clean_string(string=shipper_info['shipperAddress4'], log_prefix=self.log_prefix),
-            'City':  self.pipeline.default_transformer.string_case_pascal(string=shipper_info['shipperCity'], log_prefix=self.log_prefix),
-            'State': self.pipeline.default_transformer.clean_string(string=shipper_info['shipperState'], log_prefix=self.log_prefix),
-            'Zip': self.pipeline.default_transformer.clean_string(string=shipper_info['shipperZip'], log_prefix=self.log_prefix),
-            'Phone': self.pipeline.default_transformer.clean_string(string=shipper_info['shipperPhone'], log_prefix=self.log_prefix),         
+            'ShipmentNbr': self.current_refs['ShipmentNbr'],
+            'RyderID': self.current_refs['RyderID'],
+            'Name': self.pipeline.default_transformer.string_case_pascal(string=shipper_info['shipperName'], string_descr='shipperName', log_prefix=self.log_prefix),
+            'Address1': self.pipeline.default_transformer.string_case_pascal(string=shipper_info['shipperAddress1'], string_descr='shipperAddress1', log_prefix=self.log_prefix),
+            'Address2': self.pipeline.default_transformer.string_case_pascal(string=shipper_info['shipperAddress2'], string_descr='shipperAddress2', log_prefix=self.log_prefix),
+            'Address3': self.pipeline.default_transformer.string_case_pascal(string=shipper_info['shipperAddress3'], string_descr='shipperAddress3', log_prefix=self.log_prefix),
+            'Address4': self.pipeline.default_transformer.string_case_pascal(string=shipper_info['shipperAddress4'], string_descr='shipperAddress4', log_prefix=self.log_prefix),
+            'City':  self.pipeline.default_transformer.string_case_pascal(string=shipper_info['shipperCity'], string_descr='shipperCity', log_prefix=self.log_prefix),
+            'State': self.pipeline.default_transformer.clean_string(string=shipper_info['shipperState'], string_descr='shipperState', log_prefix=self.log_prefix),
+            'Zip': self.pipeline.default_transformer.clean_string(string=shipper_info['shipperZip'], string_descr='shipperZip', log_prefix=self.log_prefix),
+            'Phone': self.pipeline.default_transformer.clean_string(string=shipper_info['shipperPhone'], string_descr='shipperPhone', log_prefix=self.log_prefix),
         }
-        self.logger.info(f'{self.log_prefix}Parsed Shipper Info successfully!')
+        self.logger.info(f'{self.log_prefix}Parsed order level Shipper Info successfully!')
         return fmt_shipper_info
 
 

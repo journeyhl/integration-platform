@@ -13,7 +13,7 @@ class DefaultTransformer:
         pass
 
 
-    def clean_string(self, string: str | None, log_prefix: str = ''):
+    def clean_string(self, string: str | None, string_descr: str = '', log_prefix: str = ''):
         ''':class:`~DefaultTransformer`.:meth:`~clean_string` 
         ---
         
@@ -35,27 +35,27 @@ class DefaultTransformer:
         :return `string` (_str_): Cleaned string value
         '''        
         bp = 'here'
-        string = self._handle_none_and_empty_strings_(string=string, string_descr='str', log_prefix=log_prefix)
+        string = self._handle_none_and_empty_strings_(string=string, string_descr=string_descr, log_prefix=log_prefix)
         if string == None:
             return None
         string = string.strip()
         return string
 
-    def string_case_pascal(self, string: str | None, log_prefix: str = ''):
-        string = self._handle_none_and_empty_strings_(string=string, string_descr='str', log_prefix=log_prefix)
+    def string_case_pascal(self, string: str | None, string_descr: str= '', log_prefix: str = ''):
+        string = self._handle_none_and_empty_strings_(string=string, string_descr=string_descr, log_prefix=log_prefix)
         if string == None:
             return None
         if ' ' in string:
             self.logger.info(f'Space found in string...')
             strlist = string.split(' ')
-            string = ' '.join([f'{s[0].upper()}{s[1].lower()}' for s in strlist])
+            string = ' '.join([f'{s[0].upper()}{'' if len(s) == 1 else s[1:].lower()}' for s in strlist])            
             bp = 'here'
         else:
             string = f'{string[0].upper()}{string[1:].lower()}'
         return string
 
     
-    def string_to_int(self, int_str: str | None, log_prefix: str = ''):
+    def string_to_int(self, int_str: str | None, str_descr: str = '', log_prefix: str = ''):
         ''':class:`~DefaultTransformer`.:meth:`~string_to_int`
         ---
         
@@ -76,7 +76,7 @@ class DefaultTransformer:
         ---
         :return `integer` (*int | None*): returns int value of int_str parameter if able to be parsed, otherwise returns None
         '''
-        int_str = self._handle_none_and_empty_strings_(string=int_str, string_descr='string', log_prefix=log_prefix)
+        int_str = self._handle_none_and_empty_strings_(string=int_str, string_descr=str_descr, log_prefix=log_prefix)
         if int_str == None:
             return None
         try:
@@ -87,7 +87,7 @@ class DefaultTransformer:
         return integer
 
     
-    def parse_phone(self, phone_str: str | None, log_prefix: str = ''):
+    def parse_phone(self, phone_str: str | None, string_descr: str = '',log_prefix: str = ''):
         ''':class:`~DefaultTransformer`.:meth:`~parse_phone`
         ---
         
@@ -128,7 +128,7 @@ class DefaultTransformer:
 
     def parse_date_str(self, date_str: str | None, tries: int, format: str = '%Y-%m-%dT%H:%M:%S.%fZ', offset: bool = False, log_prefix: str = ''):
         self.logger.info(f'{log_prefix}Date string provided: {date_str}, format provided: {format}. {'No offset' if not offset else 'Offset'}')
-        date_str = self._handle_none_and_empty_strings_(string=date_str, string_descr='Date', additional_conditions=tries>=5, log_prefix=log_prefix, additional_log_str='string is blank or fifth try has been exceeded, returning None...')
+        date_str = self._handle_none_and_empty_strings_(string=date_str, string_descr='Date', additional_conditions=tries<5, log_prefix=log_prefix, additional_log_str='string is blank or fifth try has been exceeded, returning None...')
         if date_str == None:            
             return None        
         offset_hrs = 0
@@ -189,6 +189,6 @@ class DefaultTransformer:
          ### _______replace_me_______
         '''
         if string == None or string.strip() == '' or not additional_conditions:
-            # self.logger.error(f'{log_prefix}{string_descr} {'value is blank, returning None...' if additional_log_str == '' else additional_log_str}')
+            self.logger.error(f'{log_prefix}{string_descr} {'value is blank, returning None...' if additional_log_str == '' else additional_log_str}')
             return None
         return string.strip()

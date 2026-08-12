@@ -1,6 +1,7 @@
 from integration_platform.pipelines import Pipeline
 from integration_platform.connectors.ryder_api import RyderAPI
 from integration_platform.transform.ryder_to_dbc_v3 import Transform
+from integration_platform.load.ryder_to_dbc import Load
 import polars as pl
 from pathlib import Path
 import json
@@ -10,7 +11,7 @@ class RyderToDbc(Pipeline):
         super().__init__(pipeline_name='ryder-to-dbc', function=function, env=env)
         self.ryder = RyderAPI(self, env=env)
         self.transformer = Transform(self)
-        # self.loader = AcuAPILoader(self)
+        self.loader = Load(pipeline=self)
 
     def extract(self):
         #'087276', '087442', '087353'
@@ -33,7 +34,8 @@ class RyderToDbc(Pipeline):
         data_transformed = self.transformer.landing(data_extract=data_extract)       
         return data_transformed
     
-    def load(self, data_transformed):
+    def load(self, data_transformed: dict):
+        data_sql_fmt = self.loader.landing_format_for_sql(data_transformed=data_transformed)
         return data_transformed
     
     def log_results(self, data_loaded):
