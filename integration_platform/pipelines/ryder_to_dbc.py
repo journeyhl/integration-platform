@@ -14,7 +14,7 @@ class RyderToDbc(Pipeline):
 
     def extract(self):
         #'087276', '087442', '087353'
-        orders = ['087575', '087465', '087449', '087509', '087479', '087451']
+        orders = ['087575', '087465', '087449', '087509', '087479', '087451', '087733', '087647', '087646']
         total = len(orders)
         data_extract = {}
         for i, order in enumerate(orders):
