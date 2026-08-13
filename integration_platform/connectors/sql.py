@@ -656,7 +656,31 @@ end
 
 
     def __dataframe_to_table_create_statement__(self, df: pl.DataFrame, table_name: str = ''):
-        test = f'create table {table_name}(\n'
+        table_string = ''
+        schema = 'dbo'
+        if '.' in table_name:
+            schema = table_name.split('.')[0]
+            table_name = table_name.split('.')[1]
+            table_string += f"""
+if not exists(
+    select *
+    from sys.schemas s
+    where s.name = '{schema}'
+)
+begin
+    exec('create schema {schema}');
+end"""
+
+        table_string += f"""
+if not exists(
+    select * 
+    from sys.tables t 
+    inner join sys.schemas s on t.schema_id = s.schema_id
+    where t.name = '{table_name}' and s.name = '{schema}'
+)
+begin\n"""
+        table_name = f'{schema}.{table_name}'
+        table_string += f'create table {table_name}(\n'
         for column, dtype in df.schema.items():
             if dtype == pl.String:
                 maxlen = df.select(pl.col(column).str.len_chars()).max().to_dicts()[0][column]
@@ -677,11 +701,11 @@ end
                 dtype_str = str(dtype)
             # dtype_str = 'varchar(replace_me_please),' if dtype == pl.String else 'decimal(18,2),' if str(dtype) == 'Decimal(precision=38, scale=2)' else 'datetime,'
             row_text = f'{column} {dtype_str}'
-            test += f'{row_text}\n'
+            table_string += f'{row_text}\n'
             bp = 'here'
 
-        test += ')'
-        t = test[-3:]
-        t2 = test[:-3]
-        print(test)
+        table_string += ')\nend'
+        t = table_string[-3:]
+        t2 = table_string[:-3]
+        print(table_string)
         bp = 'here'

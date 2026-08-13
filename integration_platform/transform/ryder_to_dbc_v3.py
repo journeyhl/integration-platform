@@ -31,6 +31,7 @@ class Transform:
                 'parsed_order_info': parsed_order_info,
                 'count_shipments': len(parsed_shipment_info),
                 'parsed_shipment_info': parsed_shipment_info,
+                'extract_time': history__and_milestones['extract_time']
             }
             
             # self._compare_diff_()
@@ -61,9 +62,12 @@ class Transform:
 
     def __parse_sku_info__(self, sku_info):
         fmt_sku = {
+            'RLM_OrderNumber': self.rlm_order_nbr,
+            'TrackingNbr': self.tracking_nbr,
             'ShipmentNbr': self.current_refs['ShipmentNbr'],
             'RyderID': self.current_refs['RyderID'],
             'ShipmentID': self.current_order_shipment['shipmentId'],
+            'TrackingNbr': self.tracking_nbr,
             'DeliveryType': self.current_order_ship_delivery_type,
             'OrderType': self.current_order_ship_order_type,
             'InventoryCD': self.pipeline.default_transformer.clean_string(string=sku_info['code'], string_descr='sku', log_prefix=self.log_prefix),
@@ -86,6 +90,8 @@ class Transform:
 
     def __parse_shipment_events__(self, event: dict, event_nbr: int):
         fmt_event = {
+            'RLM_OrderNumber': self.rlm_order_nbr,
+            'TrackingNbr': self.tracking_nbr,
             'ShipmentNbr': self.current_refs['ShipmentNbr'],
             'RyderID': self.current_refs['RyderID'],
             'ShipmentID': self.current_order_shipment['shipmentId'],
@@ -108,11 +114,12 @@ class Transform:
 
         self.logger.info(f'{self.log_prefix}Parsing Order information')
         tracking_nbr = order_info['lobTracking']
-        self.tracking_nbr = tracking_nbr
         rlm_order_nbr= order_info['orderNumber']
         references = order_info['orderReferences']
         current_status = order_info['currentOrderStatus']
         events = order_info['mileStoneEvents']
+        self.tracking_nbr = tracking_nbr
+        self.rlm_order_nbr = rlm_order_nbr
         #history only
         consignee_info = order_info.get('consigneeInfo') or {}
         service_location = order_info.get('serviceLocation') or {}

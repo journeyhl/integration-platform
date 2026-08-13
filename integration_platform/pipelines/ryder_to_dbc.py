@@ -5,7 +5,8 @@ from integration_platform.load.ryder_to_dbc import Load
 import polars as pl
 from pathlib import Path
 import json
-
+from datetime import datetime
+from zoneinfo import ZoneInfo
 class RyderToDbc(Pipeline):
     def __init__(self, function: str, env: str='prod'):
         super().__init__(pipeline_name='ryder-to-dbc', function=function, env=env)
@@ -20,12 +21,14 @@ class RyderToDbc(Pipeline):
         data_extract = {}
         for i, order in enumerate(orders):
             log_prefix = f'{order}, {i+1}/{total}: '
+            extract_time = datetime.now(ZoneInfo('America/New_York'))
             order_history = self.ryder.get_order_history(shipment_nbr=order, log_prefix=log_prefix)
             order_milestones = self.ryder.get_order_milestones(shipment_nbr=order, log_prefix=log_prefix)
             # if order_history.get('error') == None:
             data_extract[order] = {
                 'history': order_history,
-                'milestones': order_milestones
+                'milestones': order_milestones,
+                'extract_time': extract_time
             }
             bp = 'here'
         return data_extract
@@ -36,6 +39,9 @@ class RyderToDbc(Pipeline):
     
     def load(self, data_transformed: dict):
         data_sql_fmt = self.loader.landing_format_for_sql(data_transformed=data_transformed)
+        for table, data in data_sql_fmt.items():
+            self.centralstore.checked_upsert_paginated(table_name=table, data=data)
+
         return data_transformed
     
     def log_results(self, data_loaded):
