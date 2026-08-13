@@ -61,10 +61,16 @@ elif db_input.lower() == acudb[0:input_len].lower():
 
 db = SQLConnector('config-generator', db)
 tables = [
-'inv.RMI_Summary',
-'inv.RMI_SummarySnapshot',
-'inv.RMI_Detail',
-'inv.RMI_DetailSnapshot',
+'ryder.Orders',
+'ryder.OrderEvents',
+'ryder.ShipmentEvents',
+'ryder.ShipmentItems',
+
+
+# 'inv.RMI_Summary',
+# 'inv.RMI_SummarySnapshot',
+# 'inv.RMI_Detail',
+# 'inv.RMI_DetailSnapshot',
 
 # 'analytics.B2BCollectionsByStatus',
 # 'analytics.B2BCollectionsByStatus_Snapshot',
