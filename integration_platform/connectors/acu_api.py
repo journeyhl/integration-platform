@@ -327,7 +327,7 @@ class AcumaticaAPI:
         elif operation == 'post':
             response = self.session.post(f'{self.base_uri}{endpoint}', json=payload_data['target_api_update_payload'])
         response_str = f'{response.status_code}: {response.reason}'
-        data_log = payload_data['acu_api_data_log']
+        data_log = payload_data.get('acu_api_data_log') or {}
 
         if descr in ['Override & Update', 'Reclassify Transaction']:
             try:
