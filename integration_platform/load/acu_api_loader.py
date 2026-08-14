@@ -55,8 +55,8 @@ class AcuAPILoader:
                 response = self.pipeline.acu_api.target_api(endpoint='/SalesOrder', payload_data={'target_api_update_payload': update_wh_payload, 'acu_api_data_log': data_log}, operation='put', descr='Update Warehouse')
                 status = response['Status']['value'] if isinstance(response, dict) else status
             if order['ShipSeparately']:
-                ship_sep_payload = self.pipeline.acu_api.helper.format_ship_separately(order=order)
-                self.pipeline.acu_api.target_api(endpoint='/SalesOrder?$expand=ShippingSettings', payload_data={'target_api_update_payload': ship_sep_payload}, operation='put', descr='Ship Separately')
+                ship_sep_payload, data_log = self.pipeline.acu_api.helper.format_ship_separately(order=order)
+                self.pipeline.acu_api.target_api(endpoint='/SalesOrder?$expand=ShippingSettings', payload_data={'target_api_update_payload': ship_sep_payload, 'acu_api_data_log': data_log}, operation='put', descr='Ship Separately')
             time.sleep(5)
             self.pipeline.acu_api.order_remove_hold(order)
             bp = 'here'

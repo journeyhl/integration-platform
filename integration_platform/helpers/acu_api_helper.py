@@ -389,6 +389,7 @@ class AcumaticaAPIHelper:
         Returns
         ---
         :return `update_soline_wh_payload` (dict): payload to be sent to Acumatica api to update the warehouse on a given order line
+        :return `dl_entry` (dict): data log entry. The "pre-response" data_log entry. Once we hit the api, we add the response details, then the dict is loaded to central store for logging
         '''
         self.logger.info(f"Updating Chair Removal's warehouse to {order['OrderLineWH']}")
         lines = order['acu_soline_response']
@@ -413,17 +414,12 @@ class AcumaticaAPIHelper:
                 }
             ]      
         }
-        acu_data_log_entry = {            
-            'Entity': 'SalesOrder',
-            'KeyValue': order['OrderNbr'],
-            'Operation': f'PUT - Update SOLine Warehouse',
-            'Payload': update_soline_wh_payload,
-        }
-        return update_soline_wh_payload, acu_data_log_entry
+        dl_entry = self._format_pre_response_data_log_entry_(entity='SalesOrder', key_value=order['OrderNbr'], operation=f"PUT - Update SOLine Warehouse", payload=update_soline_wh_payload)
+        return update_soline_wh_payload, dl_entry
     #endregion
 
     #region format_ship_separately
-    def format_ship_separately(self, order: dict) -> dict:
+    def format_ship_separately(self, order: dict):
         ''':class:`~AcumaticaAPIHelper`.:meth:`~format_ship_separately` (self, order: *dict*):
         ---
         <hr>
@@ -445,6 +441,7 @@ class AcumaticaAPIHelper:
         Returns
         ---
         :return `ship_sep_payload` (dict): Formatted payload to send to ACumatica API
+        :return `dl_entry` (dict): data log entry. The "pre-response" data_log entry. Once we hit the api, we add the response details, then the dict is loaded to central store for logging
         '''
         self.logger.info(f"Updating ShipSeparately to False!")
         ship_sep_payload = {
@@ -465,11 +462,19 @@ class AcumaticaAPIHelper:
                     "value": False
                 }                
             }
-
         }
-        return ship_sep_payload
+        dl_entry = self._format_pre_response_data_log_entry_(entity='SalesOrder', key_value=order['OrderNbr'], operation=f"PUT - Updating {order['OrderNbr']}'s Ship Separately value to False", payload=ship_sep_payload)
+        return ship_sep_payload, dl_entry
     #endregion
 
+    def _format_pre_response_data_log_entry_(self, entity: str, key_value: str, operation: str, payload: dict = {}):
+        data_log_entry = {
+            'Entity': entity,
+            'KeyValue': key_value,
+            'Operation': operation,
+            'Payload': payload
+        }
+        return data_log_entry
     #region format_order_create_receipt
     def format_order_create_receipt(self, order: dict) -> dict:
         ''':class:`~AcumaticaAPIHelper`.:meth:`~format_order_create_receipt` (self, order: *dict*):
@@ -645,3 +650,4 @@ class AcumaticaAPIHelper:
             }
         }
         return payload
+
