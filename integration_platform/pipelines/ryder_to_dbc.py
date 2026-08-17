@@ -1,4 +1,5 @@
 from integration_platform.pipelines import Pipeline
+from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 from integration_platform.connectors.ryder_api import RyderAPI
 from integration_platform.transform.ryder_to_dbc_v3 import Transform
 from integration_platform.load.ryder_to_dbc import Load
@@ -10,6 +11,9 @@ from zoneinfo import ZoneInfo
 class RyderToDbc(Pipeline):
     def __init__(self, function: str, env: str='prod'):
         super().__init__(pipeline_name='ryder-to-dbc', function=function, env=env)
+        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
+            pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
+        )
         self.ryder = RyderAPI(self, env=env)
         self.transformer = Transform(self)
         self.loader = Load(pipeline=self)
@@ -17,15 +21,18 @@ class RyderToDbc(Pipeline):
     def extract(self):
         #'087276', '087442', '087353'
         orders = ['087997', ]#'087575', '087465', '087449', '087509', '087479', '087451', '087733', '087647', '087646']
+
+        orders = self.acudb.query_to_dataframe(query=self.acudb.queries.RyderToDbc).to_dicts()
         total = len(orders)
         data_extract = {}
         for i, order in enumerate(orders):
-            log_prefix = f'{order}, {i+1}/{total}: '
+            order_nbr = order['ShipmentNbr']
+            log_prefix = f'{order_nbr}, {i+1}/{total}: '
             extract_time = datetime.now(ZoneInfo('America/New_York'))
-            order_history = self.ryder.get_order_history(shipment_nbr=order, log_prefix=log_prefix)
-            order_milestones = self.ryder.get_order_milestones(shipment_nbr=order, log_prefix=log_prefix)
+            order_history = self.ryder.get_order_history(shipment_nbr=order_nbr, log_prefix=log_prefix)
+            order_milestones = self.ryder.get_order_milestones(shipment_nbr=order_nbr, log_prefix=log_prefix)
             # if order_history.get('error') == None:
-            data_extract[order] = {
+            data_extract[order_nbr] = {
                 'history': order_history,
                 'milestones': order_milestones,
                 'extract_time': extract_time

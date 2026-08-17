@@ -24,7 +24,9 @@ class Transform:
             self.current_shipnbr = shipment_nbr
             self.current_history = history__and_milestones['history']
             self.current_milestones = history__and_milestones['milestones']
-
+            if history__and_milestones['history'] == {} and history__and_milestones['milestones'] == {}:
+                self.logger.warning(f'{self.log_prefix}No data available')
+                continue
             parsed_order_info = self._parse_order_info_(order_info=self.current_history['orderInfo'], sender='history')
             parsed_shipment_info = self._parse_shipment_info_(shipment_info=self.current_history['shipmentInfo'])
             self.orders[shipment_nbr] = {

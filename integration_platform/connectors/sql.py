@@ -263,6 +263,7 @@ class AcumaticaDbQueries(Queries):
     AcuToDbc_B2BCollections: Query
     '''Query that mirrors JHL Trial Balance GI in Acumatica'''
     Aftership_LinkID_Acu: Query
+    RyderToDbc: Query
 
 _QUERY_CLASSES: dict[str, type[Queries]] = {
     'db_CentralStore': CentralStoreQueries,
