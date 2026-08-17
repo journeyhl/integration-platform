@@ -2285,6 +2285,8 @@ TABLES = {
             'ItemClassDesc',
             'EDPNO',
             'LastChecked',
+            'StkItem',
+            'IsTemplate',
         ],
         'update_columns': [
             'Description',
@@ -2311,6 +2313,8 @@ TABLES = {
             'ItemClassDesc',
             'EDPNO',
             'LastChecked',
+            'StkItem',
+            'IsTemplate',
         ],
     },
     'analytics.JHL_B2BCollectionsDetail': {
