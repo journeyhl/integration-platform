@@ -23,7 +23,7 @@ left join INItemRep r on s.CompanyID = r.CompanyID and i.InventoryID = r.Invento
 inner join JJStatusLookup js on s.Status = js.CStatus and js.Tbl = 'SOOrder'
 inner join BAccount b on s.CustomerID = b.BAccountID and s.CompanyID = b.CompanyID 
 where s.CompanyID = 2 and s.OrderType != 'QT'
---and si.SiteID = 80
+
 and s.Status not in('C', 'L', 'S')
 )
 , SecondLevel as(
