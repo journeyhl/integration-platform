@@ -23,6 +23,8 @@ select distinct rtrim(i.InventoryCD) InventoryCD
 	 , ic.Descr ItemClassDesc
 	 , dateadd(hour, -4, i.LastModifiedDateTime) LastModifiedDT
      , count(ix1.AlternateID) over(partition by InventoryCD) Distinct_VendorPartNumbers
+	 , i.StkItem
+	 , i.IsTemplate
 
 
 
@@ -38,4 +40,5 @@ left join INItemXRef ix2 on i.CompanyID = ix2.CompanyID and i.InventoryID = ix2.
 left join BAccount v on i.CompanyID = v.CompanyID and i.PreferredVendorID = v.BAccountID
 left join INSite ins on i.CompanyID = ins.CompanyID and i.DfltSiteID = ins.SiteID
 where i.CompanyID = 2
-and i.IsTemplate = 0 and (ix2.BAccountID != 18242 or ix2.BAccountID is null)
+and i.IsTemplate = 0 
+and (ix2.BAccountID != 18242 or ix2.BAccountID is null)
