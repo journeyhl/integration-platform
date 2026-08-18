@@ -16,7 +16,6 @@ select s.OrderType									OrderType
 	 , js.Status 									Status
 	 , l.ShipVia									ShipVia
 	 , rtrim(shi.SiteCD)							ShipmentWH
-	 , sh.ShipDate									ShipDate
 from SOOrder s
 inner join SOLine l on s.CompanyID = l.CompanyID and s.OrderNbr = l.OrderNbr and s.OrderType = l.OrderType and s.CustomerID = l.CustomerID
 inner join SOShipLine shl on s.CompanyID = shl.CompanyID and s.OrderType = shl.OrigOrderType and s.OrderNbr = shl.OrigOrderNbr and l.LineNbr = shl.OrigLineNbr and l.InventoryID = shl.InventoryID
@@ -34,7 +33,7 @@ left join SOShipmentKvExt shke on s.CompanyID = shke.CompanyID and sh.NoteID = s
 left join SOShipmentKvExt shkc on s.CompanyID = shkc.CompanyID and sh.NoteID = shkc.RecordID and shkc.FieldName = 'AttributeRYDERCHECK'
 where s.CompanyID = 2 
 and s.OrderType not in('QT', 'RA', 'RC', 'RR', 'RM')
---and dateadd(hour, -4, s.LastModifiedDateTime) >=  dateadd(hour, -3, getdate())
+and dateadd(hour, -4, s.LastModifiedDateTime) >=  dateadd(day, -120, getdate())
 and shi.SiteCD = 'RLM NEJ HB'
 and shk.ValueNumeric = 1
 
