@@ -17,7 +17,7 @@ class B2BCohorts(Pipeline):
 
     '''
     def __init__(self, function: str, env: str='prod'):
-        super().__init__('acu-to-dbc-trial-balance', function=function, env=env)
+        super().__init__('b2b-cohorts', function=function, env=env)
         self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
             pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
         )
