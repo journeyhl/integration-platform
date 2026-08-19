@@ -694,7 +694,7 @@ class HubSpotAPI:
         except Exception as e:
             self.logger.error(f"Error! Couldn't parse response from hubspot api when updating {company['name']}. {e}\n{browser_link}")
             return
-        self.logger.info(f'{self.pipeline.transformer.contact_prefix} updated. {browser_link}') #type: ignore
+        self.logger.info(f'contact updated. {browser_link}') #type: ignore
         company['LastUpdated'] = datetime.now(ZoneInfo('America/New_York'))
         time.sleep(1)
         bp = 'here'

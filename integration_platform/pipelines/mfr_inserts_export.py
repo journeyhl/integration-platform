@@ -13,6 +13,7 @@ class MFRInsertsExport(Pipeline):
 
     def __init__(self, function: str):
         super().__init__('mfr-inserts-export', function)
+        self.sftp = SFTP(self, server='INC_MEDIA')
 
     def extract(self):
         df = self.centralstore.query_to_dataframe(self.centralstore.queries.MFRInsertsExport)
@@ -26,8 +27,7 @@ class MFRInsertsExport(Pipeline):
     def load(self, data_transformed):
         today = datetime.now(ZoneInfo('America/New_York')).strftime('%Y%m%d')
         remote_path = f'MFR_Inserts_{today}.csv'
-        sftp = SFTP(self, server='INC_MEDIA')
-        sftp.upload_dataframe_as_csv(data_transformed, remote_path)
+        self.sftp.upload_dataframe_as_csv(data_transformed, remote_path)
         return {'remote_path': remote_path, 'rows': data_transformed.height}
 
     def log_results(self, data_loaded):

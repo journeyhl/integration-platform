@@ -18,6 +18,7 @@ dependencies = [
     "xmltodict>=1.0.4",
     "paramiko>=5.0.0",
     "openpyxl>=3.1.5",
+    "python-dateutil>=2.9.0",
 ]
 
 [tool.setuptools.packages.find]
