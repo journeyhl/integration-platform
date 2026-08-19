@@ -2916,12 +2916,82 @@ TABLES = {
             'LastChecked',
         ],
     },
-    
-    
-    
-    
-    
-    
+    'analytics.JHL_B2BCustomerCohorts': {
+        'keys': [
+            'CustomerID',
+        ],
+        'columns': [
+            'CustomerID',
+            'Cohort',
+            'AnchorDate',
+            'AnchorType',
+            'LastProductDate',
+            'LastPADate',
+            'MonthsSinceProduct',
+            'MonthsSincePA',
+            'CustomerCreated',
+            'InsertedDT',
+            'LastChecked',
+        ],
+        'update_columns': [
+            'Cohort',
+            'AnchorDate',
+            'AnchorType',
+            'LastProductDate',
+            'LastPADate',
+            'MonthsSinceProduct',
+            'MonthsSincePA',
+            'CustomerCreated',
+            'LastChecked',
+        ],
+    },
+    'analytics.JHL_B2BCustomerCohort_Snapshot': {
+        'keys': [
+            'CustomerID',
+            'Timestamp',
+        ],
+        'columns': [
+            'CustomerID',
+            'Cohort',
+            'AnchorDate',
+            'AnchorType',
+            'LastProductDate',
+            'LastPADate',
+            'MonthsSinceProduct',
+            'MonthsSincePA',
+            'CustomerCreated',
+            'Timestamp',
+        ],
+        'update_columns': [
+            'Cohort',
+            'AnchorDate',
+            'AnchorType',
+            'LastProductDate',
+            'LastPADate',
+            'MonthsSinceProduct',
+            'MonthsSincePA',
+            'CustomerCreated',
+        ],
+    },
+    'CSAnswers': {
+        'keys': [
+            'CompanyID',
+            'RefNoteID',
+            'AttributeID',
+        ],
+        'columns': [
+            'CompanyID',
+            'RefNoteID',
+            'AttributeID',
+            'Value',
+            'PseudonymizationStatus',
+            'NoteID',
+            'IsActive',
+        ],
+        'update_columns': [
+            'Value',
+        ],
+    },
 }
 
 '''# Tables

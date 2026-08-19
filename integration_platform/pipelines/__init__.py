@@ -63,3 +63,5 @@ from .ship_chair_removal_separate import ShipChairRemovalSeparate
 from .sharepoint_dm_tracker import SharepointDmTracker
 from .mfr_inserts_export import MFRInsertsExport
 from .ryder_to_dbc import RyderToDbc
+from .b2b_cohorts import B2BCohorts
+from .link_b2b_cohorts_to_acu import B2BCohortsLinkToAcu
