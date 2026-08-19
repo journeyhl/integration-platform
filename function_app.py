@@ -907,10 +907,10 @@ def rmi_inventory(timer: af.TimerRequest):
 
 
 #region                                     allocate_sales_orders
-#                           Allocates stock for any RMI wb orders     = '10/20 * * * *',
-#                                           3x/hr (:10, :30, :50) (once a day for now)
+#                           Allocates stock for any RMI wb orders    
+#                      3x/hr (:10, :30, :50) (once a day for now)
 @app.timer_trigger(
-    schedule = '25 17 * * *',
+    schedule = '10/20 * * * *',
     arg_name = 'timer',
     run_on_startup = False
 )
@@ -919,3 +919,25 @@ def allocate_sales_orders(timer: af.TimerRequest):
     sales_order_allocations = AllocateSalesOrders(function='allocate_sales_orders', env='prod') #allocate-sales-orders
     sales_order_allocations.run()
 #endregion                                  allocate_sales_orders
+
+
+
+#region                                                 b2b_cohorts
+# Pulls and derives current B2B Cohort data, loads to dbc, then Acu
+#                                                  1x/day (11:30pm)
+@app.timer_trigger(
+    schedule = '35 23 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def b2b_cohorts(timer: af.TimerRequest):
+    from integration_platform.pipelines.b2b_cohorts import B2BCohorts
+    b2b_cohorts_to_dbc = B2BCohorts(function='b2b_cohorts', env='prod') #b2b-cohorts
+    b2b_cohorts_to_dbc.run()
+
+    from integration_platform.pipelines.link_b2b_cohorts_to_acu import B2BCohortsLinkToAcu
+
+    link_b2b_cohorts = B2BCohortsLinkToAcu(function='b2b_cohorts', env='prod') #b2b-cohorts-link-to-acu
+    link_b2b_cohorts.run()
+#endregion                                  allocate_sales_orders
+
