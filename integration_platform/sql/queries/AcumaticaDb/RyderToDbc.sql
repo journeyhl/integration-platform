@@ -22,9 +22,8 @@ inner join SOShipLine shl on s.CompanyID = shl.CompanyID and s.OrderType = shl.O
 inner join SOShipment sh on s.CompanyID = sh.CompanyID and shl.ShipmentNbr = sh.ShipmentNbr and shl.ShipmentType = sh.ShipmentType
 inner join InventoryItem i on s.CompanyID = i.CompanyID and l.InventoryID = i.InventoryID
 left join INItemRep r on s.CompanyID = r.CompanyID and i.InventoryID = r.InventoryID
-left join INSite shi on s.CompanyID = shi.CompanyID and shl.SiteID = shi.SiteID /*Warehouse joined on SOShipLine*/
+left join INSite shi on s.CompanyID = shi.CompanyID and shl.SiteID = shi.SiteID 
 
-/*Shipment tables*/
 inner join JJStatusLookup js on s.Status = js.CStatus and js.Tbl = 'SOOrder'
 left join JJStatusLookup jsh on sh.Status = jsh.CStatus and jsh.Tbl = 'SOShipment'
 left join SOShipmentKvExt shk on s.CompanyID = shk.CompanyID and sh.NoteID = shk.RecordID and shk.FieldName = 'AttributeSHP2WH'
