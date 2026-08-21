@@ -21,8 +21,8 @@ begin
     ShipmentID varchar(11) not null,
     DeliveryType varchar(6),
     OrderType varchar(6),
-    EventID int,
-    EventNbr int,
+    EventID int not null,
+    EventNbr int not null,
     Code varchar(10),
     Reason varchar(10),
     Description varchar(155),
@@ -32,6 +32,6 @@ begin
     RLM_OrderNumber varchar(10) not null,
     LastChecked datetime,
     InsertedDT datetime,
-    primary key(ShipmentNbr, TrackingNbr, RyderID, ShipmentID, RLM_OrderNumber)
+    primary key(ShipmentNbr, TrackingNbr, RyderID, ShipmentID, EventID, EventNbr, RLM_OrderNumber)
     )
 end
