@@ -2826,6 +2826,8 @@ TABLES = {
             'TrackingNbr',
             'RyderID',
             'ShipmentID',
+            'EventID',
+            'EventNbr',
             'RLM_OrderNumber',
         ],
         'columns': [
@@ -2850,8 +2852,6 @@ TABLES = {
         'update_columns': [
             'DeliveryType',
             'OrderType',
-            'EventID',
-            'EventNbr',
             'Code',
             'Reason',
             'Description',
