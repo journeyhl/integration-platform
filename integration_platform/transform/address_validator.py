@@ -10,10 +10,12 @@ class Transform:
         self.pipeline = pipeline
         self.logger = logging.getLogger(f'{pipeline.pipeline_name}.Transform')
         pass
-    
+
+    #MARK: transform
     def transform(self, data_extract: dict[str, pl.DataFrame]):
         data_transformed = []
         filtered_extract = self.filter(data_extract).to_dicts()
+        bp = 'here'
         for order in filtered_extract:
             if order['Match'] == 1:
                 self.logger.info(f'{order['OrderNbr']}: Customer has same original Shipping/ Billing address')
@@ -36,7 +38,7 @@ class Transform:
         return data_transformed
 
     
-
+    #MARK: filter
     def filter(self, data_extract: dict[str, pl.DataFrame]) ->  pl.DataFrame:
         ''':meth:`~filter` (self, data_extract: *dict[str, pl.DataFrame]*):
         ---
@@ -64,6 +66,9 @@ class Transform:
         if data_extract['main_extract'].height == 0:
             self.logger.warning(f'No Orders need validation, returning main_extract with 0 rows')
             return main_extract
+        if data_extract['filter_extract'].height == 0:
+            self.logger.warning(f'No Orders to filter, returning unchanged main_extract')
+            return main_extract        
         filter_extract = data_extract['filter_extract']
         filtered_extract = main_extract.join(filter_extract, on='OrderNbr', how='anti')
         self.logger.info(f'Orders originally pulled: {', '.join([f['OrderNbr'] for f in main_extract.to_dicts()])}')
@@ -73,9 +78,9 @@ class Transform:
         
 
     
+    #MARK: format_order_address_payload
     def format_order_address_payload(self, order_avs: dict):
-        '''
-        `format_order_address_payload`(self, order_avs: *dict*)
+        ''':class:`~Transform`.:meth:`~format_order_address_payload`
         ---
         <hr>
         
@@ -135,10 +140,11 @@ class Transform:
             }
         if order_avs['WhichPhone'] != 'Valid':
             payload = self.determine_which_phone(order_avs, payload)
-        self._log_differences(order_avs)
+        self._log_differences_(order_avs)
         return payload
     
 
+    #MARK: determine_which_phone
     def determine_which_phone(self, order_avs: dict, payload: dict) -> dict:
         bp = 'here'
         if 'Invalid' not in order_avs['WhichPhone']:
@@ -176,6 +182,7 @@ class Transform:
 
 
 
+    #MARK: format_acu_api_log_update_override
     def format_acu_api_log_update_override(self, order_avs: dict):
         '''`format_acu_api_log_update_override`(self, order_avs: *dict*)
         ---
@@ -203,6 +210,7 @@ class Transform:
         }
         return data_log_entry
     
+    #MARK: format_acu_api_log_validate
     def format_acu_api_log_validate(self, order_avs: dict):
         '''`format_acu_api_log_validate`(self, order_avs: *dict*)
         ---
@@ -234,12 +242,29 @@ class Transform:
 
 
     
-    def _log_differences(self, order_avs: dict):
-        '''`_log_differences`(self, order_avs: *_type_*)
+    #MARK: _log_differences_
+    def _log_differences_(self, order_avs: dict):
+        ''':class:`~Transform`.:meth:`~_log_differences_`
         ---
-        <hr>
         
         Notes differences between the original address we got from Acumatica and the response from AVS
+        
+        Parameters
+        ---
+        :param (*dict*) `order_avs`: _description_
+        
+        <hr>
+        
+        Returns
+        ---
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.transform.address_validator.Transform`.:meth:`~integration_platform.transform.address_validator.Transform.format_order_address_payload`
+        
+          - Logs differences in address given and avs verified address value
         '''
         self.logger.info(f'{order_avs['OrderNbr']}: Comparing AVS address to original...')
         if order_avs['Match'] == 1 or order_avs.get('vbAddressLine1') == None:
