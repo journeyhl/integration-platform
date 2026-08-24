@@ -60,32 +60,39 @@ class AddressVerificationSystem:
         }
         self.session = requests.Session()
         pass
-
-
+ 
+    #MARK: validate
     def validate(self, order_data: dict, s_or_b: str):
-        """`validate`(self, order_data: *dict*, s_or_b: *str*)
+        ''':class:`~AddressVerificationSystem`.:meth:`~validate`
         ---
-        <hr>
         
         Given a dict with Shipping and/or Billing address data, validate address with Avalara's AVS
-        
-        ### Downstream Calls 
-         #### :meth:`~_parse_response`
-            - Given a response from AVS, add validated address to **order_data** and return it
-        
-        <hr>
         
         Parameters
         ---
         :param (*dict*) `order_data`: dict containing **OrderNbr** and address data
         :param (*str*) `s_or_b`: Whether we are validating the Shipping (s) or Billing (b) address
-        
+
         <hr>
         
         Returns
         ---
         :return `order_data` (_type_): order_data dict, but with validated address included
-        """        
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.pipelines.address_validator.AddressValidator`.:class:`~integration_platform.transform.address_validator.Transform`.:meth:`~integration_platform.transform.address_validator.Transform.transform`
+        
+          - Called in the transform step of the :class:`~integration_platform.pipelines.address_validator.AddressValidator` pipeline
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### :class:`~integration_platform.connectors.avs.AddressVerificationSystem`.:meth:`~integration_platform.connectors.avs.AddressVerificationSystem._parse_response_`
+
+          - Given a response from AVS, add validated address to **order_data** and return it
+        '''       
         self.logger.info(f'{order_data['OrderNbr']}: Validating with AVS')
         payload = {
             "line1": order_data[f'{s_or_b}AddressLine1'],
@@ -100,26 +107,18 @@ class AddressVerificationSystem:
         try:
             self.json_response = response.json()
             self.logger.info(f'{order_data['OrderNbr']}: Response received from AVS, parsing...')
-            order_data = self._parse_response(order_data, s_or_b)
+            order_data = self._parse_response_(order_data, s_or_b)
         except Exception as e:
             self.logger.error(f'Could not reach AVS!')
             bp = 'here'
         return order_data
 
-
-    def _parse_response(self, order_data: dict, s_or_b: str) -> dict:
-        """`_parse_response`(self, order_data: *dict*, s_or_b: *str*)
+    #MARK: _parse_response_
+    def _parse_response_(self, order_data: dict, s_or_b: str) -> dict:
+        ''':class:`~AddressVerificationSystem`.:meth:`~_parse_response_`
         ---
-        <hr>
         
         Given a response from AVS, add validated address to **order_data** and return it
-        
-        <hr>
-
-        ### Upstream Calls 
-         #### :meth:`~validate`
-        
-        <hr>
         
         Parameters
         ---
@@ -131,7 +130,15 @@ class AddressVerificationSystem:
         Returns
         ---
         :return `order_data` (dict): order_data dict, but with validated address included
-        """        
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.connectors.avs.AddressVerificationSystem`.:meth:`~integration_platform.connectors.avs.AddressVerificationSystem.validate`
+        
+          - Parses response from AVS api
+        '''
         validated_address = self.json_response['validatedAddresses']
         if len(validated_address) > 1:
             self.logger.warning(f'{order_data['OrderNbr']}: Multiple addresses were returned')
