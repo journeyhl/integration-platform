@@ -19,7 +19,7 @@ class DarwillAddresses(Pipeline):
         file_list = self.sftp.list_directory(directory='/downloads')
         file_list.sort(key=lambda x: x['dt_added'], reverse=True)
         self.most_recent_file = file_list[0]
-        data_extract = self.sftp.get_csv_file_as_dataframe(path=self.most_recent_file['path'])
+        data_extract = self.sftp.get_file_as_dataframe(type='csv', path=self.most_recent_file['path'])
         return data_extract
 
     def transform(self, data_extract: pl.DataFrame):

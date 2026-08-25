@@ -1,11 +1,13 @@
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from integration_platform.pipelines.b2b_cohorts import B2BCohorts
+from integration_platform.pipelines import B2BCohorts, B2BCohortsLinkToAcu
 
 
 
-backorders = B2BCohorts('.debug')
-backorders.run()
+b2bs = B2BCohorts('.debug')
+b2bs.run()
 
+b2b_link = B2BCohortsLinkToAcu('.debug')
+b2b_link.run()
 bp = 'here'
