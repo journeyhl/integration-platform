@@ -288,28 +288,46 @@ class AcumaticaAPIHelper:
 
     #region format_process_shopify
     def format_process_shopify(self, entity_data: dict, entity: str = 'Product Availability') -> dict:
-        ''':class:`~AcumaticaAPIHelper`.:meth:`~format_process_shopify` (entity_data: *dict*, entity: *str = 'Product Availability'*):
+        ''':class:`~AcumaticaAPIHelper`.:meth:`~format_process_shopify`
         ---
-        <hr>
         
         Formats payload to pass to :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.target_api` when ***processing*** shopify sync records for a given Entity
-
-        ### Upstream Calls 
-         #### :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.process_shopify`
-            
-        <hr>
         
         Parameters
         ---
         :param (*dict*) `entity_data`: dictionary of data for Entity. Must contain ***`SyncID`***
-        :param (*str*) `entity`: Entity to prepare. Defaults to *`Product Availability`*
         
-        <hr>
+                
+           ### ***Optional***
+        :param (*str = ''*) `entity`: Entity to prepare. Defaults to *`Product Availability`*
         
         Returns
         ---
         :return `full_payload` (dict): payload to be sent to :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.target_api`
-        '''        
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.process_shopify`
+
+          - Description
+        
+         ### _______replace_me_______
+           
+          - Description
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### _______replace_me_______
+        
+          - Description
+        
+         ### _______replace_me_______
+           
+          - Description
+        '''
+     
         sync_id = entity_data['SyncID']
         payload = {
             "entity": {

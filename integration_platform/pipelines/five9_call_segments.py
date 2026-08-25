@@ -14,7 +14,7 @@ class Five9CallSegments(Pipeline):
         self.sftp = SFTP(self)
 
     def extract(self):
-        five9_extract = self.sftp.get_csv_file_as_dataframe()
+        five9_extract = self.sftp.get_file_as_dataframe(type='csv')
         now = datetime.now(ZoneInfo('America/New_York')).strftime('%Y%m%d')
         db_extract = self.centralstore.query_db(f"""select * from Five9CallSegments f where f.Timestamp >= '{now}'""")
         data_extract = {
