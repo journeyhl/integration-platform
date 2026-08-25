@@ -12,7 +12,7 @@ class HubspotCompanyRevenue(Pipeline):
         self.transformer = Transform(self)
 
     def extract(self):
-        hubspot_extract = self.hubspot.retrieve_companies(limit=100)        
+        hubspot_extract = self.hubspot.retrieve_companies()        
         data_extract = {
             'hubspot_extract': hubspot_extract,
             'revenue_extract': self.centralstore.query_to_dataframe(self.centralstore.queries.HubSpot_RevenueByCustomer).to_dicts()

@@ -28,7 +28,7 @@ begin
     Height int,
     Weight int,
     FAK int,
-    CartonID varchar(20),
+    CartonID varchar(55),
     Serial varchar(155),
     RANbr varchar(20),
     ClientLineID int,
@@ -36,7 +36,7 @@ begin
     CosigneeOrd varchar(255),
     BrandCode varchar(255),
     TrackingID varchar(255),
-    RLM_OrderNumber varchar(6),
+    RLM_OrderNumber varchar(15),
     LastChecked datetime,
     InsertedDT datetime,
     primary key(ShipmentNbr, TrackingNbr, RyderID, ShipmentID, RLM_OrderNumber)
