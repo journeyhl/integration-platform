@@ -22,6 +22,52 @@ class AcumaticaAPIHelper:
     
     #region format_data_log_entry
     def format_data_log_entry(self, entity: str, key_value: str, operation: str, payload: dict, response: str, tstamp: datetime, options: Literal['append', 'return']):
+        ''':class:`~`.:meth:`~format_data_log_entry`
+        ---
+        
+        put_summary_here
+        
+        Parameters
+        ---
+        :param (*str*) `entity`: _description_
+        :param (*str*) `key_value`: _description_
+        :param (*str*) `operation`: _description_
+        :param (*dict*) `payload`: _description_
+        :param (*str*) `response`: _description_
+        :param (*datetime*) `tstamp`: _description_
+        :param (*Literal[&#39;append&#39;, &#39;return&#39;]*) `options`: _description_
+        
+                
+           ### ***Optional***
+        :param (*str = ''*) `log_prefix`: String to prepend to any logger outputs. Usually used when iterating, like `'keyvalue1, 1/150: '`, `'keyvalue2, 2/150: '` and so on 
+        
+        <hr>
+        
+        Returns
+        ---
+        :return `variablename` (_type_): _description_
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### _______replace_me_______
+        
+          - Description
+        
+         ### _______replace_me_______
+           
+          - Description
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### _______replace_me_______
+        
+          - Description
+        
+         ### _______replace_me_______
+           
+          - Description'''        
         self.acu.calls += 1
         entry = {            
             'Entity': entity,
@@ -635,7 +681,7 @@ class AcumaticaAPIHelper:
         Returns
         ---
         :return `payload` (dict): Standard Sales Order Entity type payload
-        '''               
+        '''
         payload = {
             "entity": {
                 "Type": {

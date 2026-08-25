@@ -379,31 +379,56 @@ class AcumaticaAPI:
 
     #region get_order_details
     def get_order_details(self, order_data: dict, additional_details: str = '') -> dict:
-        '''`get_order_details`(order_data: *dict*, )
+        ''':class:`~AcumaticaAPI`.:meth:`~get_order_details`
         ---
-        <hr>
         
         Retrieves order details from Acumatica via API
-        
-        
-        ### Upstream Calls 
-         #### :class:`~integration_platform.pipelines.address_validator.AddressValidator`.:class:`~integration_platform.load.address_validator.Load`.:meth:`~integration_platform.load.address_validator.Load.validate_remove_hold_create`
-            - Gets order details and whether or not the addresses have been validated and overridden 
-            
-        <hr>
         
         Parameters
         ---
         :param (*dict*) `order_data`:  dictionary containing at least OrderType and OrderNbr
-        :param (*str*) `additional_details`: Additional data to get from API, for example, pass `?$expand=Shipments` to get Shipment details with response
         
-            - To retrieve an attribute, pass it as follows: ?$custom=Document.AttributeAFTSHIPID
+                
+           ### ***Optional***
+        :param (*str*) `additional_details`: Additional data to get from API, for example, pass `?$expand=Shipments` to get Shipment details with response
+
+            - #### To retrieve an attribute, pass it as follows: ?$custom=Document.AttributeAFTSHIPID
         
         <hr>
         
         Returns
         ---
         :return `order_data` (dict): order_data dict that was parameter, but with BillingValidated and ShippingValidated added
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.pipelines.address_validator.AddressValidator`.:class:`~integration_platform.load.address_validator.Load`.:meth:`~integration_platform.load.address_validator.Load.validate_remove_hold_create`
+        
+          - Gets order details and whether or not the addresses have been validated and overridden 
+        
+         ### _______replace_me_______
+           
+          - Description
+           
+         ### _______replace_me_______
+        
+          - Description
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### _______replace_me_______
+        
+          - Description
+        
+         ### _______replace_me_______
+           
+          - Description
+           
+         ### _______replace_me_______
+        
+          - Description
         '''
         try:
             response = self.session.get(f'{self.base_uri}/SalesOrder/{order_data['OrderType']}/{order_data['OrderNbr']}{additional_details}')
@@ -430,7 +455,7 @@ class AcumaticaAPI:
 
     #region order_remove_hold
     def order_remove_hold(self, order_data: dict):
-        '''`order_remove_hold`(self, order_data: *dict*, )
+        ''':class:`~AcumaticaAPI`.:meth:`~order_remove_hold`
         ---
         <hr>
         
@@ -464,6 +489,56 @@ class AcumaticaAPI:
 
     #region order_do_action
     def order_do_action(self, order_data: dict, payload: dict, action: str):
+        ''':class:`~`.:meth:`~order_do_action`
+        ---
+        
+        put_summary_here
+        
+        Parameters
+        ---
+        :param (*dict*) `order_data`: _description_
+        :param (*dict*) `payload`: _description_
+        :param (*str*) `action`: _description_
+        
+                
+           ### ***Optional***
+        :param (*str = ''*) `log_prefix`: String to prepend to any logger outputs. Usually used when iterating, like `'keyvalue1, 1/150: '`, `'keyvalue2, 2/150: '` and so on 
+        
+        <hr>
+        
+        Returns
+        ---
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### _______replace_me_______
+        
+          - Description
+        
+         ### _______replace_me_______
+           
+          - Description
+           
+         ### _______replace_me_______
+        
+          - Description
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### _______replace_me_______
+        
+          - Description
+        
+         ### _______replace_me_______
+           
+          - Description
+           
+         ### _______replace_me_______
+        
+          - Description
+        '''        
         try:
             self.logger.info(f'{order_data['OrderNbr']}: Performing {action}')
             url = f'{self.base_uri}/SalesOrder/{action}'
