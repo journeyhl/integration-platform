@@ -21,7 +21,7 @@ begin
     ShipmentID varchar(11) not null,
     DeliveryType varchar(6),
     OrderType varchar(6),
-    InventoryCD varchar(35),
+    InventoryCD varchar(35) not null,
     Description varchar(155),
     Length int,
     Wdith int,
@@ -39,6 +39,6 @@ begin
     RLM_OrderNumber varchar(15),
     LastChecked datetime,
     InsertedDT datetime,
-    primary key(ShipmentNbr, TrackingNbr, RyderID, ShipmentID, RLM_OrderNumber)
+    primary key(ShipmentNbr, TrackingNbr, RyderID, ShipmentID, RLM_OrderNumber, InventoryCD)
     )
 end
