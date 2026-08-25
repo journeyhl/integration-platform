@@ -939,5 +939,5 @@ def b2b_cohorts(timer: af.TimerRequest):
 
     link_b2b_cohorts = B2BCohortsLinkToAcu(function='b2b_cohorts', env='prod') #b2b-cohorts-link-to-acu
     link_b2b_cohorts.run()
-#endregion                                  allocate_sales_orders
+#endregion                                               b2b_cohorts
 

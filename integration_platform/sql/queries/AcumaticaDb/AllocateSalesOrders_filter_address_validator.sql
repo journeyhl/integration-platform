@@ -28,6 +28,7 @@ and s.OrderType = 'WB'
 and si.SiteCD = 'RMI'
 and s.Status not in ('L', 'C', 'S')
 --and s.Status = 'H'
+and (i.descr like '%Certified pre%' or i.descr like '%CPO%' or i.Descr like '%preowned%' or i.Descr like '%pre-owned' or i.Descr like '%pre owned%')
 and l.POCreate = 0
 )
 , InventoryLevels as(
