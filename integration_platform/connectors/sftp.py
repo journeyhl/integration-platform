@@ -4,6 +4,7 @@ import paramiko
 from integration_platform.config.settings import JHL_SFTP, DARWILL_SFTP, INC_MEDIA_SFTP
 import polars as pl
 from datetime import datetime, timezone
+from typing import Literal
 
 class SFTP():
     def __init__(self, pipeline, server: str = 'JHL'):
@@ -30,13 +31,13 @@ class SFTP():
         else:
             self.logger.error(f'Invalid server!')
 
-        self._connect()
+        self._connect_()
 
         pass
 
 
 
-    def _connect(self):
+    def _connect_(self):
         try:
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -71,35 +72,47 @@ class SFTP():
         dirs = self.sftp.listdir('/')
         return dirs
 
-    def get_csv_file_as_dataframe(self, path: str = '/apps/five9/reports/CallSegments3.csv'):
-        '''`get_csv_file_as_dataframe`(self, path: *str = '/apps/five9/reports/CallSegments3.csv'*):
+
+        bp = 'here'
+        # self.sftp.get(path, )
+    
+    def get_file_as_dataframe(self, type: Literal['csv', 'xlsx'], path: str = '/apps/five9/reports/CallSegments3.csv'):
+        ''':class:`~SFTP`.:meth:`~get_file_as_dataframe`
         ---
-        <hr>
         
-        Given a path to a csv file on an SFTP server, open the file and return its contents as a Polars DataFrame
-            
-        <hr>
+        Given a path to a csv or xlsx file on an SFTP server, open the file and return its contents as a Polars DataFrame
         
         Parameters
         ---
-        :param (*dict*) `path`: str value with path to csv file. Defaults to Five9's call segments
+        :param (**Literal***['csv', 'xlsx']*) `type`: The filetype of the file found at *path*, must be csv or xlsx
         
-        <hr>
+                
+           ### ***Optional***
+        :param (*str = '/apps/five9/reports/CallSegments3.csv'*) `path`: Path that the file is found at, defaults to `/apps/five9/reports/CallSegments3.csv`
         
         Returns
         ---
+        :return `df_file` (pl.DataFrame): dataframe of the file contents found at the passed path
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.pipelines.ucmi_hubspot.UCMI_HubspotCustomers`.:meth:`~integration_platform.pipelines.ucmi_hubspot.UCMI_HubspotCustomers.extract`
+        
+         ### :class:`~integration_platform.pipelines.five9_call_segments.Five9CallSegments`.:meth:`~integration_platform.pipelines.five9_call_segments.Five9CallSegments.extract`
+           
+         ### :class:`~integration_platform.pipelines.darwill_addresses.DarwillAddresses`.:meth:`~integration_platform.pipelines.darwill_addresses.DarwillAddresses.extract`
         '''
         try:            
             with self.sftp.open(path, 'r') as f:
                 file_contents = f.read()
-                df_file = pl.read_csv(file_contents, infer_schema_length=0)
+                df_file = pl.read_csv(file_contents, infer_schema_length=0) if type == 'csv' else pl.read_excel(file_contents, infer_schema_length=0)
             self.logger.info(f'Successfully parsed {df_file.height} rows from {path}')
             return df_file
         except Exception as e:
             self.logger.error(f"Error! {e} Couldn't parse {path}")
 
-        bp = 'here'
-        # self.sftp.get(path, )
 
     def upload_dataframe_as_csv(self, df: pl.DataFrame, remote_path: str):
         '''`upload_dataframe_as_csv`(self, df: *pl.DataFrame*, remote_path: *str*):
@@ -131,3 +144,35 @@ class SFTP():
         except Exception as e:
             self.logger.error(f"Error! {e} Couldn't upload to {remote_path}")
             raise
+
+
+#region archive
+
+    def get_csv_file_as_dataframe(self, type: str = 'csv', path: str = '/apps/five9/reports/CallSegments3.csv'):
+        '''`get_csv_file_as_dataframe`(self, path: *str = '/apps/five9/reports/CallSegments3.csv'*):
+        ---
+        <hr>
+        
+        
+            
+        <hr>
+        
+        Parameters
+        ---
+        :param (*dict*) `path`: str value with path to csv file. Defaults to Five9's call segments
+        
+        <hr>
+        
+        Returns
+        ---
+        '''
+        try:            
+            with self.sftp.open(path, 'r') as f:
+                file_contents = f.read()
+                df_file = pl.read_csv(file_contents, infer_schema_length=0)
+            self.logger.info(f'Successfully parsed {df_file.height} rows from {path}')
+            return df_file
+        except Exception as e:
+            self.logger.error(f"Error! {e} Couldn't parse {path}")
+
+#endregion
