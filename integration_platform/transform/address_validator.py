@@ -40,28 +40,29 @@ class Transform:
     
     #MARK: filter
     def filter(self, data_extract: dict[str, pl.DataFrame]) ->  pl.DataFrame:
-        ''':meth:`~filter` (self, data_extract: *dict[str, pl.DataFrame]*):
+        ''':class:`~Transform`.:meth:`~filter`
         ---
-        <hr>
-        
+
         Filters out any orders that need to be allocated before they have their address validated
-        
-        ### Upstream Calls 
-         #### :class:`~Transform`.:meth:`~transform`
-            - Filters before running main address validation process
-            
-        <hr>
-        
+
         Parameters
         ---
         :param (*dict[str, pl.DataFrame]*) `data_extract`: dict containing two polars DataFrames, one frame containing the orders to validate, another with orders to filter out
-        
+
         <hr>
-        
+
         Returns
         ---
-        :return `filtered_extract` (_pl.DataFrame_): Main polars DataFrame, but with only rows **NOT** having a match in our DataFrame of orders filter out
-        '''        
+        :return `filtered_extract` (pl.DataFrame): Main polars DataFrame, but with only rows **NOT** having a match in our DataFrame of orders filter out
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         ### :class:`~integration_platform.transform.address_validator.Transform`.:meth:`~integration_platform.transform.address_validator.Transform.transform`
+
+          - Filters before running main address validation process
+        '''
         main_extract = data_extract['main_extract']
         if data_extract['main_extract'].height == 0:
             self.logger.warning(f'No Orders need validation, returning main_extract with 0 rows')
@@ -82,27 +83,38 @@ class Transform:
     def format_order_address_payload(self, order_avs: dict):
         ''':class:`~Transform`.:meth:`~format_order_address_payload`
         ---
-        <hr>
-        
+
         Given a dictionary containing a response from AVS, format the payload needed to override and update a Customer's ShipTo Address on a particular **Order**
-        
-        ### Downstream Function Calls 
-         #### :meth:`~_log_differences`
-            - Calls out changes that will be made to Order's ShipTo Address in Acumatica
-        
-        <hr>
-        
+
         Parameters
         ---
         :param (*dict*) `order_avs`: Dictionary containing **OrderType**, **OrderNbr**, **CustomerID**, and a **formatted AVS address response**
 
          - **vAddressLine1**, **vAddressLine2**, **vCity**, **vState**, **vPostalCode**, **vCountryID**
-        
+
         <hr>
-        
+
         Returns
         ---
         :return `payload` (dict): payload ready to send to Acumatica API (SalesOrder endpoint)
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         ### :class:`~integration_platform.transform.address_validator.Transform`.:meth:`~integration_platform.transform.address_validator.Transform.transform`
+
+          - Calls this to build the payload used to override and update an Order's ShipTo (and BillTo) address after AVS validation
+
+        ## Downstream Calls (Methods/Functions called)
+
+         ### :class:`~integration_platform.transform.address_validator.Transform`.:meth:`~integration_platform.transform.address_validator.Transform.determine_which_phone`
+
+          - Swaps in the correct phone number on the payload when the original ShipTo/BillTo phone failed validation
+
+         ### :class:`~integration_platform.transform.address_validator.Transform`.:meth:`~integration_platform.transform.address_validator.Transform._log_differences_`
+
+          - Calls out changes that will be made to Order's ShipTo Address in Acumatica
         '''
         payload = {
             "OrderType":   { "value": order_avs['OrderType'] },
@@ -174,7 +186,7 @@ class Transform:
             }
             payload['BillToContactOverride'] = { "value": True }
             payload['BillToContact'] = {
-                "Phone1": {"value": '8009588324'},               
+                "Phone1": {"value": '8009588324'},
             }
 
 
@@ -184,23 +196,28 @@ class Transform:
 
     #MARK: format_acu_api_log_update_override
     def format_acu_api_log_update_override(self, order_avs: dict):
-        '''`format_acu_api_log_update_override`(self, order_avs: *dict*)
+        ''':class:`~Transform`.:meth:`~format_acu_api_log_update_override`
         ---
-        <hr>
-        
+
         Formats the constant part of the dict of data that we'll load to **_util.acu_api_log** when overriding and updating an address
-            
-        <hr>
-        
+
         Parameters
         ---
         :param (*dict*) `order_avs`: Dictionary containing **OrderNbr**, and **update_order_address_payload** (the return from :meth:`~format_order_address_payload`)
-        
+
         <hr>
-        
+
         Returns
         ---
-        :return `data_log_entry` (dict): _description_
+        :return `data_log_entry` (dict): constant values used for _util.acu_api_log
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         ### :class:`~integration_platform.transform.address_validator.Transform`.:meth:`~integration_platform.transform.address_validator.Transform.transform`
+
+          - Calls this to build the _util.acu_api_log entry for the override/update Acumatica call
         '''
         data_log_entry = {            
             'Entity': 'SalesOrder',
@@ -212,23 +229,28 @@ class Transform:
     
     #MARK: format_acu_api_log_validate
     def format_acu_api_log_validate(self, order_avs: dict):
-        '''`format_acu_api_log_validate`(self, order_avs: *dict*)
+        ''':class:`~Transform`.:meth:`~format_acu_api_log_validate`
         ---
-        <hr>
-        
+
         Formats the constant part of the dict of data that we'll load to **_util.acu_api_log** when validating an address
-            
-        <hr>
-        
+
         Parameters
         ---
         :param (*dict*) `order_avs`: Dictionary containing **OrderNbr**, and **update_order_address_payload** (the return from :meth:`~format_order_address_payload`)
-        
+
         <hr>
-        
+
         Returns
         ---
-        :return `data_log_entry` (dict): constant values used for _util.acu_aupi_log
+        :return `data_log_entry` (dict): constant values used for _util.acu_api_log
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         ### :class:`~integration_platform.transform.address_validator.Transform`.:meth:`~integration_platform.transform.address_validator.Transform.transform`
+
+          - Calls this to build the _util.acu_api_log entry for the validate Acumatica call
         '''
         data_log_entry = {            
             'Entity': 'SalesOrder',
@@ -246,24 +268,19 @@ class Transform:
     def _log_differences_(self, order_avs: dict):
         ''':class:`~Transform`.:meth:`~_log_differences_`
         ---
-        
+
         Notes differences between the original address we got from Acumatica and the response from AVS
-        
+
         Parameters
         ---
-        :param (*dict*) `order_avs`: _description_
-        
+        :param (*dict*) `order_avs`: Dictionary containing **OrderNbr**, **Match**, and the original vs. AVS-validated address fields to compare
+
         <hr>
-        
-        Returns
-        ---
-        
-        <hr>
-        
+
         ## Upstream Calls (Methods/Functions Called by)
-        
+
          ### :class:`~integration_platform.transform.address_validator.Transform`.:meth:`~integration_platform.transform.address_validator.Transform.format_order_address_payload`
-        
+
           - Logs differences in address given and avs verified address value
         '''
         self.logger.info(f'{order_avs['OrderNbr']}: Comparing AVS address to original...')

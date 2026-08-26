@@ -12,7 +12,10 @@ class UCMI_HubspotCustomers(Pipeline):
         self.transformer = Transform(self)
 
     def extract(self):
-        data_extract = self.sftp.get_file_as_dataframe(type='xlsx', path='/apps/ucmi/Customers_hs.xlsx')
+        # for i in range(1, 6):
+        #     extract = self.sftp.get_file_as_dataframe(type='xlsx', path=f'/apps/ucmi/hubspot_8.26_{i}.xlsx')
+        #     bp = 'here'
+        data_extract = self.sftp.get_file_as_dataframe(type='xlsx', path='/apps/ucmi/hubspot_8.26_7.xlsx')
         return data_extract
 
     def transform(self, data_extract):
@@ -22,6 +25,7 @@ class UCMI_HubspotCustomers(Pipeline):
     
     def load(self, data_transformed):
         data_loaded = {}
+        self.centralstore.insert_df(data_transformed, 'hubspot_test')
         return data_loaded
     
     def log_results(self, data_loaded):
