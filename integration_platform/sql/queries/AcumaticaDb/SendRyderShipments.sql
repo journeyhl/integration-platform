@@ -11,6 +11,7 @@ select cast(s.ShipDate as date) ShipDate
 	 , cast(sl.ShippedQty as int) ShippedQty
 	 , rtrim(i.InventoryCD) InventoryCD
 	 , l.ShipVia a
+     , concat(sl.OrigOrderNbr, '-', l.LineNbr) PO
 	 , case when i.InventoryCD = '27222' then 'RT' else 'AA' end rlmActionCode
 	 , case when i.InventoryCD = '27222' then 'RT' else 'DL' end rlmOrderType
 	 , case when i.InventoryCD != '27222' and l.ShipVia in('WHITEGLOVE399', 'WHITEGLOVE450', 'WHITEGLOVE499', 'WHITEGLOVESHP') then 'WD'
@@ -70,7 +71,7 @@ left join JJStatusLookup j on s.Status = j.CStatus and j.Tbl = 'SOShipment'
 where s.CompanyID = 2 
 and SiteCD = 'RLM NEJ HB' and sl.OrigOrderType != 'RC'
 and s.Status not in('C', 'L', 'F', 'I')
-and k.ValueNumeric = 0
+-- and k.ValueNumeric = 0 --Uncomment this line
 -- s.ShipmentNbr = '077252' and sl.LineNbr = 1		--This line is to send one offs
 -- and s.ShipmentNbr != '083252'
 )

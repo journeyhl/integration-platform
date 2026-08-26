@@ -44,9 +44,9 @@ class DefaultTransformer:
     def string_case_pascal(self, string: str | None, string_descr: str= '', log_prefix: str = ''):
         string = self._handle_none_and_empty_strings_(string=string, string_descr=string_descr, log_prefix=log_prefix)
         if string == None:
-            return None
+            return ''
         if ' ' in string:
-            self.logger.info(f'Space found in string...')
+            # self.logger.info(f'Space found in string...')
             strlist = string.split(' ')
             string = ' '.join([f'{s[0].upper()}{'' if len(s) == 1 else s[1:].lower()}' for s in strlist])            
             bp = 'here'
