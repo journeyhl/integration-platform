@@ -405,30 +405,10 @@ class AcumaticaAPI:
         ## Upstream Calls (Methods/Functions Called by)
         
          ### :class:`~integration_platform.pipelines.address_validator.AddressValidator`.:class:`~integration_platform.load.address_validator.Load`.:meth:`~integration_platform.load.address_validator.Load.validate_remove_hold_create`
-        
-          - Gets order details and whether or not the addresses have been validated and overridden 
-        
-         ### _______replace_me_______
-           
-          - Description
-           
-         ### _______replace_me_______
-        
-          - Description
-        
-        ## Downstream Calls (Methods/Functions called)
-        
-         ### _______replace_me_______
-        
-          - Description
-        
-         ### _______replace_me_______
-           
-          - Description
-           
-         ### _______replace_me_______
-        
-          - Description
+                
+         ### :class:`~integration_platform.pipelines.ship_chair_removal_separate.ShipChairRemovalSeparate`.:class:`~integration_platform.load.acu_api_loader.AcuAPILoader`.:meth:`~integration_platform.load.acu_api_loader.AcuAPILoader.__update_ship_sep_or_wh__`
+                      
+         ### :class:`~integration_platform.pipelines.address_validator.AddressValidator`.:class:`~integration_platform.load.address_validator.Load`.:meth:`~integration_platform.load.address_validator.Load.landing`
         '''
         try:
             response = self.session.get(f'{self.base_uri}/SalesOrder/{order_data['OrderType']}/{order_data['OrderNbr']}{additional_details}')
