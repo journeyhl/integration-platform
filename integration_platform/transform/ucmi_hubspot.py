@@ -23,8 +23,8 @@ class Transform:
         df6_phones = self._phones_(df=df5_names)
         df7_filtered = self._drop_test_rows_(df=df6_phones)
         bp = 'here'
-        test = df7_filtered.to_dicts()
-        return df7_filtered
+        df7_dicts = df7_filtered.to_dicts()
+        return df7_dicts
 
 
     def _phones_(self, df: pl.DataFrame) -> pl.DataFrame:
@@ -425,7 +425,7 @@ class Transform:
             'Ecommerce contact':            'EcommerceContact',
             'Source store':                 'SourceStore',
             'Record ID - Company':          'CompanyRecordID_drop',
-            'Company name':                 'Companyname',
+            'Company name':                 'CompanyName',
             'Company owner':                'CompanyOwner',
             'Create Date_1':                'CompanyCreateDate',
             'Phone Number_1':               'CompanyPhone',
@@ -451,7 +451,7 @@ class Transform:
             'Recent Conversion': 'RecentConversion',
             'Lead Source Date': 'LeadSourceDate',
             'LinkedIn click id': 'LinkedinClickId',
-            'IP State/Region': 'IpState/region',
+            'IP State/Region': 'IPRegion',
             'Time in current stage (HH:mm:ss)': 'TimeInCurrentStage',
             'Latest time in "Unqualified Lead (Lifecycle Stage Pipeline)" (HH:mm:ss)': 'LatestTimeInUnqualifiedLead',
             'Latest time in "Subscriber (Lifecycle Stage Pipeline)" (HH:mm:ss)': 'LatestTimeInSubscriber',

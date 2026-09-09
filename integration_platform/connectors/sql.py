@@ -280,21 +280,23 @@ class SQLConnector(Generic[QT]):
 
 
     def __init__(self, pipeline, database_name: str):
-        '''`init`(pipeline, database_name: *str*, )
+        ''':class:`~SQLConnector`.:meth:`~__init__`
         ---
-        <hr>
-        
+
         Initializes the SQLConnector for either db_CentralStore or AcumaticaDb
-        
-        <hr>
-        
+
         Parameters
         ---
         :param `pipeline`: Pipeline using the SQLConnector. If just using the Connector without a pipe, send a str
         :param (*str*) `database_name`: Name of database, either 'db_CentralStore' or 'AcumaticaDb'
-        
+
         <hr>
-        
+
+        Returns
+        ---
+
+        <hr>
+
         Sets
         ---
         >>> self.pipeline = pipeline
@@ -308,6 +310,22 @@ class SQLConnector(Generic[QT]):
         >>> self.queries = _QUERY_CLASSES.get(database_name, Queries)(database_name)
 
         **_create_engine** creates connection string using creds from :data:`~config.settings.DATABASES`
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         - Used throughout the project — instantiated in the `__init__` of nearly every pipeline class (e.g. `self.acudb = SQLConnector(...)`, `self.centralstore = SQLConnector(...)`)
+
+        ## Downstream Calls (Methods/Functions called)
+
+         ### :class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector._create_engine`
+
+          - Builds the SQLAlchemy engine used to query the database
+
+         ### :class:`~integration_platform.connectors.sql.Queries`.:meth:`~integration_platform.connectors.sql.Queries.__init__`
+
+          - Instantiates the query set (CentralStoreQueries/AcumaticaDbQueries) for the given database_name
         '''
         self.pipeline = pipeline
         if type(pipeline) == str:
@@ -335,29 +353,31 @@ class SQLConnector(Generic[QT]):
     
 
     def query_db(self, query: str, params=None, log_str=None):
-        ''':class:`~SQLConnector`.:meth:`~query_db` (self, `query`: *str*, ):
+        ''':class:`~SQLConnector`.:meth:`~query_db`
         ---
-        <hr>
-        
+
         Given a string of SQL text, execute and return a polars DataFrame.
-            
-        <hr>
-        
+
         Parameters
         ---
         :param (*str*) `query`: SQL query to execute
-        :param (*dict*) `params`: Parameters to pass to query if neccessary
-        :param (*dict*) `log_str`: String to pass to log output if neccessary
-        
+
+           ### ***Optional***
+        :param (*dict = None*) `params`: Parameters to pass to query if neccessary
+        :param (*dict = None*) `log_str`: String to pass to log output if neccessary. If something is passed as the log string, DO NOT log anything here
+
         <hr>
-        
+
         Returns
         ---
-        :return `data_extract` (*pl.DataFrame*): polars DataFrame with results of query
-        :return `params` (): parameters for query, *not required*
-        :return `log_str` (str): If something is passed as the log string, DO NOT log anything here, *not required*
-        
-        '''        
+        :return `data_extract` (pl.DataFrame): polars DataFrame with results of query
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         - Used throughout the project — called from pipeline `_extract_` methods and standalone scripts to run ad-hoc SQL against `db_CentralStore`/`AcumaticaDb`
+        '''
         execute_options = {'parameters': params} if params else {}
         log_str = log_str if log_str else ''
         data_extract = pl.read_database(query, self.engine, execute_options=execute_options, infer_schema_length=None)
@@ -368,18 +388,26 @@ class SQLConnector(Generic[QT]):
     
 
     def insert_df(self, df_data_loaded: pl.DataFrame, table_name: str):
-        ''':class:`~SQLConnector`.:meth:`~insert_df` (self, `df_data_loaded`: *pl.DataFrame*, `table_name`: *str*)
+        ''':class:`~SQLConnector`.:meth:`~insert_df`
         ---
-        <hr>
-        
+
         Given a polars dataframe and the name of a table, insert the contents of the DataFrame to that table
-            
-        <hr>
-        
+
         Parameters
         ---
         :param (*pl.DataFrame*) `df_data_loaded`: Data to be loaded into SQL db
         :param (*str*) `table_name`: The name of the table in which the contents of *df_data_loaded* will be inserted
+
+        <hr>
+
+        Returns
+        ---
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         - Used throughout the project — called from pipeline `_load_` methods to append DataFrame contents into `db_CentralStore` tables
         '''
         df_data_loaded.write_database(table_name=table_name, 
                                       connection=self.engine,
@@ -391,18 +419,11 @@ class SQLConnector(Generic[QT]):
 
     
     def checked_upsert(self, table_name: str, data: list):
-        ''':class:`~SQLConnector`.:meth:`~checked_upsert`(self, `table_name`: *str*, `data`: *list*)
+        ''':class:`~SQLConnector`.:meth:`~checked_upsert`
         ---
-        <hr>
 
         Given a table name and a list of rows (dicts) to insert, performs an upsert to database.
-    
-        ### Downstream Calls 
-         #### :meth:`~_dict_to_params`
-            - Utility function to format table keys, columns and update_columns with their respective values to parameters
 
-        <hr>
-        
         Parameters
         ---
         :param (*str*) `table_name`: The name of the table to update (schema qualified)
@@ -412,7 +433,7 @@ class SQLConnector(Generic[QT]):
           - ***AdDetails** doesn't need the schema since it belongs to the **dbo** schema, but you could pass **'dbo.AdDetails'** if you wanted*
 
         :param (*list*) `data`: A list of dictionaries that correspond to the values in :data:`~config.settings.TABLES`
-        
+
             * Each dictionary should be formatted to contain the values that were mapped in the table configuration in :data:`~config.settings.TABLES`
 
                 * Take **_util.SOOrderDeletions** for example. Its definition looks as follows:
@@ -433,20 +454,37 @@ class SQLConnector(Generic[QT]):
                 * Using these values, we'll create **upsert_string**. Starting with the check first:
 
                 >>> if not exists(
-                select 1 
+                select 1
                 from {table_name}
                 where {' = %s and '.join(sql_table['keys'])} = %s
                 )
 
                 * Alrighty, replace `{table_name}` with `table_name`, or **_util.SOOrderDeletions** here. Then for each **key** in `keys`, we'll format the *where*
-                
+
                 >>> if not exists(
-                select 1 
+                select 1
                 from _util.SOOrderDeletions
                 where OrderType = %s and OrderNbr = %s
                 )
 
                 * That pattern continues on for the full execution statement.
+
+        <hr>
+
+        Returns
+        ---
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         - Used throughout the project — called from pipeline `_load_` methods to upsert rows into `db_CentralStore`/`AcumaticaDb` tables
+
+        ## Downstream Calls (Methods/Functions called)
+
+         ### :class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector._dict_to_params`
+
+          - Utility function to format table keys, columns and update_columns with their respective values to parameters
         '''
         self.tables = TABLES
         sql_table = self.tables[table_name]
@@ -484,20 +522,13 @@ end
 
 
     def checked_upsert_paginated(self, table_name: str, data: list, page_size: int = 100):
-        ''':class:`~SQLConnector`.:meth:`checked_upsert_paginated`(self, `table_name`: *str*, `data`: *list*, `page_size`: *int = 100*)
+        ''':class:`~SQLConnector`.:meth:`~checked_upsert_paginated`
         ---
-        <hr>
 
         Given a table name and a list of rows (dicts) to insert, performs a paginated upsert to database.
 
         #### USE :meth:`~connectors.sql.SQLConnector.checked_upsert` FOR UPSERTS OF LESS THAN 100 ROWS!!
-    
-        ### Downstream Calls 
-         #### :meth:`~_dict_to_params`
-            - Utility function to format table keys, columns and update_columns with their respective values to parameters
 
-        <hr>
-        
         Parameters
         ---
         :param (*str*) `table_name`: The name of the table to update (schema qualified)
@@ -507,7 +538,7 @@ end
           - ***AdDetails** doesn't need the schema since it belongs to the **dbo** schema, but you could pass **'dbo.AdDetails'** if you wanted*
 
         :param (*list*) `data`: A list of dictionaries that correspond to the values in :data:`~config.settings.TABLES`
-        
+
             * Each dictionary should be formatted to contain the values that were mapped in the table configuration in :data:`~config.settings.TABLES`
 
                 * Take **_util.SOOrderDeletions** for example. Its definition looks as follows:
@@ -528,20 +559,40 @@ end
                 * Using these values, we'll create **upsert_string**. Starting with the check first:
 
                 >>> if not exists(
-                select 1 
+                select 1
                 from {table_name}
                 where {' = %s and '.join(sql_table['keys'])} = %s
                 )
 
                 * Alrighty, replace `{table_name}` with `table_name`, or **_util.SOOrderDeletions** here. Then for each **key** in `keys`, we'll format the *where*
-                
+
                 >>> if not exists(
-                select 1 
+                select 1
                 from _util.SOOrderDeletions
                 where OrderType = %s and OrderNbr = %s
                 )
 
                 * That pattern continues on for the full execution statement.
+
+           ### ***Optional***
+        :param (*int = 100*) `page_size`: Number of rows to upsert per batch
+
+        <hr>
+
+        Returns
+        ---
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         - Used throughout the project — called from pipeline `_load_` methods to upsert large row sets into `db_CentralStore`/`AcumaticaDb` tables in batches
+
+        ## Downstream Calls (Methods/Functions called)
+
+         ### :class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector._dict_to_params`
+
+          - Utility function to format table keys, columns and update_columns with their respective values to parameters
         '''
         self.tables = TABLES
         sql_table = self.tables[table_name]
@@ -585,24 +636,40 @@ end
         self.logger.info('Upsert sequence complete!')
 
 
-
+    def paginated_merge(self, table_name: str, data: list, page_size: int = 500):
+        bp = 'here'
 
 
     
     def _dict_to_params(self, d: dict, keys: list) -> tuple:
-        '''_dict_to_params
+        ''':class:`~SQLConnector`.:meth:`~_dict_to_params`
         ---
-        <hr>
-        
+
         Utility function used by **checked_upsert** to format table keys, columns and update_columns with their respective values to parameters
 
+        Parameters
+        ---
+        :param (*dict*) `d`: dict containing the data to be inserted to database
+        :param (*list*) `keys`: list containing the names of keys, columns and update_columns of table receiving insert
+
         <hr>
 
-        Parameters
-        -------------
+        Returns
+        ---
+        :return `params` (tuple): values from `d` ordered to match `keys`, for use as SQL execute parameters
 
-            __d__ (*dict*): dict containing the data to be inserted to database
-            __keys__ (*list*): list containing the names of keys, columns and update_columns of table receiving insert'''
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         ### :class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector.checked_upsert`
+
+          - Calls this to format each row's values into positional parameters before executing the upsert
+
+         ### :class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector.checked_upsert_paginated`
+
+          - Calls this to format each row's values into positional parameters before executing each paginated batch upsert
+        '''
         return tuple(d[k.replace('[', '').replace(']', '')] for k in keys)
     
 
@@ -610,26 +677,26 @@ end
 
 
     def query_to_dataframe(self, query: Query):
-        ''':class:`~SQLConnector`.:meth:`~query_to_dataframe` (self, `query`: _Query_)
+        ''':class:`~SQLConnector`.:meth:`~query_to_dataframe`
         ---
-        <hr>
-            
+
         Given a **_Query_** (see AcumaticaDbQueries and CentralStoreQueries), execute its query and return a polars dataframe
 
-        <hr>
-
         Parameters
-        -------------
-
-        :param (*str*) `query`: An instance of the Query class, the text of which will be executed and the results output to a polars DataFrame.
-        :type query: *str*
+        ---
+        :param (*Query*) `query`: An instance of the Query class, the text of which will be executed and the results output to a polars DataFrame.
 
         <hr>
 
         Returns
-        -------------
+        ---
+        :return `data` (pl.DataFrame): polars DataFrame with results of query
 
-        :return `data_extract` (*pl.DataFrame*): polars DataFrame with results of query
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         - Used throughout the project — called from pipeline `_extract_` methods to run each `Query` defined on `AcumaticaDbQueries`/`CentralStoreQueries`
         '''
         self.logger.info(f'Running {query.name} query...')
         data = pl.read_database(str(query.query), self.engine, infer_schema_length = None)
@@ -637,16 +704,25 @@ end
         return data
     
     def raw_execute(self, query: str):
-        '''`raw_execute`(self, query)
-        ===
+        ''':class:`~SQLConnector`.:meth:`~raw_execute`
+        ---
+
         Given an Insert, Update or Delete command, execute on db
 
         Parameters
         ---
+        :param (*str*) `query`: Query to be executed in Database as plain text
+
         <hr>
 
-        - **query** (*str*): Query to be executed in Database as plain text
+        Returns
+        ---
 
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         - Used throughout the project — called from pipeline `_load_` methods and standalone scripts to run raw delete/update commands against `db_CentralStore`/`AcumaticaDb`
         '''
         cursor = self.raw_connection.cursor()
         self.logger.info(f'Executing query with raw_execute')
@@ -687,6 +763,7 @@ begin\n"""
         for column, dtype in df.schema.items():
             if dtype == pl.String:
                 maxlen = df.select(pl.col(column).str.len_chars()).max().to_dicts()[0][column]
+                maxlen = maxlen if maxlen != None else 85
                 dtype_str = f'varchar({maxlen}),'
             elif str(dtype) == 'Decimal(precision=38, scale=2)':
                 dtype_str = 'decimal(18,2),'
@@ -702,6 +779,8 @@ begin\n"""
                 dtype_str = 'Date,'
             else:
                 dtype_str = str(dtype)
+            if 'date' in column.lower():
+                dtype_str = 'Date,'
             # dtype_str = 'varchar(replace_me_please),' if dtype == pl.String else 'decimal(18,2),' if str(dtype) == 'Decimal(precision=38, scale=2)' else 'datetime,'
             row_text = f'{column} {dtype_str}'
             table_string += f'{row_text}\n'
