@@ -76,7 +76,7 @@ class SFTP():
         bp = 'here'
         # self.sftp.get(path, )
     
-    def get_file_as_dataframe(self, type: Literal['csv', 'xlsx'], path: str = '/apps/five9/reports/CallSegments3.csv'):
+    def get_file_as_dataframe(self, type: Literal['csv', 'xlsx'], path: str = '/apps/five9/reports/CallSegments3.csv') -> pl.DataFrame:
         ''':class:`~SFTP`.:meth:`~get_file_as_dataframe`
         ---
         
@@ -112,6 +112,7 @@ class SFTP():
             return df_file
         except Exception as e:
             self.logger.error(f"Error! {e} Couldn't parse {path}")
+            return pl.DataFrame()
 
 
     def upload_dataframe_as_csv(self, df: pl.DataFrame, remote_path: str):
@@ -148,7 +149,7 @@ class SFTP():
 
 #region archive
 
-    def get_csv_file_as_dataframe(self, type: str = 'csv', path: str = '/apps/five9/reports/CallSegments3.csv'):
+    def get_csv_file_as_dataframe(self, type: str = 'csv', path: str = '/apps/five9/reports/CallSegments3.csv') -> pl.DataFrame:
         '''`get_csv_file_as_dataframe`(self, path: *str = '/apps/five9/reports/CallSegments3.csv'*):
         ---
         <hr>
@@ -174,5 +175,6 @@ class SFTP():
             return df_file
         except Exception as e:
             self.logger.error(f"Error! {e} Couldn't parse {path}")
+            return pl.DataFrame()
 
 #endregion
