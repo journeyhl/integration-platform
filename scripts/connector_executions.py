@@ -3,7 +3,14 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # from integration_platform.connectors import Teams, HubSpotAPI, SFTP, RyderAPI, RMIAPI
 from integration_platform.connectors.ryder_api import RyderAPI
+from integration_platform.connectors.klayvio import KlayvioAPI
 
+
+
+klayvio = KlayvioAPI(pipeline='test')
+bp = 'here'
+test2 = klayvio.get_profiles()
+bp = 'here'
 
 
 ryder = RyderAPI(pipeline='test', env='prod')

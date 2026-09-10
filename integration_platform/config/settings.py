@@ -3138,7 +3138,6 @@ TABLES = {
         ],
     },
 }
-
 '''# Tables
 
 Tables is used to drive the SQLConnector's checked_upsert functionality
@@ -3322,4 +3321,8 @@ RYDER = {
     'api_secret': os.getenv('RYDER_APP_SECRET'),
     'dev_api_key': os.getenv('RYDERDEV_API_KEY'),
     'dev_api_secret': os.getenv('RYDERDEV_APP_SECRET')
+}
+
+KLAYVIO={
+    'api_key': os.getenv('KLAYVIO_API_KEY')
 }
