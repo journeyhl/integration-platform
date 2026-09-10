@@ -24,6 +24,7 @@ class Transform:
         df7_filtered = self._drop_test_rows_(df=df6_phones)
         bp = 'here'
         df7_dicts = df7_filtered.to_dicts()
+        #self.pipeline.centralstore.__dataframe_to_table_create_statement__(df=df7_filtered, table_name='ucmi.HubspotCustomers')
         return df7_dicts
 
 
