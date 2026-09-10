@@ -29,11 +29,20 @@ class KlayvioAPI:
 
     def get_profiles(self):
         profiles = []
-        parsed_reponse = self._get_data_(url=self.url_profiles)
+        url = f'{self.url_profiles}?page[size]=100'
+        while True:
+            parsed_response = self._get_data_(url=url)
+            profiles.extend(parsed_response['data'])
+            keep_going, next_page = self.__page__(parsed_response=parsed_response)
+            if not keep_going:
+                break
+            url = next_page
+            bp = 'here'
+        return profiles
 
 
 
-    def _get_data_(self, url: str, params: str = '?page[size]=100'):
+    def _get_data_(self, url: str, params: str = ''):
         full_url = f'{url}{params}'
         response = requests.get(url=full_url, headers=self.headers)
         parsed_response = self.helper.parse_response(response=response, url=full_url)
@@ -45,4 +54,10 @@ class KlayvioAPI:
         paging_links = parsed_response.get('links')
         if paging_links == None:
             self.logger.info(f'No more pages found')
+            return False, ''
         bp = 'here'
+        return True, parsed_response['links']['next']
+
+
+
+        #fill rate for 
