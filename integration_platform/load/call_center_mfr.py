@@ -74,8 +74,10 @@ class Load:
             self.upsert_prefix = f'{i+1}/{dict_count}: ' 
             table['data'] = [{**t, 'InsertedDT': datetime.now(ZoneInfo('America/New_York'))} for t in table['data']]
             bp = 'here'
-            if len(table['data']) >= 1000:
-                table = self.filter_to_recent_rows(table)
+            tbl_len = len(table['data'])
+            if tbl_len >= 1000:
+                bp = 'here'
+                # table = self.filter_to_recent_rows(table)
             total_rows += len(table)
             self.pipeline.centralstore.checked_upsert_paginated(table_name=table['table_name'], data=table['data'])
             bp = 'here'

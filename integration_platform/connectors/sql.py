@@ -636,7 +636,24 @@ end
         self.logger.info('Upsert sequence complete!')
 
 
-    def paginated_merge(self, table_name: str, data: list, page_size: int = 500):
+    def paginated_merge(self, table_name: str, data: list[dict], page_size: int = 500):
+        bp = 'here'
+        sql_table = TABLES[table_name]
+        test = [v for d in data for v in d.items()]
+        row_placeholder = f'({', '.join(['%s'] * len(sql_table['columns']))})'
+
+
+        values_clause = ', '.join([row_placeholder] * len(data))
+        merge_str = f'''
+merge into {table_name} as target
+using (values {values_clause}) as source({', '.join(sql_table['columns'])})
+on {' and '.join(f'target.{key} = source.{key}' for key in sql_table['keys'])}
+when matched then update set {', '.join(f'target.{column} = source.{column}' for column in sql_table['update_columns'])}
+when not matched then insert ({', '.join(sql_table['columns'])})
+values ({f', '.join(f'source.{column}' for column in sql_table['columns'])});
+'''
+        cursor = self.raw_connection.cursor()
+        # cursor.execute(merge_str, parameters=)
         bp = 'here'
 
 
