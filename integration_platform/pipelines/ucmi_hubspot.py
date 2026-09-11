@@ -19,7 +19,7 @@ class UCMI_HubspotCustomers(Pipeline):
         # data_extract = self.sftp.get_file_as_dataframe(type='xlsx', path='/apps/ucmi/hubspot_8.26_6.xlsx')
         # data_extract = self.sftp.get_file_as_dataframe(type='xlsx', path='/apps/ucmi/hubspot_8.26_7.xlsx')
         # data_extract = self.sftp.get_file_as_dataframe(type='xlsx', path='/apps/ucmi/hs_9.11_2.xlsx')
-        data_extract = self.sftp.get_file_as_dataframe(type='xlsx', path='/apps/ucmi/hs_9.11.xlsx')
+        data_extract = self.sftp.get_file_as_dataframe(type='xlsx', path='/apps/ucmi/hs26_9.11.xlsx')
         # data_extract = self.sftp.get_file_as_dataframe(type='xlsx', path='/apps/ucmi/hubspot_8.26_7.xlsx')
         return data_extract
 
@@ -32,7 +32,7 @@ class UCMI_HubspotCustomers(Pipeline):
         data_loaded = {}
         now =  datetime.now(ZoneInfo('America/New_York'))
         data_transformed = self.default_loader.add_to_list(data_transformed, {'InsertedDT': now, 'LastChecked': now})
-        self.centralstore.paginated_merge(table_name='ucmiraw.HubspotCustomers', data=data_transformed)
+        # self.centralstore.paginated_merge(table_name='ucmiraw.HubspotCustomers', data=data_transformed)
         self.centralstore.checked_upsert_paginated(table_name='ucmiraw.HubspotCustomers', data=data_transformed)
         return data_loaded
     
