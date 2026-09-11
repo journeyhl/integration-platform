@@ -17,6 +17,7 @@
 "editor.hover.above": true,
 "editor.hover.sticky": true,
 "workbench.editor.showTabIndex": true,
+"editor.minimap.scale": 3,
 "editor.colorDecorators": true
     
 }

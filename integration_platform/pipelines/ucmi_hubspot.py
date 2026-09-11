@@ -1,6 +1,6 @@
 from integration_platform.pipelines import Pipeline
 from integration_platform.connectors import HubSpotAPI, SFTP
-from integration_platform.transform.ucmi_hubspot import Transform
+from integration_platform.transform.ucmi_hubspot_phase1 import Transform
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -17,7 +17,9 @@ class UCMI_HubspotCustomers(Pipeline):
         #     extract = self.sftp.get_file_as_dataframe(type='xlsx', path=f'/apps/ucmi/hubspot_8.26_{i}.xlsx')
         #     bp = 'here'
         # data_extract = self.sftp.get_file_as_dataframe(type='xlsx', path='/apps/ucmi/hubspot_8.26_6.xlsx')
-        data_extract = self.sftp.get_file_as_dataframe(type='xlsx', path='/apps/ucmi/hubspot_8.26_7.xlsx')
+        # data_extract = self.sftp.get_file_as_dataframe(type='xlsx', path='/apps/ucmi/hubspot_8.26_7.xlsx')
+        # data_extract = self.sftp.get_file_as_dataframe(type='xlsx', path='/apps/ucmi/hs_9.11_2.xlsx')
+        data_extract = self.sftp.get_file_as_dataframe(type='xlsx', path='/apps/ucmi/hs_9.11.xlsx')
         # data_extract = self.sftp.get_file_as_dataframe(type='xlsx', path='/apps/ucmi/hubspot_8.26_7.xlsx')
         return data_extract
 

@@ -52,13 +52,10 @@ class LogHistory(logging.Handler):
 
 class Pipeline(ABC):
     def __init__(self, pipeline_name: str, function: str, env: str = 'prod'):
-        '''`init`(self, pipeline_name: *str*)
+        ''':class:`~Pipeline`.:meth:`~__init__`
         ---
-        <hr>
         
-        Pipeline superclass initialization
-            
-        <hr>
+        Pipeline superclass initialization.
         
         Parameters
         ---
@@ -70,19 +67,49 @@ class Pipeline(ABC):
         
         Sets
         ---
-        >>> self.pipeline_name = pipeline_name
-        >>> self.centralstore =SQLConnector[CentralStoreQueries] = SQLConnector(self, 'db_CentralStore')
-        >>> self.acudb = SQLConnector[AcumaticaDbQueries] = SQLConnector(self, 'AcumaticaDb')
-        >>> if env == 'dev':
-        >>>     self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(self, 'AcudevDb')
-        >>> self.logger = logging.getLogger(pipeline_name)
+        
+        - ### self.:attr:`~pipeline_name`
+            Name of Pipeline, passed from subclass
+        - ### self.:attr:`~function`
+            Name of function in Azure Functions, passed from subclass
+        - ### self.:attr:`~default_transformer`
+            Default transformer that's shared across all pipelines
+        - ### self.:attr:`~centralstore`
+            SQLConnector for centralstore that's shared across all pipelines
+        - ### self.:attr:`~ts_pipeline_start`
+            Timestamp of when the pipeline started
+        - ### self.:attr:`~default_loader`
+            Default "loader" that's shared across all pipelines
+        - ### self.:attr:`~logs`
         '''
+        self.ts_pipeline_start = datetime.now(ZoneInfo('America/New_York'))
         self.pipeline_name = pipeline_name
         self.function = function
+        self._init_logging_()
+        self.default_transformer = DefaultTransformer(self)
         self.centralstore: SQLConnector[CentralStoreQueries] = SQLConnector(self, 'db_CentralStore')
-        self.logger = logging.getLogger(pipeline_name)
+        self.default_loader = DefaultLoader(self)
+
+    def _init_logging_(self):
+        ''':class:`~Pipeline`.:meth:`~_init_logging_`
+        ---
+        
+        Sets up the logging configuration that would otherwise be done in :meth:`~__init__`
+
+        Sets
+        ---
+        
+        - ### self.:attr:`~logger`
+        - ### self.:attr:`~logs`
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.pipelines.base.Pipeline`.:meth:`~__init__`
+        '''        
+        self.logger = logging.getLogger(self.pipeline_name)
         self.logs = []
-        self.ts_pipeline_start = datetime.now(ZoneInfo('America/New_York'))
         self.logger.addHandler(LogHistory(self.logs, self.ts_pipeline_start, self.function))        
         if not logging.root.handlers:
             handler = colorlog.StreamHandler()
@@ -99,8 +126,6 @@ class Pipeline(ABC):
             ))
             logging.root.setLevel(logging.INFO)
             logging.root.addHandler(handler)
-        self.default_transformer = DefaultTransformer(self)
-        self.default_loader = DefaultLoader(self)
 
 
     @abstractmethod

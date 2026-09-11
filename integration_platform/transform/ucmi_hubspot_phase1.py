@@ -24,7 +24,8 @@ class Transform:
         df7_filtered = self._drop_test_rows_(df=df6_phones)
         bp = 'here'
         df7_dicts = df7_filtered.to_dicts()
-        #self.pipeline.centralstore.__dataframe_to_table_create_statement__(df=df7_filtered, table_name='ucmi.HubspotCustomers')
+        self.pipeline.centralstore.sqlhelper.dataframe_to_sql_table(df7_filtered)
+        self.pipeline.centralstore.sqlhelper.dataframe_to_table_create_statement(df=df7_filtered, table_name='ucmiraw.HubspotCustomers')
         return df7_dicts
 
 
@@ -234,6 +235,7 @@ class Transform:
             df = df.with_columns(
                 pl.col('LastName')
                   .str.replace(r'(?i)^the last name.*? is ', '')
+                  .replace('        Please remove my name from your distribut', '')
                   .str.strip_chars()
                   .alias('LastName')
             )
@@ -438,14 +440,14 @@ class Transform:
             'PhoneNumber3':                 'CompanyPhone',
             'LastActivityDate4':            'CompanyLastActivityDate',
             'ContactURL(HS)':               'HubspotLink',            
-            'Date Became the New Lead Status': 'DateBecameTheNewLeadStatus',
-            'Date Became the Open Lead Lead Status': 'DateBecameTheOpenLeadLeadStatus',
-            'Date Became the Outbound Lead Status': 'DateBecameTheOutboundLeadStatus',
-            'Date Became the Reserved Lead Status': 'DateBecameTheReservedLeadStatus',
-            'Date Became the Sold Lead Status': 'DateBecameTheSoldLeadStatus',
-            'Date Became the Unqualified Lead Status': 'DateBecameTheUnqualifiedLeadStatus',
-            'Date Became the DNC Lead Status': 'DateBecameTheDncLeadStatus',
-            'Date Became the Lead Exhausted Lead Status': 'DateBecameTheLeadExhaustedLeadStatus',
+            'Date Became the New Lead Status': 'DateBecameNewLeadStatus',
+            'Date Became the Open Lead Lead Status': 'DateBecameOpenLeadLeadStatus',
+            'Date Became the Outbound Lead Status': 'DateBecameOutboundLeadStatus',
+            'Date Became the Reserved Lead Status': 'DateBecameReservedLeadStatus',
+            'Date Became the Sold Lead Status': 'DateBecameSoldLeadStatus',
+            'Date Became the Unqualified Lead Status': 'DateBecameUnqualifiedLeadStatus',
+            'Date Became the DNC Lead Status': 'DateBecameDncLeadStatus',
+            'Date Became the Lead Exhausted Lead Status': 'DateBecameLeadExhaustedLeadStatus',
             'First Conversion': 'FirstConversion',
             'First Conversion Date': 'FirstConversionDate',
             'Recent Conversion Date': 'RecentConversionDate',
@@ -473,6 +475,46 @@ class Transform:
             'kustomer_sync_error': 'KustomerSyncError',
             'kustomer_sync_needed': 'KustomerSyncNeeded',
             'kustomer_sync_status': 'KustomerSyncStatus',
+            'Marketing emails clicked': 'MarketingEmailsClicked',
+            'Marketing email confirmation status': 'MarketingEmailConfirmationStatus',
+            'Last marketing email send date': 'LastMarketingEmailSendDate',
+            'Marketing emails delivered': 'MarketingEmailsDelivered',
+            'Marketing emails opened': 'MarketingEmailsOpened',
+            'Marketing emails replied': 'MarketingEmailsReplied',
+            'Accepts marketing': 'AcceptsMarketing',
+            'Verified email': 'VerifiedEmail',
+            'Shopify Created At':'ShopifyCreatedAt',
+            'Last Touch Converting Campaign':'LastTouchConvertingCampaign',
+            'Opted out of email: One to One':'OptedOutOfEmail_OneToOne',
+            'Opted out of email: Marketing Information':'OptedOutOfEmail_MarketingInformation',
+            'Opted out of email: HME Sales Support':'OptedOutOfEmail_HmeSalesSupport',
+            'Opted out of email: Customer Service Communication':'OptedOutOfEmail_CustomerServiceCommunication',
+            'Unsubscribed from all email':'UnsubscribedFromAllEmail',
+            'Sends Since Last Engagement':'SendsSinceLastEngagement',
+
+'AI Weekly Review – Contact Count': 'AIWeeklyReview_ContactCount',
+'AI Weekly Review – Generated At': 'AIWeeklyReview_GeneratedAt',
+'AI Weekly Review – HTML': 'AIWeeklyReview_HTML',
+'AI Weekly Review – Text': 'AIWeeklyReview_Text',
+'First marketing email open date': 'FirstMarketingEmailOpenDate',
+'IP Country Code': 'IPCountry',
+'Number of Pageviews': 'NumberPageViews',
+'Number of Sessions': 'NumberSessions',
+'Intents During Call': 'IntentsDuringCall',
+'Direct Mail': 'DirectMail',
+'Do Not Call': 'DoNotCall',
+'Current Customer': 'CurrentCustomer',
+'Contact Status': 'ContactStatus',
+'Call Summary': 'CallSummary',
+'Call Transcript': 'CallTranscript',
+'Call Disposition': 'CallDisposition',
+'Call Disposition 2': 'CallDisposition2',
+'Call Dispositions - Five9': 'CallDispositions_Five9',
+'B2B/D2C Contact': 'B2BD2CContact',
+'AI Agent': 'AIAgent',
+'Email Collection': 'EmailCollection',
+'Email Option': 'EmailOption',
+'Contact Status': 'ContactStatus',
         }
         self.drop_columns =  [
             'AcumaticaProductName',
@@ -499,12 +541,13 @@ class Transform:
             'Time of Last Session',
             'Time Last Seen',
             'Time First Seen',
-            'Marketing emails clicked',
-            'Marketing email confirmation status',
-            'Last marketing email send date',
-            'Marketing emails delivered',
-            'Marketing emails opened',
-            'Marketing emails replied',
+            'Returning to office detected date',
+            # 'Marketing emails clicked',
+            # 'Marketing email confirmation status',
+            # 'Last marketing email send date',
+            # 'Marketing emails delivered',
+            # 'Marketing emails opened',
+            # 'Marketing emails replied',
         ]
 
         self.junk_strings = [

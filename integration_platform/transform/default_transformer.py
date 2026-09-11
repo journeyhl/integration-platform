@@ -42,17 +42,50 @@ class DefaultTransformer:
         return string
 
     def string_case_pascal(self, string: str | None, string_descr: str= '', log_prefix: str = ''):
+        ''':class:`~integration_platform.transform.default_transformer.DefaultTransformer`.:meth:`~integration_platform.transform.default_transformer.DefaultTransformer.string_case_pascal`
+        ---
+        
+        Given a string value, normalize and convert to pascal case
+        
+        Parameters
+        ---
+        :param (*str | None*) `string`: _description_
+        
+                
+           ### ***Optional***
+        :param (*str = ''*) `log_prefix`: String to prepend to any logger outputs. Usually used when iterating, like `'keyvalue1, 1/150: '`, `'keyvalue2, 2/150: '` and so on 
+        
+        Returns
+        ---
+        :return `new_str` (str): _description_
+        
+        <hr>
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### :class:`~DefaultTransformer`.:meth:`~_handle_none_and_empty_strings_`
+        '''
         string = self._handle_none_and_empty_strings_(string=string, string_descr=string_descr, log_prefix=log_prefix)
         if string == None:
             return ''
-        if ' ' in string:
-            # self.logger.info(f'Space found in string...')
-            strlist = string.split(' ')
-            string = ' '.join([f'{s[0].upper()}{'' if len(s) == 1 else s[1:].lower()}' for s in strlist])            
-            bp = 'here'
-        else:
-            string = f'{string[0].upper()}{string[1:].lower()}'
-        return string
+        def split_by_character(check_str: str, split_char: str = ' '):
+            new_str = ''
+            if split_char == '-':
+                bp = 'here'
+            if split_char in check_str:
+                strlist = check_str.split(split_char)
+                for s in strlist:
+                    if s in acronyms:
+                        new_str += s
+                    else:
+                        new_str += f'{s[0].upper()}{'' if len(s) == 1 else s[1:].lower()}'       
+            else:
+                new_str += f'{check_str[0].upper()}{check_str[1:].lower()}'
+            return new_str
+        new_str = split_by_character(check_str=string)
+        bp = 'here'
+        
+        return new_str
 
     
     def string_to_int(self, int_str: str | None, str_descr: str = '', log_prefix: str = ''):
@@ -193,3 +226,7 @@ class DefaultTransformer:
             return None
         return string.strip()
 
+
+
+
+acronyms = ['B2B', 'HTML', 'AI', 'STL', 'IP', 'D2C', 'ID', 'BPS', 'NPS', 'CSAT', 'JHL', 'GPS', 'DNC', 'IQL', 'URL']

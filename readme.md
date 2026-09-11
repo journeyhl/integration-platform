@@ -1419,7 +1419,7 @@ Given a polars DataFrame and the name of a table, inserts the contents of the Da
 #### `checked_upsert(self, table_name: str, data: list)`
 Given a table name and a list of rows (dicts) to insert, performs an upsert to the database.
 
-- **Downstream**: `_dict_to_params`: utility that formats keys, columns, and update_columns with their values into parameters
+- **Downstream**: `_dict_to_params_`: utility that formats keys, columns, and update_columns with their values into parameters
 - **Parameters**:
   - `table_name` (*str*): Schema-qualified table name (e.g. `'_util.acu_api_log'`). `'AdDetails'` doesn't need a schema since it belongs to `dbo`, but you could pass `'dbo.AdDetails'`.
   - `data` (*list*): A list of dictionaries that correspond to the values declared in [`TABLES`](config/settings.py). Each dict should be formatted to contain the values that were mapped in the table configuration.
