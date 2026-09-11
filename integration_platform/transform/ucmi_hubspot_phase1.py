@@ -235,7 +235,7 @@ class Transform:
             df = df.with_columns(
                 pl.col('LastName')
                   .str.replace(r'(?i)^the last name.*? is ', '')
-                  .replace('        Please remove my name from your distribut', '')
+                  .str.replace('Please remove my name from your distribut', '')
                   .str.strip_chars()
                   .alias('LastName')
             )
