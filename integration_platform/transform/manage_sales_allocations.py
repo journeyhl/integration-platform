@@ -24,6 +24,7 @@ class Transform:
     def _set_context_(self, data_extract: dict[str, pl.DataFrame]):
         self.logger.info(f'Setting context (self.orders and self.tables)...')
         self.orders = data_extract['order_extract'].to_dicts()
+        self.sync_history = data_extract['sync_history_extract'].to_dicts()
         self.tables = pl.SQLContext(
             Orders = data_extract['order_extract'],
             SyncHistory = data_extract['sync_history_extract']
@@ -31,6 +32,9 @@ class Transform:
 
     def items_on_orders(self):
         self.logger.info(f'Querying distinct items found in order extract, then retrieving sync records for each...')
+        if self.orders == []:
+            self.logger.warning(f'No orders to allocate! returning...')
+            return []
         df_order_items_sync_history = self.tables.execute(
             query=f"""
         with TopLevel as(
