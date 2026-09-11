@@ -31,6 +31,8 @@ class Queries:
 class CentralStoreQueries(Queries):
     '''Queries to be executed within db_CentralStore'''
 
+    backfill_PackageCouries: Query
+    '''Used for backfilling couriers onto Acumatica packages with RedStag data'''
     ReturnsPendingReciept: Query
     '''Checks **rmi_RMAStatus** for any *Closed* **or** *Receipted* **Returns**'''
 
@@ -101,6 +103,9 @@ class CentralStoreQueries(Queries):
 
 class AcumaticaDbQueries(Queries):
     '''Queries to be executed within AcumaticaDb'''
+    
+    backfill_PackageCouries: Query
+    '''Used for backfilling couriers onto Acumatica packages with RedStag data'''
     SendRMIReturns: Query
     '''Pulls all **RC** Sales Orders that are in **Open** status and have a *AttributeRCSHP2WH* value that is **null** or **not equal to 1**
 
