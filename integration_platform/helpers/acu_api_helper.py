@@ -22,20 +22,20 @@ class AcumaticaAPIHelper:
     
     #region format_data_log_entry
     def format_data_log_entry(self, entity: str, key_value: str, operation: str, payload: dict, response: str, tstamp: datetime, options: Literal['append', 'return']):
-        ''':class:`~`.:meth:`~format_data_log_entry`
+        ''':class:`AcumaticaAPI`.:class:`~AcumaticaAPIHelper`.:meth:`~format_data_log_entry`
         ---
         
         put_summary_here
         
         Parameters
         ---
-        :param (*str*) `entity`: _description_
-        :param (*str*) `key_value`: _description_
-        :param (*str*) `operation`: _description_
-        :param (*dict*) `payload`: _description_
-        :param (*str*) `response`: _description_
-        :param (*datetime*) `tstamp`: _description_
-        :param (*Literal[&#39;append&#39;, &#39;return&#39;]*) `options`: _description_
+        :param (*str*) `entity`: Acumatica Entity (Shipment, SalesOrder)
+        :param (*str*) `key_value`: The primary key of the entity (ShipmentNbr, OrderNbr, CustomerID)
+        :param (*str*) `operation`: PUT/POST/GET and a short description
+        :param (*dict*) `payload`: payload sent to Acumatica
+        :param (*str*) `response`: Response from acumatica
+        :param (*datetime*) `tstamp`: time of api operation
+        :param (*Literal[&#39;append&#39;, &#39;return&#39;]*) `options`: should we append the datalog entry to acu.data_log or just return the value 
         
                 
            ### ***Optional***
@@ -45,29 +45,8 @@ class AcumaticaAPIHelper:
         
         Returns
         ---
-        :return `variablename` (_type_): _description_
-        
-        <hr>
-        
-        ## Upstream Calls (Methods/Functions Called by)
-        
-         ### _______replace_me_______
-        
-          - Description
-        
-         ### _______replace_me_______
-           
-          - Description
-        
-        ## Downstream Calls (Methods/Functions called)
-        
-         ### _______replace_me_______
-        
-          - Description
-        
-         ### _______replace_me_______
-           
-          - Description'''        
+        :return `entry` (dict): acumatica api log entry
+        '''        
         self.acu.calls += 1
         entry = {            
             'Entity': entity,

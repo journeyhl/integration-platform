@@ -1,4 +1,9 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING, Literal
+if TYPE_CHECKING:
+    from integration_platform.pipelines.base import Pipeline
 from integration_platform.config.settings import DATABASES, TABLES
+from integration_platform.helpers.sql_helper import SQLHelper
 from urllib.parse import quote_plus
 from sqlalchemy import create_engine, text
 from pathlib import Path
@@ -279,7 +284,7 @@ class SQLConnector(Generic[QT]):
     queries: QT
 
 
-    def __init__(self, pipeline, database_name: str):
+    def __init__(self, pipeline: Pipeline, database_name: str):
         ''':class:`~SQLConnector`.:meth:`~__init__`
         ---
 
@@ -340,9 +345,11 @@ class SQLConnector(Generic[QT]):
         self.engine = self._create_engine()
         self.raw_connection = self.engine.raw_connection()
         self.queries = _QUERY_CLASSES.get(database_name, Queries)(database_name)  # type: ignore[assignment]
+        self.sqlhelper = SQLHelper(sqldb=self)
         pass
 
         
+    #MARK: _create_engine
     def _create_engine(self):
         password = quote_plus(str(self.config['password']))
         connection_string = (
@@ -351,7 +358,7 @@ class SQLConnector(Generic[QT]):
         )
         return create_engine(connection_string, connect_args={"tds_version": "7.3", "login_timeout": 30})
     
-
+    #MARK: query_db
     def query_db(self, query: str, params=None, log_str=None):
         ''':class:`~SQLConnector`.:meth:`~query_db`
         ---
@@ -386,7 +393,7 @@ class SQLConnector(Generic[QT]):
             
         return data_extract
     
-
+    #MARK: insert_df
     def insert_df(self, df_data_loaded: pl.DataFrame, table_name: str):
         ''':class:`~SQLConnector`.:meth:`~insert_df`
         ---
@@ -417,7 +424,7 @@ class SQLConnector(Generic[QT]):
         self.logger.info(f'Wrote {df_data_loaded.height} rows to {table_name}')
 
 
-    
+    #MARK: checked_upsert
     def checked_upsert(self, table_name: str, data: list):
         ''':class:`~SQLConnector`.:meth:`~checked_upsert`
         ---
@@ -482,8 +489,7 @@ class SQLConnector(Generic[QT]):
 
         ## Downstream Calls (Methods/Functions called)
 
-         ### :class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector._dict_to_params`
-
+         ### :class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector._dict_to_params_
           - Utility function to format table keys, columns and update_columns with their respective values to parameters
         '''
         self.tables = TABLES
@@ -505,7 +511,7 @@ where {' = %s and '.join(sql_table['keys'])} = %s
 end
 '''
         try:
-            params = [self._dict_to_params(data_dict, sql_table['keys'] + sql_table['columns'] + sql_table['update_columns'] + sql_table['keys']) for data_dict in data]
+            params = [self._dict_to_params_(data_dict, sql_table['keys'] + sql_table['columns'] + sql_table['update_columns'] + sql_table['keys']) for data_dict in data]
             cursor = self.raw_connection.cursor()
             if len(data) > 50: self.logger.info(f'Beginning upsert of {len(data)} rows to {table_name}...')
             cursor.executemany(upsert_string, params)
@@ -520,7 +526,7 @@ end
 
 
 
-
+    #MARK: checked_upsert_paginated
     def checked_upsert_paginated(self, table_name: str, data: list, page_size: int = 100):
         ''':class:`~SQLConnector`.:meth:`~checked_upsert_paginated`
         ---
@@ -590,7 +596,7 @@ end
 
         ## Downstream Calls (Methods/Functions called)
 
-         ### :class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector._dict_to_params`
+         ### :class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector._dict_to_params_`
 
           - Utility function to format table keys, columns and update_columns with their respective values to parameters
         '''
@@ -620,7 +626,7 @@ end
         for start in range(0, total, page_size):
             page = data[start:start + page_size]
             try:
-                params = [self._dict_to_params(data_dict, sql_table['keys'] + sql_table['columns'] + sql_table['update_columns'] + sql_table['keys']) for data_dict in page]
+                params = [self._dict_to_params_(data_dict, sql_table['keys'] + sql_table['columns'] + sql_table['update_columns'] + sql_table['keys']) for data_dict in page]
                 cursor = self.raw_connection.cursor()
                 cursor.executemany(upsert_string, params)
                 self.raw_connection.commit()
@@ -635,7 +641,7 @@ end
                 bp = 'here'
         self.logger.info('Upsert sequence complete!')
 
-
+    #MARK: paginated_merge
     def paginated_merge(self, table_name: str, data: list[dict], page_size: int = 500):
         bp = 'here'
         sql_table = TABLES[table_name]
@@ -657,9 +663,9 @@ values ({f', '.join(f'source.{column}' for column in sql_table['columns'])});
         bp = 'here'
 
 
-    
-    def _dict_to_params(self, d: dict, keys: list) -> tuple:
-        ''':class:`~SQLConnector`.:meth:`~_dict_to_params`
+    #MARK: _dict_to_params_
+    def _dict_to_params_(self, d: dict, keys: list) -> tuple:
+        ''':class:`~SQLConnector`.:meth:`~_dict_to_params_`
         ---
 
         Utility function used by **checked_upsert** to format table keys, columns and update_columns with their respective values to parameters
@@ -692,7 +698,7 @@ values ({f', '.join(f'source.{column}' for column in sql_table['columns'])});
 
 
 
-
+    #MARK: query_to_dataframe
     def query_to_dataframe(self, query: Query):
         ''':class:`~SQLConnector`.:meth:`~query_to_dataframe`
         ---
@@ -719,7 +725,8 @@ values ({f', '.join(f'source.{column}' for column in sql_table['columns'])});
         data = pl.read_database(str(query.query), self.engine, infer_schema_length = None)
         self.logger.info(f'{data.height} rows returned')
         return data
-    
+
+    #MARK: raw_execute
     def raw_execute(self, query: str):
         ''':class:`~SQLConnector`.:meth:`~raw_execute`
         ---
@@ -749,62 +756,3 @@ values ({f', '.join(f'source.{column}' for column in sql_table['columns'])});
             self.logger.info(f'{cursor.rowcount} rows {'deleted' if 'delete' in query else 'affected'}')
         bp = 'here'
 
-
-
-    def __dataframe_to_table_create_statement__(self, df: pl.DataFrame, table_name: str = ''):
-        table_string = ''
-        schema = 'dbo'
-        if '.' in table_name:
-            schema = table_name.split('.')[0]
-            table_name = table_name.split('.')[1]
-            table_string += f"""
-if not exists(
-    select *
-    from sys.schemas s
-    where s.name = '{schema}'
-)
-begin
-    exec('create schema {schema}');
-end"""
-
-        table_string += f"""
-if not exists(
-    select * 
-    from sys.tables t 
-    inner join sys.schemas s on t.schema_id = s.schema_id
-    where t.name = '{table_name}' and s.name = '{schema}'
-)
-begin\n"""
-        table_name = f'{schema}.{table_name}'
-        table_string += f'create table {table_name}(\n'
-        for column, dtype in df.schema.items():
-            if dtype == pl.String:
-                maxlen = df.select(pl.col(column).str.len_chars()).max().to_dicts()[0][column]
-                maxlen = maxlen if maxlen != None else 85
-                dtype_str = f'varchar({maxlen}),'
-            elif str(dtype) == 'Decimal(precision=38, scale=2)':
-                dtype_str = 'decimal(18,2),'
-            elif str(dtype) == "Datetime(time_unit='us', time_zone='America/New_York')":
-                dtype_str = 'datetime,'
-            elif str(dtype) == "Datetime(time_unit='us', time_zone=None)":
-                dtype_str = 'datetime,'
-            elif str(dtype) == 'Boolean':
-                dtype_str = 'bit,'
-            elif str(dtype) == 'Int64':
-                dtype_str = 'int,'
-            elif str(dtype) == 'Date':
-                dtype_str = 'Date,'
-            else:
-                dtype_str = str(dtype)
-            if 'date' in column.lower():
-                dtype_str = 'Date,'
-            # dtype_str = 'varchar(replace_me_please),' if dtype == pl.String else 'decimal(18,2),' if str(dtype) == 'Decimal(precision=38, scale=2)' else 'datetime,'
-            row_text = f'{column} {dtype_str}'
-            table_string += f'{row_text}\n'
-            bp = 'here'
-
-        table_string += ')\nend'
-        t = table_string[-3:]
-        t2 = table_string[:-3]
-        print(table_string)
-        bp = 'here'
