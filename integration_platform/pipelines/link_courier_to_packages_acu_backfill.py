@@ -2,7 +2,7 @@ import polars as pl
 from integration_platform.pipelines import Pipeline
 
 from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
-from integration_platform.transform.link_b2b_cohorts_to_acu import Transform
+from integration_platform.transform.link_courier_to_packages_acu_backfill import Transform
 class CourierPackage_Backfill(Pipeline):
     ''':class:`~integration_platform.pipelines.link_courrier_to_packages_acu.LinkCourierPackage_Backfill`
     ---
@@ -21,12 +21,13 @@ class CourierPackage_Backfill(Pipeline):
         )
 
     def extract(self):
-        all_customers = self.acudb.query_to_dataframe(self.acudb.queries.B2BCohorts_CustomerNoteIDs)
-        customer_attributes = self.centralstore.query_to_dataframe(self.centralstore.queries.B2BCohorts_GenerateAttributeIDs)
-        data_extract = pl.SQLContext(all_customers = all_customers, customer_attributes = customer_attributes)
+        acu_packages = self.acudb.query_to_dataframe(self.acudb.queries.backfill_PackageCouries)
+        dbc_packages = self.centralstore.query_to_dataframe(self.centralstore.queries.backfill_PackageCouries)
+        data_extract = pl.SQLContext(acu = acu_packages, dbc = dbc_packages)
         return data_extract
 
     def transform(self, data_extract: pl.SQLContext):
+        #TODO left off here friday, 9/11. pick back up
         # data_transformed = self.transformer.landing(data_extract=data_extract)
         data_transformed = []
         return data_transformed
