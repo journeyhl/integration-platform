@@ -15,10 +15,9 @@ acuShipments as(
 
 	select distinct ShipmentNbr
 	from acu.Shipments s
-	where s.Status not in('Completed', 'Confirmed', 'Invoiced')
-	and OrderDate >= getdate()-365
 
 )
+, FinalLevel as(
 select t.Topic
 	 , t.ShipmentNbr_3pl
 	 , t.Packages
@@ -30,4 +29,10 @@ select t.Topic
      , t.jsonData
 from TopLevel t
 inner join acuShipments a on t.ShipmentNbr_3pl = a.ShipmentNbr
+)
+select distinct ShipmentNbr_3pl
+     , TrackingNumbers
+     , Courier
+from FinalLevel
+where Courier is not null
 -- where t.ShipmentNbr_3pl = '080584'
