@@ -192,3 +192,4 @@ class DefaultTransformer:
             self.logger.error(f'{log_prefix}{string_descr} {'value is blank, returning None...' if additional_log_str == '' else additional_log_str}')
             return None
         return string.strip()
+

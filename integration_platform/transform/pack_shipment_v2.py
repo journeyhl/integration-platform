@@ -305,7 +305,8 @@ class Transform:
                     "Description": { "value": f"{descr}" },
                     "Weight": { "value": 0 },
                     "UOM": { "value": "LBS" },
-                    "PackageContents": self.package_contents[(line['ShipmentNbr'], line['TrackingNbr_3pl'])]
+                    "OtherTypeDesc_Courier": {"value": line['Courier_3pl']},
+                    "PackageContents": self.package_contents[(line['ShipmentNbr'], line['TrackingNbr_3pl'])],
                 }
                 packages.append(package)
                 bp = 'here'
@@ -399,8 +400,5 @@ class Transform:
                         'key': f'{row['ShipmentNbr_3pl']}-{item['sku']}-{tracking}'
                     }
                     redstag_events.append(redstag_row)
-                    bp = 'here'
-            bp = 'here'
-        bp = 'here'
         return redstag_events
     
