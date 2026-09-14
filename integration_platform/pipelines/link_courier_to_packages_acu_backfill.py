@@ -19,6 +19,7 @@ class CourierPackage_Backfill(Pipeline):
         self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
             pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
         )
+        self.transformer = Transform(self)
 
     def extract(self):
         acu_packages = self.acudb.query_to_dataframe(self.acudb.queries.backfill_PackageCouries)
@@ -28,7 +29,7 @@ class CourierPackage_Backfill(Pipeline):
 
     def transform(self, data_extract: pl.SQLContext):
         #TODO left off here friday, 9/11. pick back up
-        # data_transformed = self.transformer.landing(data_extract=data_extract)
+        data_transformed = self.transformer.landing(data_extract=data_extract)
         data_transformed = []
         return data_transformed
     
