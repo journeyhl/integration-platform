@@ -3154,6 +3154,24 @@ TABLES = {
             'LastChecked',
         ],
     },
+    'SOPackageDetail':{
+        'keys': [
+            'CompanyID',
+            'ShipmentNbr',
+            'TrackNumber',
+        ],
+        'columns': [
+            'CompanyID',
+            'ShipmentNbr',
+            'TrackNumber',
+            'ContentTypeDesc'
+
+        ],
+        'update_columns':[
+            'ContentTypeDesc'
+        ]
+    }
+    
 }
 '''# Tables
 

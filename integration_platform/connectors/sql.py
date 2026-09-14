@@ -429,6 +429,61 @@ class SQLConnector(Generic[QT]):
         self.logger.info(f'Wrote {df_data_loaded.height} rows to {table_name}')
 
 
+    def update_table_paginated(self, table_name: str, data: list, page_size: int = 100):
+        ''':class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector.update_table_paginated`
+        ---
+        
+        Similar to the checked upserts, given a table name and a list of dicts, update that table with the data passed
+        
+        Parameters
+        ---
+        :param (*str*) `table_name`: Name of SQL table
+        :param (*list*) `data`: List of data to update the table with
+        
+                
+           ### ***Optional***
+        :param (*int = 100*) `page_size`: Number of rows to update per batch, *defaults to 100*
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### :class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector._dict_to_params_`
+        '''        
+        total = len(data)
+        page_size = total if page_size > total else page_size
+        updates = 0
+        total_updates = int(total/page_size)
+        sql_table = TABLES[table_name]
+        sql_cmd = f"update {table_name} set {' = %s, '.join(col for col in sql_table['update_columns'])} = %s where {' = %s and '.join(sql_table['keys'])} = %s"
+        self.logger.info(f'{total} rows to update')
+        self.logger.info(f'Beginning update sequence...Updating {total} rows in {total_updates + 1} batches to {table_name}...')
+        cursor = self.raw_connection.cursor()
+        for start in range(0, total, page_size):
+            page = data[start:start + page_size]
+            try:
+                params = [self._dict_to_params_(row, sql_table['update_columns'] + sql_table['keys']) for row in page]
+                cursor.executemany(sql_cmd, params)
+                self.raw_connection.commit()
+                done = min(start + page_size, total)
+                self.logger.info(f'{done}/{total} rows updated, {len(data) - done} remain. {updates + 1} updates complete{f", {total_updates - updates} to go" if total_updates - updates != 0 else ""}')
+                updates += 1
+            except Exception as e:
+                self.logger.error({
+                    'Table': table_name,
+                    'err_msg': e
+                })
+                bp = 'here'
+        self.logger.info('Update sequence complete!')
+
+
+
+
+    def _init_pagination_(self, data, page_size):
+        
+        total = len(data)
+        page_size = total if page_size > total else page_size
+        batches = int(total/page_size)
+        return (total, page_size, batches, 0)
+
     #MARK: checked_upsert
     def checked_upsert(self, table_name: str, data: list):
         ''':class:`~SQLConnector`.:meth:`~checked_upsert`
@@ -647,7 +702,7 @@ end
         self.logger.info('Upsert sequence complete!')
 
     #MARK: paginated_merge
-    def paginated_merge(self, table_name: str, data: list[dict], page_size: int = 500):
+    def merge_table_paginated(self, table_name: str, data: list[dict], page_size: int = 500):
         bp = 'here'
         sql_table = TABLES[table_name]
         test = [v for d in data for v in d.items()]
@@ -673,7 +728,7 @@ values ({f', '.join(f'source.{column}' for column in sql_table['columns'])});
         ''':class:`~SQLConnector`.:meth:`~_dict_to_params_`
         ---
 
-        Utility function used by **checked_upsert** to format table keys, columns and update_columns with their respective values to parameters
+        Utility function used to format table keys, columns and update_columns with their respective values to parameters
 
         Parameters
         ---
@@ -697,6 +752,8 @@ values ({f', '.join(f'source.{column}' for column in sql_table['columns'])});
          ### :class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector.checked_upsert_paginated`
 
           - Calls this to format each row's values into positional parameters before executing each paginated batch upsert
+        
+         ### :class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector.update_table_paginated`
         '''
         return tuple(d[k.replace('[', '').replace(']', '')] for k in keys)
     
