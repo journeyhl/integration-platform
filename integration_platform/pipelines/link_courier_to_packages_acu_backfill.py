@@ -22,20 +22,22 @@ class CourierPackage_Backfill(Pipeline):
         self.transformer = Transform(self)
 
     def extract(self):
-        acu_packages = self.acudb.query_to_dataframe(self.acudb.queries.backfill_PackageCouries)
-        dbc_packages = self.centralstore.query_to_dataframe(self.centralstore.queries.backfill_PackageCouries)
-        data_extract = pl.SQLContext(acu = acu_packages, dbc = dbc_packages)
+        acu_packages = self.acudb.query_to_dataframe(self.acudb.queries.backfill_PackageCouriers)
+        dbc_packages = self.centralstore.query_to_dataframe(self.centralstore.queries.backfill_PackageCouriers)
+        data_extract = {
+            'acu': acu_packages,
+            'dbc': dbc_packages
+        }
         return data_extract
 
-    def transform(self, data_extract: pl.SQLContext):
+    def transform(self, data_extract):
         #TODO left off here friday, 9/11. pick back up
         data_transformed = self.transformer.landing(data_extract=data_extract)
-        data_transformed = []
         return data_transformed
     
     def load(self, data_transformed):
         if len(data_transformed) > 0:
-            self.acudb.checked_upsert_paginated('SOPackageDetail', data_transformed)
+            self.acudb.update_table_paginated(table_name='SOPackageDetail', data=data_transformed)
         else:
             self.logger.info(f'No rows to upsert')
         return data_transformed
