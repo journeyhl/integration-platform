@@ -46,9 +46,9 @@ class Load:
     def check_not_overriden(self, update_order_address_payload: dict, order_details):
         acu_bill_override = order_details['BillToAddressOverride']
         acu_ship_override = order_details['ShipToAddressOverride']
-        if acu_bill_override:
+        if acu_bill_override and update_order_address_payload.get('BillToAddressOverride') != None:
             update_order_address_payload.pop('BillToAddressOverride')
-        if acu_ship_override:
+        if acu_ship_override and update_order_address_payload.get('ShipToAddressOverride') != None:
             update_order_address_payload.pop('ShipToAddressOverride')
         return update_order_address_payload
 
