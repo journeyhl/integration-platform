@@ -103,8 +103,8 @@ class HubSpotAPI:
 
 
     #region Methods in development
-    def get_list_with_membership_contact_details(self, list_id: int, limit: int=250):
-        ''':class:`~HubSpotAPI`.:meth:`~get_list_with_membership_contact_details` (self, list_id: *int*, limit: *int = 250* ):
+    def get_list_with_membership_contact_details(self, list_id: int, limit: int=250, props: str = ''):
+        ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_list_with_membership_contact_details`
         ---
         <hr>
         
@@ -136,10 +136,11 @@ class HubSpotAPI:
         rowlen = len(list_members)
         detailed_rows = []
         extracted_timestamp = datetime.now(ZoneInfo('America/New_York'))
+        props = self.contact_property_str if props == '' else props
         for i, (contact, data) in enumerate(list_members.items()):
             self.prefix = f'{list_data['name']}, {i+1}/{rowlen}: '
             self.logger.info(f'{self.prefix}Retrieving contact details for {contact}')
-            contact_details = self.get_contact_by_id(contact_id=contact, properties=self.contact_property_str)
+            contact_details = self.get_contact_by_id(contact_id=contact, properties=props)
             data = {**contact_details, 'membershipTimestamp': data['membershipTimestamp']}
             detailed_rows.append(data)
         list_data['detailed_rows'] = detailed_rows
