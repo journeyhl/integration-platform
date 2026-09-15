@@ -41,15 +41,15 @@ class SQLHelper:
         ts_str = 'hh:mm:ss'
         len_ts_str = len(ts_str)
         for column in df.columns:
+            col_copy = column
             if ' ' in column or '-' in column or ':' in column or '–' in column:
-                col_copy = column
                 col_copy = col_copy.replace('(', '').replace(')', '').replace('–', '-').replace('-', '_').replace(ts_str, '').replace(':', '').replace(',', '')
-                col_copy2 = self.default_transformer.string_case_pascal(string=col_copy)
-                bp = 'here'
-                stripped = ''.join([s for s in col_copy2.split(' ')])
-                pstr = f"'{column}': '{stripped}',"
-                printstr += f'{pstr}\n'
-                bp = 'here'
+            col_copy2 = self.default_transformer.string_case_pascal(string=col_copy)
+            bp = 'here'
+            stripped = ''.join([s for s in col_copy2.split(' ')])
+            pstr = f"'{column}': '{stripped}',"
+            printstr += f'{pstr}\n'
+            bp = 'here'
         bp = 'here'
         self.logger.info(f'\n{printstr}')
         bp = 'here'
