@@ -3170,7 +3170,55 @@ TABLES = {
         'update_columns':[
             'ContentTypeDesc'
         ]
-    }
+    },
+    '_dev.B2BZipCodes': {
+        'keys': [
+            'Zip',
+        ],
+        'columns': [
+            'Zip',
+            'Lat',
+            'Lng',
+            'City',
+            'StateID',
+            'State',
+            'Population',
+            'Density',
+            'CountyFIPS',
+            'CountyName',
+            'CountyWeights',
+            'AllCountyNames',
+            'AllCountyFIPS',
+            'Imprecise',
+            'Military',
+            'Timezone',
+            'Inside',
+            'Field',
+            'InsertedDT',
+            'LastChecked',
+        ],
+        'update_columns': [
+            'Lat',
+            'Lng',
+            'City',
+            'StateID',
+            'State',
+            'Population',
+            'Density',
+            'CountyFIPS',
+            'CountyName',
+            'CountyWeights',
+            'AllCountyNames',
+            'AllCountyFIPS',
+            'Imprecise',
+            'Military',
+            'Timezone',
+            'Inside',
+            'Field',
+            'InsertedDT',
+            'LastChecked',
+        ],
+    },
     
 }
 '''# Tables
