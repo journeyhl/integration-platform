@@ -77,7 +77,7 @@ class SFTP():
         # self.sftp.get(path, )
     
     def get_file_as_dataframe(self, type: Literal['csv', 'xlsx'], path: str = '/apps/five9/reports/CallSegments3.csv') -> pl.DataFrame:
-        ''':class:`~SFTP`.:meth:`~get_file_as_dataframe`
+        ''':class:`~integration_platform.connectors.sftp.SFTP`.:meth:`~integration_platform.connectors.sftp.SFTP.get_file_as_dataframe`
         ---
         
         Given a path to a csv or xlsx file on an SFTP server, open the file and return its contents as a Polars DataFrame
