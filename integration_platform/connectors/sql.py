@@ -11,7 +11,8 @@ import polars as pl
 import logging
 from dataclasses import dataclass
 from typing import Generic, TypeVar
-
+from datetime import datetime
+from zoneinfo import ZoneInfo
 #region Queries
 @dataclass(frozen=True)
 class Query:
@@ -276,6 +277,7 @@ class AcumaticaDbQueries(Queries):
     Aftership_LinkID_Acu: Query
     RyderToDbc: Query
     B2BCohorts_CustomerNoteIDs: Query
+    B2BZipcodes_Customers: Query
 
 _QUERY_CLASSES: dict[str, type[Queries]] = {
     'db_CentralStore': CentralStoreQueries,
@@ -285,12 +287,14 @@ _QUERY_CLASSES: dict[str, type[Queries]] = {
 QT = TypeVar('QT', bound=Queries)
 #endregion
 
+
+#MARK: SQLConnector
 class SQLConnector(Generic[QT]):
     queries: QT
 
 
-    def __init__(self, pipeline: Pipeline, database_name: str):
-        ''':class:`~SQLConnector`.:meth:`~__init__`
+    def __init__(self, pipeline, database_name: str):
+        ''':class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector.__init__`
         ---
 
         Initializes the SQLConnector for either db_CentralStore or AcumaticaDb
@@ -315,11 +319,11 @@ class SQLConnector(Generic[QT]):
              raise ValueError(f'Unknown db!')
         >>> self.database_name = database_name
         >>> self.config = DATABASES[database_name]
-        >>> self.engine = self._create_engine()
+        >>> self.engine = self._create_engine_()
         >>> self.raw_connection = self.engine.raw_connection()
         >>> self.queries = _QUERY_CLASSES.get(database_name, Queries)(database_name)
 
-        **_create_engine** creates connection string using creds from :data:`~config.settings.DATABASES`
+        **_create_engine_** creates connection string using creds from :data:`~config.settings.DATABASES`
 
         <hr>
 
@@ -329,7 +333,7 @@ class SQLConnector(Generic[QT]):
 
         ## Downstream Calls (Methods/Functions called)
 
-         ### :class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector._create_engine`
+         ### :class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector._create_engine_`
 
           - Builds the SQLAlchemy engine used to query the database
 
@@ -344,28 +348,30 @@ class SQLConnector(Generic[QT]):
             self.logger = logging.getLogger(f'{pipeline.pipeline_name}.{database_name}')
         if database_name not in DATABASES:
             raise ValueError(f'Unknown db!')
-
+        self.tables = TABLES
         self.database_name = database_name
         self.config = DATABASES[database_name]
-        self.engine = self._create_engine()
+        self.engine = self._create_engine_()
         self.raw_connection = self.engine.raw_connection()
         self.queries = _QUERY_CLASSES.get(database_name, Queries)(database_name)  # type: ignore[assignment]
         self.sqlhelper = SQLHelper(sqldb=self)
         pass
 
-        
-    #MARK: _create_engine
-    def _create_engine(self):
+    #MARK: _create_engine_
+    def _create_engine_(self):
         password = quote_plus(str(self.config['password']))
         connection_string = (
             f"mssql+pymssql://{self.config['username']}:{password}"
             f"@{self.config['server']}/{self.config['database']}"
         )
         return create_engine(connection_string, connect_args={"tds_version": "7.3", "login_timeout": 30})
+
+
+
     
     #MARK: query_db
     def query_db(self, query: str, params=None, log_str=None):
-        ''':class:`~SQLConnector`.:meth:`~query_db`
+        ''':class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector.query_db`
         ---
 
         Given a string of SQL text, execute and return a polars DataFrame.
@@ -395,12 +401,13 @@ class SQLConnector(Generic[QT]):
         data_extract = pl.read_database(query, self.engine, execute_options=execute_options, infer_schema_length=None)
         if log_str == '':
             self.logger.info(f'Extracted {data_extract.height} rows')
-            
+        ts_extract = datetime.now(ZoneInfo(('America/New_York')))
+        data_extract = data_extract.with_columns(pl.lit(value=ts_extract, dtype=pl.Datetime).alias('LastChecked'))
         return data_extract
     
     #MARK: insert_df
     def insert_df(self, df_data_loaded: pl.DataFrame, table_name: str):
-        ''':class:`~SQLConnector`.:meth:`~insert_df`
+        ''':class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector.insert_df`
         ---
 
         Given a polars dataframe and the name of a table, insert the contents of the DataFrame to that table
@@ -429,64 +436,10 @@ class SQLConnector(Generic[QT]):
         self.logger.info(f'Wrote {df_data_loaded.height} rows to {table_name}')
 
 
-    def update_table_paginated(self, table_name: str, data: list, page_size: int = 100):
-        ''':class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector.update_table_paginated`
-        ---
-        
-        Similar to the checked upserts, given a table name and a list of dicts, update that table with the data passed
-        
-        Parameters
-        ---
-        :param (*str*) `table_name`: Name of SQL table
-        :param (*list*) `data`: List of data to update the table with
-        
-                
-           ### ***Optional***
-        :param (*int = 100*) `page_size`: Number of rows to update per batch, *defaults to 100*
-        
-        ## Downstream Calls (Methods/Functions called)
-        
-         ### :class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector._dict_to_params_`
-        '''        
-        total = len(data)
-        page_size = total if page_size > total else page_size
-        updates = 0
-        total_updates = int(total/page_size)
-        sql_table = TABLES[table_name]
-        sql_cmd = f"update {table_name} set {' = %s, '.join(col for col in sql_table['update_columns'])} = %s where {' = %s and '.join(sql_table['keys'])} = %s"
-        self.logger.info(f'{total} rows to update')
-        self.logger.info(f'Beginning update sequence...Updating {total} rows in {total_updates + 1} batches to {table_name}...')
-        cursor = self.raw_connection.cursor()
-        for start in range(0, total, page_size):
-            page = data[start:start + page_size]
-            try:
-                params = [self._dict_to_params_(row, sql_table['update_columns'] + sql_table['keys']) for row in page]
-                cursor.executemany(sql_cmd, params)
-                self.raw_connection.commit()
-                done = min(start + page_size, total)
-                self.logger.info(f'{done}/{total} rows updated, {len(data) - done} remain. {updates + 1} updates complete{f", {total_updates - updates} to go" if total_updates - updates != 0 else ""}')
-                updates += 1
-            except Exception as e:
-                self.logger.error({
-                    'Table': table_name,
-                    'err_msg': e
-                })
-                bp = 'here'
-        self.logger.info('Update sequence complete!')
-
-
-
-
-    def _init_pagination_(self, data, page_size):
-        
-        total = len(data)
-        page_size = total if page_size > total else page_size
-        batches = int(total/page_size)
-        return (total, page_size, batches, 0)
 
     #MARK: checked_upsert
     def checked_upsert(self, table_name: str, data: list):
-        ''':class:`~SQLConnector`.:meth:`~checked_upsert`
+        ''':class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector.checked_upsert`
         ---
 
         Given a table name and a list of rows (dicts) to insert, performs an upsert to database.
@@ -538,11 +491,6 @@ class SQLConnector(Generic[QT]):
 
         <hr>
 
-        Returns
-        ---
-
-        <hr>
-
         ## Upstream Calls (Methods/Functions Called by)
 
          - Used throughout the project — called from pipeline `_load_` methods to upsert rows into `db_CentralStore`/`AcumaticaDb` tables
@@ -552,7 +500,6 @@ class SQLConnector(Generic[QT]):
          ### :class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector._dict_to_params_
           - Utility function to format table keys, columns and update_columns with their respective values to parameters
         '''
-        self.tables = TABLES
         sql_table = self.tables[table_name]
         upsert_string = f'''
 if not exists(
@@ -660,7 +607,6 @@ end
 
           - Utility function to format table keys, columns and update_columns with their respective values to parameters
         '''
-        self.tables = TABLES
         sql_table = self.tables[table_name]
         upsert_string = f'''
 if not exists(
@@ -678,11 +624,7 @@ update {table_name} set {' = %s, '.join(col for col in sql_table['update_columns
 where {' = %s and '.join(sql_table['keys'])} = %s
 end
 '''
-        total = len(data)
-        self.logger.info(f'{total} rows to upsert')
-        upserts = 0
-        total_upserts = int(total/page_size)
-        self.logger.info(f'Beginning upsert sequence...Upserting {total} rows in {total_upserts + 1} batches to {table_name}...')
+        total, page_size, batches, upsert_batch_counter = self._init_pagination_(data=data, page_size=page_size, table_name=table_name, operation='upsert')
         for start in range(0, total, page_size):
             page = data[start:start + page_size]
             try:
@@ -691,8 +633,8 @@ end
                 cursor.executemany(upsert_string, params)
                 self.raw_connection.commit()
                 done = min(start + page_size, total)
-                self.logger.info(f'{done}/{total} rows upserted, {len(data) - done} remain. {upserts + 1} Upserts complete{f", {total_upserts - upserts} to go" if total_upserts - upserts != 0 else ""}')
-                upserts += 1
+                self.logger.info(f'{done}/{total} rows upserted, {len(data) - done} remain. {upsert_batch_counter + 1} Upserts complete{f", {batches - upsert_batch_counter} to go" if batches - upsert_batch_counter != 0 else ""}')
+                upsert_batch_counter += 1
             except Exception as e:
                 self.logger.error({
                     'Table': table_name,
@@ -701,31 +643,190 @@ end
                 bp = 'here'
         self.logger.info('Upsert sequence complete!')
 
-    #MARK: paginated_merge
+
+    #MARK: update_table_paginated
+    def update_table_paginated(self, table_name: str, data: list, page_size: int = 100):
+        ''':class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector.update_table_paginated`
+        ---
+        
+        Similar to the checked upserts, given a table name and a list of dicts, update that table with the data passed
+        
+        Parameters
+        ---
+        :param (*str*) `table_name`: Name of SQL table
+        :param (*list*) `data`: List of data to update the table with
+        
+                
+           ### ***Optional***
+        :param (*int = 100*) `page_size`: Number of rows to update per batch, *defaults to 100*
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### :class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector._dict_to_params_`
+        '''
+        sql_table = self.tables[table_name]
+        total, page_size, batches, update_batch_counter = self._init_pagination_(data=data, page_size=page_size, table_name=table_name, operation='update')
+        sql_cmd = f"update {table_name} set {' = %s, '.join(col for col in sql_table['update_columns'])} = %s where {' = %s and '.join(sql_table['keys'])} = %s"
+        cursor = self.raw_connection.cursor()
+        for start in range(0, total, page_size):
+            page = data[start:start + page_size]
+            try:
+                params = [self._dict_to_params_(row, sql_table['update_columns'] + sql_table['keys']) for row in page]
+                cursor.executemany(sql_cmd, params)
+                self.raw_connection.commit()
+                done = min(start + page_size, total)
+                self.logger.info(f'{done}/{total} rows updated, {len(data) - done} remain. {update_batch_counter + 1} updates complete{f", {batches - update_batch_counter} to go" if batches - update_batch_counter != 0 else ""}')
+                update_batch_counter += 1
+            except Exception as e:
+                self.logger.error({
+                    'Table': table_name,
+                    'err_msg': e
+                })
+                bp = 'here'
+        self.logger.info('Update sequence complete!')
+
+
+    #MARK: merge_table_paginated
     def merge_table_paginated(self, table_name: str, data: list[dict], page_size: int = 500):
-        bp = 'here'
-        sql_table = TABLES[table_name]
-        test = [v for d in data for v in d.items()]
-        row_placeholder = f'({', '.join(['%s'] * len(sql_table['columns']))})'
-
-
-        values_clause = ', '.join([row_placeholder] * len(data))
-        merge_str = f'''
-merge into {table_name} as target
+        sql_table = self.tables[table_name]
+        total, page_size, batches, merge_batch_counter = self._init_pagination_(data=data, page_size=page_size, table_name=table_name, operation='merge')
+        cursor = self.raw_connection.cursor()
+        for start in range(0, total, page_size):
+            page = data[start:start + page_size]
+            try:
+                row_placeholder = f"({', '.join(['%s'] * len(sql_table['columns']))})"
+                values_clause = ', '.join([row_placeholder] * len(page))
+                merge_str = f'''merge into {table_name} as target
 using (values {values_clause}) as source({', '.join(sql_table['columns'])})
 on {' and '.join(f'target.{key} = source.{key}' for key in sql_table['keys'])}
 when matched then update set {', '.join(f'target.{column} = source.{column}' for column in sql_table['update_columns'])}
 when not matched then insert ({', '.join(sql_table['columns'])})
-values ({f', '.join(f'source.{column}' for column in sql_table['columns'])});
+values ({', '.join(f'source.{column}' for column in sql_table['columns'])});
 '''
+                params = [value for row in page for value in self._dict_to_params_(row, sql_table['columns'])]
+                cursor.execute(merge_str, params)
+                self.raw_connection.commit()
+                done = min(start + page_size, total)
+                self.logger.info(f'{done}/{total} rows merged, {len(data) - done} remain. {merge_batch_counter + 1} merges complete{f", {batches - merge_batch_counter} to go" if batches - merge_batch_counter != 0 else ""}')
+                merge_batch_counter += 1
+            except Exception as e:
+                self.logger.error({
+                    'Table': table_name,
+                    'err_msg': e
+                })
+                bp = 'here'
+        self.logger.info('Merge sequence complete!')
+
+
+
+
+    #MARK: query_to_dataframe
+    def query_to_dataframe(self, query: Query):
+        ''':class:`~SQLConnector`.:meth:`~query_to_dataframe`
+        ---
+
+        Given a **_Query_** (see AcumaticaDbQueries and CentralStoreQueries), execute its query and return a polars dataframe
+
+        Parameters
+        ---
+        :param (*Query*) `query`: An instance of the Query class, the text of which will be executed and the results output to a polars DataFrame.
+
+        <hr>
+
+        Returns
+        ---
+        :return `data` (pl.DataFrame): polars DataFrame with results of query
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         - Used throughout the project — called from pipeline `_extract_` methods to run each `Query` defined on `AcumaticaDbQueries`/`CentralStoreQueries`
+        '''
+        self.logger.info(f'Running {query.name} query...')
+        data = pl.read_database(str(query.query), self.engine, infer_schema_length = None)
+        self.logger.info(f'{data.height} rows returned')
+        ts_extract = datetime.now(ZoneInfo(('America/New_York')))
+        data_extract = data.with_columns(pl.lit(value=ts_extract, dtype=pl.Datetime).alias('LastChecked'))
+        return data_extract
+
+    #MARK: raw_execute
+    def raw_execute(self, query: str):
+        ''':class:`~SQLConnector`.:meth:`~raw_execute`
+        ---
+
+        Given an Insert, Update or Delete command, execute on db
+
+        Parameters
+        ---
+        :param (*str*) `query`: Query to be executed in Database as plain text
+
+        <hr>
+
+        Returns
+        ---
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         - Used throughout the project — called from pipeline `_load_` methods and standalone scripts to run raw delete/update commands against `db_CentralStore`/`AcumaticaDb`
+        '''
         cursor = self.raw_connection.cursor()
-        # cursor.execute(merge_str, parameters=)
+        self.logger.info(f'Executing query with raw_execute')
+        db_msg = cursor.execute(query)
+        self.raw_connection.commit()
+        if cursor.rowcount:
+            self.logger.info(f'{cursor.rowcount} rows {'deleted' if 'delete' in query else 'affected'}')
         bp = 'here'
+
+
+
+    def get_file_as_dataframe(self, type: Literal['csv', 'xlsx'], path: str = '') -> pl.DataFrame:
+        ''':class:`~integration_platform.connectors.sftp.SFTP`.:meth:`~integration_platform.connectors.sftp.SFTP.get_file_as_dataframe`
+        ---
+        
+        Given a path to a csv or xlsx file on an SFTP server, open the file and return its contents as a Polars DataFrame
+        
+        Parameters
+        ---
+        :param (**Literal***['csv', 'xlsx']*) `type`: The filetype of the file found at *path*, must be csv or xlsx
+        
+                
+           ### ***Optional***
+        :param (*str = '/apps/five9/reports/CallSegments3.csv'*) `path`: Path that the file is found at, defaults to `/apps/five9/reports/CallSegments3.csv`
+        
+        Returns
+        ---
+        :return `df_file` (pl.DataFrame): dataframe of the file contents found at the passed path
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.pipelines.ucmi_hubspot.UCMI_HubspotCustomers`.:meth:`~integration_platform.pipelines.ucmi_hubspot.UCMI_HubspotCustomers.extract`
+        
+         ### :class:`~integration_platform.pipelines.five9_call_segments.Five9CallSegments`.:meth:`~integration_platform.pipelines.five9_call_segments.Five9CallSegments.extract`
+           
+         ### :class:`~integration_platform.pipelines.darwill_addresses.DarwillAddresses`.:meth:`~integration_platform.pipelines.darwill_addresses.DarwillAddresses.extract`
+        '''
+        try:
+            with open(path, 'rb') as f:
+                file_contents = f.read()
+                df_file = pl.read_csv(file_contents, infer_schema_length=0) if type == 'csv' else pl.read_excel(file_contents, infer_schema_length=0)
+            self.logger.info(f'Successfully parsed {df_file.height} rows from {path}')
+            ts_extract = datetime.now(ZoneInfo(('America/New_York')))
+            data_extract = df_file.with_columns(pl.lit(value=ts_extract, dtype=pl.Datetime).alias('LastChecked'))
+            return data_extract
+        except Exception as e:
+            self.logger.error(f"Error! {e} Couldn't parse {path}")
+            return pl.DataFrame()
+
 
 
     #MARK: _dict_to_params_
     def _dict_to_params_(self, d: dict, keys: list) -> tuple:
-        ''':class:`~SQLConnector`.:meth:`~_dict_to_params_`
+        ''':class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector._dict_to_params_`
         ---
 
         Utility function used to format table keys, columns and update_columns with their respective values to parameters
@@ -759,62 +860,39 @@ values ({f', '.join(f'source.{column}' for column in sql_table['columns'])});
     
 
 
-
-    #MARK: query_to_dataframe
-    def query_to_dataframe(self, query: Query):
-        ''':class:`~SQLConnector`.:meth:`~query_to_dataframe`
+    #MARK: _init_pagination_
+    def _init_pagination_(self, data: list, page_size: int, table_name: str, operation: Literal['upsert', 'update', 'insert', 'merge']):
+        ''':class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector._init_pagination_`
         ---
-
-        Given a **_Query_** (see AcumaticaDbQueries and CentralStoreQueries), execute its query and return a polars dataframe
-
+        
+        Method to replace code that was used across all paginating SQLConnector methods
+        
         Parameters
         ---
-        :param (*Query*) `query`: An instance of the Query class, the text of which will be executed and the results output to a polars DataFrame.
-
-        <hr>
-
+        :param (*list*) `data`: list of data that will be sent to database
+        :param (*int*) `page_size`: How many rows will be sent per batch
+        :param (*str*) `table_name`: Name of table to will be effected
+        :param (*Literal['upsert', 'update', 'insert', 'merge']*) `operation`: **'upsert'**, **'update'**, **'insert'**, or **'merge'**. Used for log outputs
+        
         Returns
         ---
-        :return `data` (pl.DataFrame): polars DataFrame with results of query
-
+        :return `total` (int): Total number of rows that will be sent to db
+        :return `page_size` (int): How many rows to send per command
+        :return `batches` (int): How many batches the list of data will be split up into for pagination
+        :return `counter` (int): 0
+        
         <hr>
-
+        
         ## Upstream Calls (Methods/Functions Called by)
-
-         - Used throughout the project — called from pipeline `_extract_` methods to run each `Query` defined on `AcumaticaDbQueries`/`CentralStoreQueries`
-        '''
-        self.logger.info(f'Running {query.name} query...')
-        data = pl.read_database(str(query.query), self.engine, infer_schema_length = None)
-        self.logger.info(f'{data.height} rows returned')
-        return data
-
-    #MARK: raw_execute
-    def raw_execute(self, query: str):
-        ''':class:`~SQLConnector`.:meth:`~raw_execute`
-        ---
-
-        Given an Insert, Update or Delete command, execute on db
-
-        Parameters
-        ---
-        :param (*str*) `query`: Query to be executed in Database as plain text
-
-        <hr>
-
-        Returns
-        ---
-
-        <hr>
-
-        ## Upstream Calls (Methods/Functions Called by)
-
-         - Used throughout the project — called from pipeline `_load_` methods and standalone scripts to run raw delete/update commands against `db_CentralStore`/`AcumaticaDb`
-        '''
-        cursor = self.raw_connection.cursor()
-        self.logger.info(f'Executing query with raw_execute')
-        db_msg = cursor.execute(query)
-        self.raw_connection.commit()
-        if cursor.rowcount:
-            self.logger.info(f'{cursor.rowcount} rows {'deleted' if 'delete' in query else 'affected'}')
-        bp = 'here'
-
+        
+         ### :class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector.update_table_paginated`
+         ### :class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector.checked_upsert_paginated`
+         ### :class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector.merge_table_paginated`
+        '''        
+        total = len(data)
+        page_size = total if page_size > total else page_size
+        batches = int(total/page_size)
+        counter = 0
+        self.logger.info(f'{total} rows to {operation}')
+        self.logger.info(f'Beginning {operation} sequence of {total} rows in {batches + 1} batches to {table_name}...')
+        return (total, page_size, batches, counter)

@@ -14,7 +14,10 @@ class SQLHelper:
     def __init__(self, sqldb: SQLConnector) -> None:
         self.db = sqldb
         self.pipeline = self.db.pipeline
-        self.default_transformer = self.pipeline.default_transformer
+        try:
+            self.default_transformer = self.pipeline.default_transformer
+        except Exception as e:
+            bp = 'here'
         if type(sqldb.pipeline) == str:
             self.logger = logging.getLogger(f'{sqldb.pipeline}.SQLHelper')
         else:

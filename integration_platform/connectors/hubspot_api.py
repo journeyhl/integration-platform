@@ -36,38 +36,57 @@ class HubSpotAPI:
 
     #region _request_
     def _request_(self, method: str, path: str, **kwargs) -> dict[str, Any]:
-        '''`_request_`(self, method: *str*, path: *str*, )
+        ''':class:`~HubSpotAPI`.:meth:`~_request_`
         ---
-        <hr>
-        
+
         Method that actually hits the HubSpot api with the method and args passed
-        
-        ### Downstream Calls 
-         #### :meth:`~folder.file.class.method`
-            - Description
-        
-        ### Upstream Calls 
-         #### :meth:`~_get_owners_`
-            - Gets distinct owners
-         #### :meth:`~_get_deal_pipelines_`
-            - Get each different deal pipeline
-         #### :meth:`~get_properties`
-            - Get all distinct properties
-         #### :meth:`~search`
-            - Search for the entity specified in the parameters passed
-            
-        <hr>
-        
+
         Parameters
         ---
         :param (*str*) `method`: API Method to perform
         :param (*str*) `path`: API endpoint
-        
+
         <hr>
-        
+
         Returns
         ---
         :return `response` (dict[str, Any]): Response from HubSpot API
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_list_with_membership`
+
+          - Sends API call to retrieve list details and membership
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_contact_by_id`
+
+          - Sends API call to retrieve contact details
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_properties`
+
+          - Get all distinct properties
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.search`
+
+          - Search for the entity specified in the parameters passed
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.retrieve_companies`
+
+          - Sends API call to search for companies
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_company_primary_contact`
+
+          - Sends API calls to retrieve primary contact associations and each contact's details
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI._get_owners_`
+
+          - Gets distinct owners
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI._get_deal_pipelines_`
+
+          - Get each different deal pipeline
         '''
         url = f'{self.base_url}{path}'
         backoff = [1, 2, 4, 8, 16]
@@ -104,32 +123,46 @@ class HubSpotAPI:
 
     #region Methods in development
     def get_list_with_membership_contact_details(self, list_id: int, limit: int=250, props: str = ''):
-        ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_list_with_membership_contact_details`
+        ''':class:`~HubSpotAPI`.:meth:`~get_list_with_membership_contact_details`
         ---
-        <hr>
-        
+
         Given a ListID, get list data, membership and contact details for each member
-        
-        ### Downstream Calls 
-         #### :class:`~HubSpotAPI`.:meth:`~get_list_with_membership`
-            - Gets List data and membership(rows)
-         #### :class:`~HubSpotAPI`.:meth:`~get_contact_by_id`
-            - For each row in our list, we pass its ContactID and retrieve contact details from Hubspot
-        
-        ### Upstream Calls 
-         #### :class:`~folder.file.class`.:meth:`~folder.file.class.method`
-            
-        <hr>
-        
+
         Parameters
         ---
         :param (*int*) `list_id`: HubSpotID of list
-        
+
+           ### ***Optional***
+        :param (*int = 250*) `limit`: Number of membership records to retrieve per page
+        :param (*str = ''*) `props`: Contact properties to retrieve for each member; defaults to `self.contact_property_str` when empty
+
         <hr>
-        
+
         Returns
         ---
-        :return `list_data` (*dict*): List data with membership and contact details
+        :return `list_data` (dict): List data with membership and contact details
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         ### :class:`~integration_platform.pipelines.ucmi_hubspot.UCMI_HubspotCustomers`.:meth:`~integration_platform.pipelines.ucmi_hubspot.UCMI_HubspotCustomers.extract`
+
+          - Called during data extraction in UCMI_HubspotCustomers pipeline execution
+
+         ### :class:`~integration_platform.pipelines.hubspot_leads_to_dbc.HubspotLeadsToDbc`.:meth:`~integration_platform.pipelines.hubspot_leads_to_dbc.HubspotLeadsToDbc.extract`
+
+          - Called during data extraction in HubspotLeadsToDbc pipeline execution
+
+        ## Downstream Calls (Methods/Functions called)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_list_with_membership`
+
+          - Gets List data and membership(rows)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_contact_by_id`
+
+          - For each row in our list, we pass its ContactID and retrieve contact details from Hubspot
         '''
         list_data = self.get_list_with_membership(list_id, limit=limit)
         list_members = list_data['rows']
@@ -150,30 +183,37 @@ class HubSpotAPI:
     
 
     def get_list_with_membership(self, list_id: int, limit: int = 250):
-        ''':class:`~HubSpotAPI`.:meth:`~get_list_with_membership` (self, list_id: *int*, limit: *int = 250*):
+        ''':class:`~HubSpotAPI`.:meth:`~get_list_with_membership`
         ---
-        <hr>
-        
+
         Given a list id, get that list's details and membership(rows)
-        
-        ### Downstream Calls 
-         #### :class:`~HubSpotAPI`.:meth:`~_request_`
-            - Sends API call
-        
-        ### Upstream Calls 
-         #### :class:`~HubSpotAPI`.:meth:`~get_list_with_membership_contact_details`
-            
-        <hr>
-        
+
         Parameters
         ---
         :param (*int*) `list_id`: HubSpotID of list
-        
+
+           ### ***Optional***
+        :param (*int = 250*) `limit`: Number of membership records to retrieve per page
+
         <hr>
-        
+
         Returns
         ---
-        :return `list_data` (*dict*): Dict of data regarding Hubspot List, including membership of list
+        :return `list_data` (dict): Dict of data regarding Hubspot List, including membership of list
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_list_with_membership_contact_details`
+
+          - Retrieves list data and membership before enriching each member with contact details
+
+        ## Downstream Calls (Methods/Functions called)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI._request_`
+
+          - Sends API call
         '''
         self.logger.info(f"{self.prefix}Retrieving list {list_id}'s information and members")
         list_information = self._request_('get', f'{self.lists}/{list_id}')
@@ -201,30 +241,37 @@ class HubSpotAPI:
         return list_data
 
     def get_contact_by_id(self, contact_id: int, properties: str = 'firstname,lastname,email,phone,name'):
-        ''':class:`~HubSpotAPI`.:meth:`~get_contact_by_id` (self, contact_id: *int*, properties: *str = 'firstname,lastname,email,phone,name'*):
+        ''':class:`~HubSpotAPI`.:meth:`~get_contact_by_id`
         ---
-        <hr>
-        
+
         Given a Hubspot ContactID, retrieve contact details, including the properties passed
-        
-        ### Downstream Calls 
-         #### :class:`~HubSpotAPI`.:meth:`~_request_`
-            - Sends API call
-        
-        ### Upstream Calls 
-         #### :class:`~HubSpotAPI`.:meth:`~get_list_with_membership_contact_details`
-            
-        <hr>
-        
+
         Parameters
         ---
         :param (*int*) `contact_id`: Hubspot ContactID
-        
+
+           ### ***Optional***
+        :param (*str = 'firstname,lastname,email,phone,name'*) `properties`: Additional HubSpot contact properties to retrieve; appended to the base firstname,lastname,email,phone,name set
+
         <hr>
-        
+
         Returns
         ---
-        :return `contact_details` (*dict*): Response from HubSpot containing details corresponding to the passed contact_id value
+        :return `contact_details` (dict): Response from HubSpot containing details corresponding to the passed contact_id value
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_list_with_membership_contact_details`
+
+          - Retrieves contact details for each list member
+
+        ## Downstream Calls (Methods/Functions called)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI._request_`
+
+          - Sends API call
         '''
         if properties != 'firstname,lastname,email,phone,name':
             properties = 'firstname,lastname,email,phone,name,' + properties
@@ -259,31 +306,45 @@ class HubSpotAPI:
     
     #region get_properties
     def get_properties(self, object_type: str, property_name: str = '') -> list[dict]:
-        '''`_get_properties`(self, object_type: *str*)
+        ''':class:`~HubSpotAPI`.:meth:`~get_properties`
         ---
-        <hr>
-        
+
         Method that drives the extraction of HubSpot properties from the **object_type** passed as a parameter
-        
-        ### Downstream Calls 
-         #### :meth:`~_request_`
-            - Method that hits the HubSpot API at the endpoint we pass
-        
-        ### Upstream Calls 
-         #### :class:`~pipelines.hubspot_properties.HubSpotProperties`.:meth:`~pipelines.hubspot_properties.HubSpotProperties.extract`
-            - Description
-            
-        <hr>
-        
+
         Parameters
         ---
         :param (*str*) `object_type`: Hubspot Object Type to retrieve properties for (calls, contacts, emails, meetings, etc...)
-        
+
+           ### ***Optional***
+        :param (*str = ''*) `property_name`: If provided, filters the results down to only the property matching this name
+
         <hr>
-        
+
         Returns
         ---
         :return `results` (list[dict]): list of properties belonging to the specified object_type
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         ### :class:`~integration_platform.pipelines.hubspot_properties.HubSpotProperties`.:meth:`~integration_platform.pipelines.hubspot_properties.HubSpotProperties.extract`
+
+          - Retrieves properties for contacts, calls, emails, meetings, tasks and leads
+
+         ### :class:`~integration_platform.pipelines.hubspot_property_update.HubspotPropertyUpdate`.:meth:`~integration_platform.pipelines.hubspot_property_update.HubspotPropertyUpdate.extract`
+
+          - Retrieves the acumatica_product_list property for contacts
+
+         ### :class:`~integration_platform.pipelines.hubspot_contacts.HubspotContacts`.:meth:`~integration_platform.pipelines.hubspot_contacts.HubspotContacts.extract`
+
+          - Retrieves contact properties used to build the search request
+
+        ## Downstream Calls (Methods/Functions called)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI._request_`
+
+          - Method that hits the HubSpot API at the endpoint we pass
         '''
         data = self._request_('GET', f'/crm/v3/properties/{object_type}')
         results = data.get('results', [])
@@ -301,34 +362,56 @@ class HubSpotAPI:
     
     #region search
     def search(self, object_type: str, filter_groups: list[dict], properties: list[str], query: str = '', limit: int = 100) -> Iterator[dict]:
-        '''`search`(self, object_type: *str*, filter_groups: *list[dict]*, properties: *list[str]*, query *str = ''*, limit: *int = 100*)
+        ''':class:`~HubSpotAPI`.:meth:`~search`
         ---
-        <hr>
-        
+
         Method that orchestrates how the request payload to the HubSpot API is actually delivered
-        
-        ### Downstream Calls 
-         #### :meth:`~_request_`
-            - Method that goes out and hits the Hubspot API 
-        
-        ### Upstream Calls 
-         #### :meth:`~search_deals`
-            - Used to search deals
-         #### :meth:`~search_activities`
-            - Used to search calls, emails, meetings, tasks
-         #### :meth:`~search_new_contacts`
-            - Used to search for newly created contacts
-            
-        <hr>
-        
+
         Parameters
         ---
         :param (*str*) `object_type`: Type of object that we are searching for (deals, calls, emails, meetings, etc)
         :param (*list[dict]*) `filter_groups`: How filtering of records should be performed
         :param (*list[str]*) `properties`: Additional properties that should be included in the response from API
-        :param (*list[str]*) `query`: Value to search for in hubspot
-        :param (*list[str]*) `limit`: Limit of records to return
 
+           ### ***Optional***
+        :param (*str = ''*) `query`: Value to search for in hubspot
+        :param (*int = 100*) `limit`: Limit of records to return per page
+
+        <hr>
+
+        Returns
+        ---
+        :return `record` (Iterator[dict]): Yields each record found matching the search criteria, paging through HubSpot's /search results until exhausted
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.search_deals`
+
+          - Used to search deals
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.search_activities`
+
+          - Used to search calls, emails, meetings, tasks
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.search_new_contacts`
+
+          - Used to search for newly created contacts
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.search_contacts`
+
+          - Used to search contacts
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.search_by_phone`
+
+          - Used to search for a record by phone number
+
+        ## Downstream Calls (Methods/Functions called)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI._request_`
+
+          - Method that goes out and hits the Hubspot API
         '''
         path = f'/crm/v3/objects/{object_type}/search'
         after: str | None = None
@@ -372,25 +455,33 @@ class HubSpotAPI:
     
     #region search_deals
     def search_deals(self) -> list[dict]:
-        '''`search_deals`()
+        ''':class:`~HubSpotAPI`.:meth:`~search_deals`
         ---
-        <hr>
-        
-        put_summary_here
-        
-        ### Downstream Calls 
-         #### :meth:`~search`
-            - Orechestrates how the deal search payload will be delivered to Hubspot API
 
-        ### Upstream Calls 
-         #### :class:`~pipelines.hubspot_snapshot.HubSpotSnapshot`.:meth:`~pipelines.hubspot_snapshot.HubSpotSnapshot.extract`
-            - deals -> data_extract['deals'] in HubSpotSnapshot pipeline execution
-        
+        Searches HubSpot for B2B deals: open deals created within the last two years, plus deals closed (won or lost) since the start of the current fiscal year
+
+        Parameters
+        ---
+
         <hr>
-        
+
         Returns
         ---
         :return `deals` (list[dict]): list of deals returned from Hubspot API
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         ### :class:`~integration_platform.pipelines.hubspot_snapshot.HubspotSnapshot`.:meth:`~integration_platform.pipelines.hubspot_snapshot.HubspotSnapshot.extract`
+
+          - deals -> data_extract['deals'] in HubspotSnapshot pipeline execution
+
+        ## Downstream Calls (Methods/Functions called)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.search`
+
+          - Orchestrates how the deal search payload will be delivered to Hubspot API
         '''
         now = datetime.now(timezone.utc)
         two_years_ago_ms = str(int((now - timedelta(days=730)).timestamp() * 1000))
@@ -433,27 +524,34 @@ class HubSpotAPI:
     
     #region search_activities
     def search_activities(self, object_type: str) -> list[dict]:
-        '''`search_activities`(self, object_type: *str*)
+        ''':class:`~HubSpotAPI`.:meth:`~search_activities`
         ---
-        <hr>
-        
+
         Method to search activities in hubspot for the ***object_type*** passed to the method
-        
-        ### Downstream Calls 
-         #### :meth:`~search`
-            - Method that actually performs the API call
-            
-        <hr>
-        
+
         Parameters
         ---
-        :param (*str*) `object_type`: _description_
-        
+        :param (*str*) `object_type`: HubSpot activity object type to search (calls, emails, meetings, tasks)
+
         <hr>
-        
+
         Returns
         ---
-        :return `variablename` (list[dict]): Response from :meth:`~search` from the Hubspot API
+        :return `activities` (list[dict]): Response from :meth:`~search` from the Hubspot API
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         ### :class:`~integration_platform.pipelines.hubspot_snapshot.HubspotSnapshot`.:meth:`~integration_platform.pipelines.hubspot_snapshot.HubspotSnapshot.extract`
+
+          - Called for calls, emails, meetings and tasks during HubspotSnapshot pipeline execution
+
+        ## Downstream Calls (Methods/Functions called)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.search`
+
+          - Method that actually performs the API call
         '''
         self.logger.info(f'Extracting {object_type}...')
         fiscal_year_start_ms = str(int(self.fiscal_year_start.timestamp() * 1000))
@@ -465,17 +563,30 @@ class HubSpotAPI:
     
     #region search_new_contacts
     def search_new_contacts(self, properties: list = ["createdate", "hubspot_owner_id"]) -> list[dict]:
-        '''`search_new_contacts`(self)
+        ''':class:`~HubSpotAPI`.:meth:`~search_new_contacts`
         ---
+
+        Method to search Contacts in HubSpot specifically
+
+        Parameters
+        ---
+
+           ### ***Optional***
+        :param (*list = ["createdate", "hubspot_owner_id"]*) `properties`: Additional contact properties to include in the response from the API
+
         <hr>
-        
-        Method to search Contacts in HubSpot specifically 
-            
-        <hr>
-        
+
         Returns
         ---
-        :return `variablename` (list[dict]): Response from :meth:`~search` containing the contacts found with the Hubspot API
+        :return `contacts` (list[dict]): Response from :meth:`~search` containing the contacts found with the Hubspot API
+
+        <hr>
+
+        ## Downstream Calls (Methods/Functions called)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.search`
+
+          - Method that actually performs the API call
         '''
         fiscal_year_start_ms = str(int(self.fiscal_year_start.timestamp() * 1000))
         filter_groups = [
@@ -487,17 +598,37 @@ class HubSpotAPI:
     
     #region search_contacts
     def search_contacts(self, filter_groups: list = [], properties: list = ["createdate", "hubspot_owner_id"]) -> list[dict]:
-        '''`search_new_contacts`(self)
+        ''':class:`~HubSpotAPI`.:meth:`~search_contacts`
         ---
+
+        Method to search Contacts in HubSpot, optionally filtered by the given filter_groups
+
+        Parameters
+        ---
+
+           ### ***Optional***
+        :param (*list = []*) `filter_groups`: How filtering of records should be performed; when empty, defaults to contacts created since `self.contact_searching`
+        :param (*list = ["createdate", "hubspot_owner_id"]*) `properties`: Additional contact properties to include in the response from the API
+
         <hr>
-        
-        Method to search Contacts in HubSpot specifically 
-            
-        <hr>
-        
+
         Returns
         ---
-        :return `variablename` (list[dict]): Response from :meth:`~search` containing the contacts found with the Hubspot API
+        :return `contacts` (list[dict]): Response from :meth:`~search` containing the contacts found with the Hubspot API
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         ### :class:`~integration_platform.pipelines.hubspot_contacts.HubspotContacts`.:meth:`~integration_platform.pipelines.hubspot_contacts.HubspotContacts.extract`
+
+          - Called during data extraction in HubspotContacts pipeline execution
+
+        ## Downstream Calls (Methods/Functions called)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.search`
+
+          - Method that actually performs the API call
         '''
         if filter_groups == []:
             filter_groups = [
@@ -510,17 +641,33 @@ class HubSpotAPI:
     
     #region search_by_phone
     def search_by_phone(self, phone_value: str, object_type: str = 'contacts', filter_groups: list = [], properties: list = ["createdate", "hubspot_owner_id", "email", "phone"]) -> list[dict]:
-        '''`search_new_contacts`(self)
+        ''':class:`~HubSpotAPI`.:meth:`~search_by_phone`
         ---
+
+        Method to search HubSpot for records matching the given phone_value
+
+        Parameters
+        ---
+        :param (*str*) `phone_value`: Phone number value to search for in Hubspot
+
+           ### ***Optional***
+        :param (*str = 'contacts'*) `object_type`: Type of object that we are searching for (contacts, calls, etc)
+        :param (*list = []*) `filter_groups`: How filtering of records should be performed
+        :param (*list = ["createdate", "hubspot_owner_id", "email", "phone"]*) `properties`: Additional properties that should be included in the response from API
+
         <hr>
-        
-        Method to search Contacts in HubSpot specifically 
-            
-        <hr>
-        
+
         Returns
         ---
-        :return `variablename` (list[dict]): Response from :meth:`~search` containing the contacts found with the Hubspot API
+        :return `results` (list[dict]): Response from :meth:`~search` containing the records found matching phone_value
+
+        <hr>
+
+        ## Downstream Calls (Methods/Functions called)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.search`
+
+          - Method that actually performs the API call
         '''
         # if filter_groups == []:
         #     filter_groups = [
@@ -534,26 +681,36 @@ class HubSpotAPI:
     
     #region retrieve_companies    
     def retrieve_companies(self, limit: int = 100):
-        ''':class:`~HubSpotAPI`.:meth:`~retrieve_companies` (self, limit: *int = 100*):
+        ''':class:`~HubSpotAPI`.:meth:`~retrieve_companies`
         ---
-        <hr>
-        
+
         Gets companies, contacts and contact information from Hubspot
-        
-        ### Downstream Calls 
-         #### :class:`~HubSpotAPI`.:meth:`~get_company_primary_contact`
-            - For each company, get all primary contacts. For each primary contact, lookup their contact information and return company data with contacts appended
-            
-        
-        ### Upstream Calls 
-         #### :class:`~integration_platform.pipelines.hubspot_company_revenue.HubspotCompanyRevenue`.:meth:`~integration_platform.pipelines.hubspot_company_revenue.HubspotCompanyRevenue.extract`
-            - Called during data extraction in HubspotCompanyRevenue pipeline execution
+
+        Parameters
+        ---
+
+           ### ***Optional***
+        :param (*int = 100*) `limit`: Number of companies to retrieve per page
 
         <hr>
-        
+
         Returns
         ---
-        :return `companies` (list[*dict*]): List of companies with contacts and contact information
+        :return `companies` (list[dict]): List of companies with contacts and contact information
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         ### :class:`~integration_platform.pipelines.hubspot_company_revenue.HubspotCompanyRevenue`.:meth:`~integration_platform.pipelines.hubspot_company_revenue.HubspotCompanyRevenue.extract`
+
+          - Called during data extraction in HubspotCompanyRevenue pipeline execution
+
+        ## Downstream Calls (Methods/Functions called)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_company_primary_contact`
+
+          - For each company, get all primary contacts. For each primary contact, lookup their contact information and return company data with contacts appended
         '''
         companies = []
         after: str | None = None
@@ -598,31 +755,34 @@ class HubSpotAPI:
 
     #region get_company_primary_contact
     def get_company_primary_contact(self, company: dict) -> dict:
-        ''':class:`~HubSpotAPI`.:meth:`~get_company_primary_contact` (self, company: *dict*):
+        ''':class:`~HubSpotAPI`.:meth:`~get_company_primary_contact`
         ---
-        <hr>
-        
+
         Given a company, finds all primary contacts. Then for each contact, retrieves contact details (name, phone, email, etc.)
-        
-        ### Downstream Calls 
-         #### :class:`~HubSpotAPI`.:meth:`~_request_`
-            - Hits the Hubspot API to get all primary contacts, then for each one, hits the Hubspot API again to get the contact's contact info
-        
-        ### Upstream Calls 
-         #### :class:`~HubSpotAPI`.:meth:`~retrieve_companies`
-            - Main entry point. Calls this method for each company
-            
-        <hr>
-        
+
         Parameters
         ---
         :param (*dict*) `company`: dict of company data. Must contain ***id***
-        
+
         <hr>
-        
+
         Returns
         ---
         :return `company` (dict): returns dict that was passed, but with contact information added. *`company['contacts']`*
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.retrieve_companies`
+
+          - Main entry point. Calls this method for each company
+
+        ## Downstream Calls (Methods/Functions called)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI._request_`
+
+          - Hits the Hubspot API to get all primary contacts, then for each one, hits the Hubspot API again to get the contact's contact info
         '''
         contacts = []
         self.logger.info(f'{self.prefix}retrieving primary contact...')
@@ -660,27 +820,29 @@ class HubSpotAPI:
     
     #region update_company
     def update_company(self, company: dict, property_payload: dict):
-        ''':class:`~HubSpotAPI`.:meth:`~update_company` (self, company: *dict*, property_payload: *dict*):
+        ''':class:`~HubSpotAPI`.:meth:`~update_company`
         ---
-        <hr>
-        
+
         Given a dict of company data and properties to update, update the specified properties for the passed company
-        
-        ### Upstream Calls 
-         #### :class:`~integration_platform.transform.hubspot_company_revenue.HubspotCompanyRevenue`.:class:`~integration_platform.transform.hubspot_company_revenue.Transform`.:meth:`~integration_platform.transform.hubspot_company_revenue.Transform._update_payload`
-            
-        <hr>
-        
+
         Parameters
         ---
         :param (*dict*) `company`: dict of company data. Must contain ***`id`*** and ***`name`***
         :param (*dict*) `property_payload`: properties and values to send to HubSpot
-        
+
         <hr>
-        
+
         Returns
         ---
-        :return `variablename` (_type_): _description_
+        :return `company` (dict): dict that was passed, with `LastUpdated` timestamp set after a successful update
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         ### :class:`~integration_platform.transform.hubspot_company_revenue.Transform`.:meth:`~integration_platform.transform.hubspot_company_revenue.Transform._update_payload`
+
+          - Calls this after building property_payload for a matched company to push the update to HubSpot
         '''
         path = f'/crm/v3/objects/companies/{company['id']}'
         url = f'{self.base_url}{path}'
@@ -704,27 +866,28 @@ class HubSpotAPI:
 
     #region update_property_options
     def update_property_options(self, property: dict):
-        ''':class:`~HubSpotAPI`.:meth:`~update_property_options` (self, property: *dict*):
+        ''':class:`~HubSpotAPI`.:meth:`~update_property_options`
         ---
-        <hr>
-        
+
         Given a property (Acumatica Items), update its dropdown options
-        
-        ### Upstream Calls 
-         #### :class:`~integration_platform.pipelines.hubspot_property_update.HubspotPropertyUpdate`.:meth:`~integration_platform.pipelines.hubspot_property_update.HubspotPropertyUpdate.load`
-            - Description
-            
-        <hr>
-        
+
         Parameters
         ---
         :param (*dict*) `property`: dict of property data with all existing options and new options appended. New options will be updated following successful update
-        
+
         <hr>
-        
+
         Returns
         ---
         :return `jresponse` (dict): json formatted response from Hubspot API
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         ### :class:`~integration_platform.pipelines.hubspot_property_update.HubspotPropertyUpdate`.:meth:`~integration_platform.pipelines.hubspot_property_update.HubspotPropertyUpdate.load`
+
+          - Called during load to push the updated dropdown options to HubSpot
         '''
         path = f'/crm/v3/properties/Contact/{property['name']}'
         url = f'{self.base_url}{path}'
@@ -756,31 +919,39 @@ class HubSpotAPI:
  
     #region _get_owners_
     def _get_owners_(self) -> dict[str, str]:
-        '''`_get_owners_`(self)
+        ''':class:`~HubSpotAPI`.:meth:`~_get_owners_`
         ---
-        <hr>
-        
+
         Method to retrieve Contact OwnerIDs from Hubspot API
-        
-        ### Downstream Calls 
-            #### :meth:`~._request_`
-            - Method that actually hits the HubSpot API with args passed from here
-        
-        ### Upstream Calls 
-            #### :meth:`~folder.file.class.method`
-            - Description
-        
-        <hr>
-        
-        Sets
+
+        Parameters
         ---
-        - #### self.:attr:`~owners`
-        
+
         <hr>
-        
+
         Returns
         ---
         :return `owners` (dict[str, str]): list of owners returned from HubSpot
+
+        <hr>
+
+        Sets
+        ---
+        - #### self.:attr:`~owners`
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.__init__`
+
+          - Called during initialization when the pipeline is a hubspot-snapshot pipeline
+
+        ## Downstream Calls (Methods/Functions called)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI._request_`
+
+          - Method that actually hits the HubSpot API with args passed from here
         '''
         path = '/crm/v3/owners'
         after: str | None = None
@@ -819,28 +990,34 @@ class HubSpotAPI:
    
     #region _set_snapshot_windows_ 
     def _set_snapshot_windows_(self):
-        '''`_set_snapshot_windows_`()
+        ''':class:`~HubSpotAPI`.:meth:`~_set_snapshot_windows_`
         ---
-        <hr>
-        
-        Sets snapshot start windows for :class:`~pipelines.hubspot_snapshot.HubSpotSnapshot`
-        
-        ### Upstream Calls 
-         #### :class:`~pipelines.hubspot_snapshot.HubSpotSnapshot`.:meth:`~pipelines.hubspot_snapshot.HubSpotSnapshot.__init__`
-            - Called when :class:`~pipelines.hubspot_snapshot.HubSpotSnapshot` is initialized and sets snapshot windows
-            
-        <hr>
-        
+
+        Sets snapshot start windows for :class:`~integration_platform.pipelines.hubspot_snapshot.HubspotSnapshot`
+
         Parameters
         ---
-        
+
         <hr>
-        
+
+        Returns
+        ---
+
+        <hr>
+
         Sets
         ---
         - #### self.:attr:`~fiscal_year_start`
         - #### self.:attr:`~week_start`
         - #### self.:attr:`~month_start`
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.__init__`
+
+          - Called during initialization when the pipeline is a hubspot-snapshot pipeline
         '''
         self.fiscal_year_start = datetime(year=datetime.now(ZoneInfo('America/New_York')).year, month=1, day=1)
         self.fiscal_year_start_ms = str(int(self.fiscal_year_start.timestamp() * 1000))
