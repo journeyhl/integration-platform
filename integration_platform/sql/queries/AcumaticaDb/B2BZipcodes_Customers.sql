@@ -16,7 +16,6 @@ select rtrim(b.AcctCD) CustomerID
 	 , c.TermsID Terms
 	 , rtrim(sp.SalespersonCD) SalesPersonID
 	 , sp.Descr SalesPersonName
-	 , chs.Value HubspotLink
 	 , coalesce(cb2b.Phone2, cb2b.Phone3) Phone2
 	 , dateadd(hour, -4, b.CreatedDateTime) CreatedOn
 	 , uc.FullName CreatedBy
@@ -27,6 +26,7 @@ select rtrim(b.AcctCD) CustomerID
 	 , b.BAccountID AccountID
 	 , cb2b.ContactID ContactID
 	 , b.AcctReferenceNbr CUSTEDP
+	 , chs.Value HubspotLink
 from BAccount b
 inner join Customer c on b.CompanyID = c.CompanyID and b.BAccountID = c.BAccountID
 left join Contact cb2b on b.CompanyID = cb2b.CompanyID and b.PrimaryContactID = cb2b.ContactID and b.BAccountID = cb2b.BAccountID

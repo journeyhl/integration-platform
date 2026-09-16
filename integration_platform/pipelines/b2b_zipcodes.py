@@ -22,12 +22,11 @@ class B2BZipCodes(Pipeline):
     
     def load(self, data_transformed):
         data_loaded = {}
-        # test = self.centralstore.sqlhelper.dataframe_to_table_create_statement(df=data_transformed, table_name='_dev.B2BZipCodes')
         dt_dicts = data_transformed.to_dicts()
         dt_dicts = self.default_loader.add_InsertedDT_to_list(dt_dicts)
         self.centralstore.merge_table_paginated(table_name='_dev.B2BZipCodes', data=dt_dicts)
-        # self.centralstore.insert_df(df_data_loaded=)
         return data_loaded
     
     def log_results(self, data_loaded):
         pass
+
