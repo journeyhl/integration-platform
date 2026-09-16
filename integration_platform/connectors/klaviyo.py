@@ -8,6 +8,23 @@ from integration_platform.helpers.klaviyo_api_helper import KlaviyoAPIHelper
 import requests
 
 class KlaviyoAPI:
+    ''':class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`
+    ---
+    
+    KlaviyoAPI connector
+    
+    <hr>
+    
+    Methods
+    ---
+    - ## :meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI._set_urls_`
+    - ## :meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.get_profiles`
+    - ## :meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.get_list`
+    - ## :meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.get_list_profiles`
+    - ## :meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI._get_data_`
+    - ## :meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.__page__`
+    - ## :meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI._set_fields_`
+    '''
     def __init__(self, pipeline: KlaviyoNewsletter) -> None:
         self.pipeline = pipeline
         if type(pipeline) == str:
@@ -15,19 +32,20 @@ class KlaviyoAPI:
         else:
             self.logger = logging.getLogger(f'{pipeline.pipeline_name}.KlaviyoAPI')
         self.helper = KlaviyoAPIHelper(self)
-        self.headers = self.helper.format_headers(api_key=KLAYVIO['api_key'])
+        self.headers = self.helper.format_headers(api_key=KLAYVIO['api_key'] or '')
         self.base_url = 'https://a.klaviyo.com/api'
         self._set_urls_()
         self._set_fields_()
         pass
 
-
+    #MARK: _set_urls_
     def _set_urls_(self):
         self.url_lists = f'{self.base_url}/lists'
         self.url_profiles = f'{self.base_url}/profiles'
 
 
 
+    #MARK: get_profiles
     def get_profiles(self, url: str = 'https://a.klaviyo.com/api/profiles', params: str = 'page[size]=100'):
         ''':class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.get_profiles`
         ---
@@ -62,10 +80,12 @@ class KlaviyoAPI:
                 break
             url = next_page
             paged = True
-            if len(profiles) > 100:
+            if len(profiles) > 20000:
                 break
         return profiles
 
+
+    #MARK: get_list
     def get_list(self, list_id: str):
         ''':class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.get_list`
         ---
@@ -86,11 +106,9 @@ class KlaviyoAPI:
         
          ### :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI._get_data_`
         
-          - Hits Klaviyo api at 
-        
          ### :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.get_list_profiles`
            
-          - Retrieves all profiles belonging to the list having the passed list_id value
+          - Retrieves all profiles belonging to the list with the passed list_id value
         '''        
         url = f'{self.url_lists}/{list_id}'
         parsed_response = self._get_data_(url=url, params='?additional-fields[list]=profile_count')
@@ -101,9 +119,11 @@ class KlaviyoAPI:
         profiles = self.get_list_profiles(url=url)
         bp = 'here'
         parsed_response['profiles'] = profiles
+        self.logger.info(f'List parsed in full...Extract complete.')
         return parsed_response
 
 
+    #MARK: get_list_profiles
     def get_list_profiles(self, url: str):
         ''':class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.get_list_profiles`
         ---
@@ -127,12 +147,7 @@ class KlaviyoAPI:
         ## Downstream Calls (Methods/Functions called)
         
          ### :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.get_profiles`
-        
-          - Description
-        
          ### :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:class:`~integration_platform.helpers.klaviyo_api_helper.KlaviyoAPIHelper`.:meth:`~integration_platform.helpers.klaviyo_api_helper.KlaviyoAPIHelper.consolidate_profiles`
-           
-          - Description
         '''        
         url = f'{url}/profiles'
         params = f'?additional-fields[profile]={','.join([s for s in self.fields_add_profile])}&fields[profile]={','.join([s for s in self.fields_profile])}&page[size]=100'
@@ -143,6 +158,7 @@ class KlaviyoAPI:
 
 
 
+    #MARK: _get_data_
     def _get_data_(self, url: str, params: str = ''):
         ''':class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI._get_data_`
         ---
@@ -176,6 +192,7 @@ class KlaviyoAPI:
 
 
 
+    #MARK: __page__
     def __page__(self, parsed_response: dict):
         paging_links = parsed_response.get('links')
         if paging_links == None:
@@ -184,11 +201,10 @@ class KlaviyoAPI:
         bp = 'here'
         return True, parsed_response['links']['next']
 
-
-
         #fill rate for
 
     
+    #MARK: _set_fields_
     def _set_fields_(self):
         # self.fields_profile = ['anonymous_id', 'created', 'email', 'external_id', 'first_name', 'id', 'image', 'joined_group_at', 'last_event_date', 'last_name', 'locale', 'location', 'organization', 'phone_number', 'predictive_analytics', 'properties', 'subscriptions', 'title', 'updated', 'whatsapp_bsuid']
         self.fields_profile = ['created','email','external_id','first_name','id','image','joined_group_at','last_event_date','last_name','locale','location','location.address1','location.address2','location.city','location.country','location.ip','location.latitude','location.longitude','location.region','location.timezone','location.zip','organization','phone_number','predictive_analytics','predictive_analytics.average_days_between_orders','predictive_analytics.average_order_value','predictive_analytics.churn_probability','predictive_analytics.expected_date_of_next_order','predictive_analytics.historic_clv','predictive_analytics.historic_number_of_orders','predictive_analytics.predicted_clv','predictive_analytics.predicted_number_of_orders','predictive_analytics.ranked_channel_affinity','predictive_analytics.total_clv','properties','subscriptions','subscriptions.email','subscriptions.email.click_tracking','subscriptions.email.click_tracking.can_receive','subscriptions.email.click_tracking.consent','subscriptions.email.click_tracking.consent_timestamp','subscriptions.email.click_tracking.created_timestamp','subscriptions.email.click_tracking.last_updated','subscriptions.email.click_tracking.metadata','subscriptions.email.click_tracking.valid_until','subscriptions.email.marketing','subscriptions.email.marketing.can_receive_email_marketing','subscriptions.email.marketing.consent','subscriptions.email.marketing.consent_timestamp','subscriptions.email.marketing.custom_method_detail','subscriptions.email.marketing.double_optin','subscriptions.email.marketing.last_updated','subscriptions.email.marketing.list_suppressions','subscriptions.email.marketing.method','subscriptions.email.marketing.method_detail','subscriptions.email.marketing.suppression','subscriptions.email.open_tracking','subscriptions.email.open_tracking.can_receive','subscriptions.email.open_tracking.consent','subscriptions.email.open_tracking.consent_timestamp','subscriptions.email.open_tracking.created_timestamp','subscriptions.email.open_tracking.last_updated','subscriptions.email.open_tracking.metadata','subscriptions.email.open_tracking.valid_until','subscriptions.mobile_push','subscriptions.mobile_push.marketing','subscriptions.mobile_push.marketing.can_receive_push_marketing','subscriptions.mobile_push.marketing.consent','subscriptions.mobile_push.marketing.consent_timestamp','subscriptions.sms','subscriptions.sms.marketing','subscriptions.sms.marketing.can_receive_sms_marketing','subscriptions.sms.marketing.consent','subscriptions.sms.marketing.consent_timestamp','subscriptions.sms.marketing.last_updated','subscriptions.sms.marketing.method','subscriptions.sms.marketing.method_detail','subscriptions.sms.transactional','subscriptions.sms.transactional.can_receive_sms_transactional','subscriptions.sms.transactional.consent','subscriptions.sms.transactional.consent_timestamp','subscriptions.sms.transactional.last_updated','subscriptions.sms.transactional.method','subscriptions.sms.transactional.method_detail','subscriptions.whatsapp','subscriptions.whatsapp.conversational','subscriptions.whatsapp.conversational.can_receive','subscriptions.whatsapp.conversational.consent','subscriptions.whatsapp.conversational.consent_timestamp','subscriptions.whatsapp.conversational.created_timestamp','subscriptions.whatsapp.conversational.last_updated','subscriptions.whatsapp.conversational.metadata','subscriptions.whatsapp.conversational.phone_number','subscriptions.whatsapp.conversational.valid_until','subscriptions.whatsapp.marketing','subscriptions.whatsapp.marketing.can_receive','subscriptions.whatsapp.marketing.consent','subscriptions.whatsapp.marketing.consent_timestamp','subscriptions.whatsapp.marketing.created_timestamp','subscriptions.whatsapp.marketing.last_updated','subscriptions.whatsapp.marketing.metadata','subscriptions.whatsapp.marketing.phone_number','subscriptions.whatsapp.marketing.valid_until','subscriptions.whatsapp.transactional','subscriptions.whatsapp.transactional.can_receive','subscriptions.whatsapp.transactional.consent','subscriptions.whatsapp.transactional.consent_timestamp','subscriptions.whatsapp.transactional.created_timestamp','subscriptions.whatsapp.transactional.last_updated','subscriptions.whatsapp.transactional.metadata','subscriptions.whatsapp.transactional.phone_number','subscriptions.whatsapp.transactional.valid_until','title','updated',]
