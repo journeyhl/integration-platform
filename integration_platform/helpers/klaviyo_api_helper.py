@@ -12,6 +12,20 @@ from requests import Response
 import polars as pl
 
 class KlaviyoAPIHelper:
+    ''':class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:class:`~integration_platform.helpers.klaviyo_api_helper.KlaviyoAPIHelper`
+    ---
+    
+    Helper class for :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`
+    
+    <hr>
+    
+    Methods
+    ---
+    
+    - ## :meth:`~integration_platform.helpers.klaviyo_api_helper.KlaviyoAPIHelper.format_headers`
+    - ## :meth:`~integration_platform.helpers.klaviyo_api_helper.KlaviyoAPIHelper.parse_response`
+    - ## :meth:`~integration_platform.helpers.klaviyo_api_helper.KlaviyoAPIHelper.consolidate_profiles`
+    '''
     def __init__(self, klaviyo_api: KlaviyoAPI) -> None:
         self.klaviyo = klaviyo_api
         self.pipeline = klaviyo_api.pipeline
@@ -21,7 +35,8 @@ class KlaviyoAPIHelper:
             self.logger = logging.getLogger(f'{klaviyo_api.pipeline.pipeline_name}.KlaviyoAPIHelper')        
         pass
 
-    def format_headers(self, api_key) -> dict:
+    #MARK: format_headers
+    def format_headers(self, api_key: str) -> dict:
         ''':class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:class:`~KlaviyoAPIHelper`.:meth:`~format_headers`
         ---
         
@@ -51,6 +66,7 @@ class KlaviyoAPIHelper:
 
 
 
+    #MARK: parse_response
     def parse_response(self, response: Response, url: str = 'KlaviyoAPI'):
         ''':class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:class:`~KlaviyoAPIHelper`.:meth:`~parse_response`
         ---
@@ -84,13 +100,9 @@ class KlaviyoAPIHelper:
             self.logger.error(f"Couldn't parse response from {url}!")
             return {}
 
+    #MARK: consolidate_profiles
     def consolidate_profiles(self, profiles: list[dict]):
-        bp = 'here'
-        test = self.pipeline.default_transformer.rename_columns(df=profiles[0]['attributes']['properties'])
-        test = self.pipeline.default_transformer.rename_columns(df=profiles[0]['attributes']['location'])
-        test = self.pipeline.default_transformer.rename_columns(df=profiles[0]['attributes']['predictive_analytics'])
-        test = self.pipeline.default_transformer.rename_columns(df=profiles[0]['attributes']['subscriptions'])
-        bp = 'here'
+
         parsed_profiles = []
         for p in profiles:
             bp = 'here'
@@ -110,29 +122,11 @@ class KlaviyoAPIHelper:
                 'external_id': p['attributes']['external_id'],
                 'locale': p['attributes']['locale'],
             }
-            properties = p['attributes']['properties']            
-            subscriptions = p['attributes']['subscriptions']
-            bp = 'here'
-            parent = {**parent, **properties, **subscriptions}
-            parent['properties'] = properties
-            parent['subscriptions'] = subscriptions
+            parent['properties'] = p['attributes']['properties']    
+            parent['subscriptions'] = p['attributes']['subscriptions']
+            parent['relationships'] = {parent: values for parent, entries in p['relationships'].items() for key, values in entries.items()}
+
             parsed_profiles.append(parent)
-
-
-        # parsed_profiles = [
-        #     {   
-        #         'type': p['type'],
-        #         'id': p['id'],
-        #         'created': p['attributes']['created'],
-        #         'email': p['attributes']['created'],
-        #         'externalID': p['attributes']['created'],
-        #         'created': p['attributes']['created'],
-        #         'created': p['attributes']['created'],
-
-        #         **p['attributes']
-
-        #     } for p in profiles
-        # ]
         return parsed_profiles
 
 

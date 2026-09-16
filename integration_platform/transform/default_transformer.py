@@ -3,7 +3,7 @@ import polars as pl
 import json
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
-
+from typing import Literal
 
 
 class DefaultTransformer:
@@ -13,6 +13,7 @@ class DefaultTransformer:
         pass
 
 
+    #MARK: clean_string
     def clean_string(self, string: str | None, string_descr: str = '', log_prefix: str = ''):
         ''':class:`~DefaultTransformer`.:meth:`~clean_string` 
         ---
@@ -41,6 +42,7 @@ class DefaultTransformer:
         string = string.strip()
         return string
 
+    #MARK: string_case_pascal
     def string_case_pascal(self, string: str | None, string_descr: str= '', log_prefix: str = ''):
         ''':class:`~integration_platform.transform.default_transformer.DefaultTransformer`.:meth:`~integration_platform.transform.default_transformer.DefaultTransformer.string_case_pascal`
         ---
@@ -77,18 +79,18 @@ class DefaultTransformer:
                 for s in strlist:
                     if s in acronyms:
                         new_str += s
-                    else:
+                    elif s.strip() != '':
                         new_str += f'{s[0].upper()}{'' if len(s) == 1 else s[1:].lower()}'       
             else:
                 new_str += f'{check_str[0].upper()}{check_str[1:].lower()}' if check_str.lower() != 'id' else 'ID'
             return new_str
         new_str = split_by_character(check_str=string)
-        new_str = split_by_character(check_str=string, split_char='_')
         bp = 'here'
         
         return new_str
 
     
+    #MARK: string_to_int
     def string_to_int(self, int_str: str | None, str_descr: str = '', log_prefix: str = ''):
         ''':class:`~DefaultTransformer`.:meth:`~string_to_int`
         ---
@@ -121,6 +123,7 @@ class DefaultTransformer:
         return integer
 
     
+    #MARK: parse_phone
     def parse_phone(self, phone_str: str | None, string_descr: str = '',log_prefix: str = ''):
         ''':class:`~DefaultTransformer`.:meth:`~parse_phone`
         ---
@@ -159,7 +162,7 @@ class DefaultTransformer:
                 return None
         return phone_fmt
 
-
+    #MARK: parse_date_str
     def parse_date_str(self, date_str: str | None, tries: int, format: str = '%Y-%m-%dT%H:%M:%S.%fZ', offset: bool = False, log_prefix: str = ''):
         self.logger.info(f'{log_prefix}Date string provided: {date_str}, format provided: {format}. {'No offset' if not offset else 'Offset'}')
         date_str = self._handle_none_and_empty_strings_(string=date_str, string_descr='Date', additional_conditions=tries<5, log_prefix=log_prefix, additional_log_str='string is blank or fifth try has been exceeded, returning None...')
@@ -187,7 +190,7 @@ class DefaultTransformer:
         return date
 
 
-
+    #MARK: _handle_none_and_empty_strings_
     def _handle_none_and_empty_strings_(self, string: str | None, string_descr: str, additional_conditions: bool = True, log_prefix: str = '', additional_log_str: str = ''):
         ''':class:`~DefaultTransformer`.:meth:`~_handle_none_and_empty_strings_`
         ---
@@ -214,8 +217,6 @@ class DefaultTransformer:
         
         ## Upstream Calls (Methods/Functions Called by)
 
-         ### _______replace_me_______
-
          ### :class:`~integration_platform.transform.default_transformer.DefaultTransformer`.:meth:`~integration_platform.transform.default_transformer.DefaultTransformer.parse_phone`
 
          ### :class:`~integration_platform.transform.default_transformer.DefaultTransformer`.:meth:`~integration_platform.transform.default_transformer.DefaultTransformer.parse_date_str`
@@ -227,31 +228,35 @@ class DefaultTransformer:
             return None
         return string.strip()
 
-    
-    def rename_columns(self, df: pl.DataFrame | list | dict):
-        ''':class:`~SQLHelper`.:meth:`~dataframe_to_sql_table`
-        ---
-        
-        Given a dataframe with unnormalized column names, print/log in the format needed to place in `settings.py`'s :obj:`~integration_platform.config.settings.TABLES`
-        >>> 'Unformatted column name': 'FormattedColumnName',
-        
-        Parameters
-        ---
-        :param (*pl.DataFrame*) `df`: dataframe table creation is being drafted for
-        '''
-        if isinstance(df, list) or isinstance(df, dict):
-            df = pl.DataFrame(df)
+   
+
+    #MARK: rename_columns
+    def rename_columns(self, data: list | dict | pl.DataFrame, output_format: Literal['dict', 'df'], strategy: Literal['.get', '[]'], dict_name: str = ''):
+        if isinstance(data, pl.DataFrame):
+            data = data.to_dicts()
+        if isinstance(data, list):
+            first: dict = data[0]
+            last: dict = data[-1]
+            if first.keys() != last.keys():
+                data = last
+                self.logger.error(f'Key mismatch!')
+                bp = 'here'
+            else:
+                data = first
         printstr = ''
         ts_str = 'hh:mm:ss'
         len_ts_str = len(ts_str)
-        for column in df.columns:
-            col_copy = column
-            if ' ' in column or '-' in column or ':' in column or '–' in column:
-                col_copy = col_copy.replace('(', '').replace(')', '').replace('–', '-').replace('-', '_').replace(ts_str, '').replace(':', '').replace(',', '')
+        for column in data.keys():
+            col_copy = column.replace('$', '').replace('  ', ' ')
+            if ' ' in column or '-' in column or ':' in column or '–' in column or '_' in column:
+                col_copy = col_copy.replace('(', '').replace(')', '').replace('–', '-').replace('-', ' ').replace('_', ' ').replace(ts_str, '').replace(':', '').replace(',', '').replace('  ', ' ')
             col_copy2 = self.string_case_pascal(string=col_copy)
             bp = 'here'
             stripped = ''.join([s for s in col_copy2.split(' ')])
-            pstr = f"'{column}': '{stripped}',"
+            if strategy == '.get':
+                pstr = f"'{column}': '{stripped}'," if output_format == 'df' else f"'{stripped}': {dict_name}.get('{column}'),"
+            else:
+                pstr = f"'{column}': '{stripped}'," if output_format == 'df' else f"'{stripped}': {dict_name}['{column}'],"
             printstr += f'{pstr}\n'
             bp = 'here'
         bp = 'here'
@@ -260,4 +265,6 @@ class DefaultTransformer:
 
 
 
+
 acronyms = ['B2B', 'HTML', 'AI', 'STL', 'IP', 'D2C', 'ID', 'BPS', 'NPS', 'CSAT', 'JHL', 'GPS', 'DNC', 'IQL', 'URL']
+
