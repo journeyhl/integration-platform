@@ -80,9 +80,10 @@ class DefaultTransformer:
                     else:
                         new_str += f'{s[0].upper()}{'' if len(s) == 1 else s[1:].lower()}'       
             else:
-                new_str += f'{check_str[0].upper()}{check_str[1:].lower()}'
+                new_str += f'{check_str[0].upper()}{check_str[1:].lower()}' if check_str.lower() != 'id' else 'ID'
             return new_str
         new_str = split_by_character(check_str=string)
+        new_str = split_by_character(check_str=string, split_char='_')
         bp = 'here'
         
         return new_str
@@ -226,6 +227,36 @@ class DefaultTransformer:
             return None
         return string.strip()
 
+    
+    def rename_columns(self, df: pl.DataFrame | list | dict):
+        ''':class:`~SQLHelper`.:meth:`~dataframe_to_sql_table`
+        ---
+        
+        Given a dataframe with unnormalized column names, print/log in the format needed to place in `settings.py`'s :obj:`~integration_platform.config.settings.TABLES`
+        >>> 'Unformatted column name': 'FormattedColumnName',
+        
+        Parameters
+        ---
+        :param (*pl.DataFrame*) `df`: dataframe table creation is being drafted for
+        '''
+        if isinstance(df, list) or isinstance(df, dict):
+            df = pl.DataFrame(df)
+        printstr = ''
+        ts_str = 'hh:mm:ss'
+        len_ts_str = len(ts_str)
+        for column in df.columns:
+            col_copy = column
+            if ' ' in column or '-' in column or ':' in column or '–' in column:
+                col_copy = col_copy.replace('(', '').replace(')', '').replace('–', '-').replace('-', '_').replace(ts_str, '').replace(':', '').replace(',', '')
+            col_copy2 = self.string_case_pascal(string=col_copy)
+            bp = 'here'
+            stripped = ''.join([s for s in col_copy2.split(' ')])
+            pstr = f"'{column}': '{stripped}',"
+            printstr += f'{pstr}\n'
+            bp = 'here'
+        bp = 'here'
+        self.logger.info(f'\n{printstr}')
+        bp = 'here'
 
 
 

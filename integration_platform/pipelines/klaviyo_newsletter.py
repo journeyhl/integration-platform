@@ -1,0 +1,25 @@
+from integration_platform.pipelines.base import Pipeline
+from datetime import datetime
+from zoneinfo import ZoneInfo
+from integration_platform.connectors.klaviyo import KlaviyoAPI
+
+class KlaviyoNewsletter(Pipeline):
+    def __init__(self, function: str):
+        super().__init__('klaviyo-newsletter', function)
+        self.klaviyo = KlaviyoAPI(self)
+
+    def extract(self):
+        data_extract = self.klaviyo.get_list(list_id='Rz3G6F')
+        return data_extract
+
+    def transform(self, data_extract):
+        data_transformed = data_extract
+        # Result set is exported as-is; no reshaping required.
+        return data_transformed
+
+    def load(self, data_transformed):
+
+        return
+
+    def log_results(self, data_loaded):
+        pass

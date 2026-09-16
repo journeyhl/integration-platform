@@ -35,7 +35,7 @@ class Transform:
             self.shipments.append(parsed_shipment)
             self.ship_lines.extend(parsed_ship_line)
         bp = 'here'
-        self.pipeline.centralstore.__dataframe_to_table_create_statement__(pl.DataFrame(self.shipments), '')
+        self.pipeline.centralstore.sqlhelper.dataframe_to_table_create_statement(pl.DataFrame(self.shipments), '')
         return self.shipments
 
 

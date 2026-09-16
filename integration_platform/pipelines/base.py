@@ -52,7 +52,7 @@ class LogHistory(logging.Handler):
 
 class Pipeline(ABC):
     def __init__(self, pipeline_name: str, function: str, env: str = 'prod'):
-        ''':class:`~Pipeline`.:meth:`~__init__`
+        ''':class:`~integration_platform.pipelines.base.Pipeline`.:meth:`~integration_platform.pipelines.base.Pipeline.__init__`
         ---
         
         Pipeline superclass initialization.
@@ -68,17 +68,17 @@ class Pipeline(ABC):
         Sets
         ---
         
-        - ### self.:attr:`~pipeline_name`
+        - ### self.:attr:`~integration_platform.pipelines.base.Pipeline.pipeline_name`
             Name of Pipeline, passed from subclass
-        - ### self.:attr:`~function`
+        - ### self.:attr:`~integration_platform.pipelines.base.Pipeline.function`
             Name of function in Azure Functions, passed from subclass
-        - ### self.:attr:`~default_transformer`
+        - ### self.:attr:`~integration_platform.pipelines.base.Pipeline.default_transformer`
             Default transformer that's shared across all pipelines
-        - ### self.:attr:`~centralstore`
+        - ### self.:attr:`~integration_platform.pipelines.base.Pipeline.centralstore`
             SQLConnector for centralstore that's shared across all pipelines
-        - ### self.:attr:`~ts_pipeline_start`
+        - ### self.:attr:`~integration_platform.pipelines.base.Pipeline.ts_pipeline_start`
             Timestamp of when the pipeline started
-        - ### self.:attr:`~default_loader`
+        - ### self.:attr:`~integration_platform.pipelines.base.Pipeline.default_loader`
             Default "loader" that's shared across all pipelines
         - ### self.:attr:`~logs`
         '''
@@ -91,7 +91,7 @@ class Pipeline(ABC):
         self.default_loader = DefaultLoader(self)
 
     def _init_logging_(self):
-        ''':class:`~Pipeline`.:meth:`~_init_logging_`
+        ''':class:`~integration_platform.pipelines.base.Pipeline`.:meth:`~integration_platform.pipelines.base.Pipeline._init_logging_`
         ---
         
         Sets up the logging configuration that would otherwise be done in :meth:`~__init__`
