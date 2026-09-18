@@ -54,7 +54,8 @@ class AftershipLinkToAcu(Pipeline):
         return data_transformed
     
     def load(self, data_transformed):
-        if len(data_transformed) > 0:
+        records = len(data_transformed)
+        if records > 0:
             self.acudb.checked_upsert_paginated('SOOrderKvExt', data_transformed)
         else:
             self.logger.info(f'No rows to upsert')

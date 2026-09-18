@@ -18,6 +18,7 @@ where s.CompanyID = 2
 and 
 	(j.Status not in ('On Hold', 'Canceled', 'Awaiting Payment', 'Risk Hold', 'Open') or sl.ShipmentNbr is not null)
 and s.OrderType not in ('ZM', 'ZA', 'QT', 'HS')
+and k.ValueString is null
 )
 select *
 from TopLevel

@@ -11,10 +11,10 @@ class KlaviyoNewsletter(Pipeline):
         self.transformer = Transform(self)
 
     def extract(self):
-        cutoff = datetime.now(ZoneInfo('America/New_York')) - timedelta(days=180)
+        cutoff = datetime.now(ZoneInfo('America/New_York')) - timedelta(days=3)
         cut_str = cutoff.strftime('%Y-%m-%dT%H:%M:%SZ')
-        # data_extract = self.klaviyo.get_list(list_id='Rz3G6F', profile_filter=f"filter=greater-than(joined_group_at,{cut_str})")
-        data_extract = self.klaviyo.get_list(list_id='Rz3G6F')
+        data_extract = self.klaviyo.get_list(list_id='Rz3G6F', profile_filter=f"filter=greater-than(joined_group_at,{cut_str})")
+        # data_extract = self.klaviyo.get_list(list_id='Rz3G6F')
         data_extract['LastChecked'] = datetime.now(ZoneInfo('America/New_York'))
         return data_extract
 
