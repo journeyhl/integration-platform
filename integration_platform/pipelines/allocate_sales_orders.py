@@ -9,7 +9,7 @@ from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 class AllocateSalesOrders(Pipeline):
     def __init__(self, function: str, env: str='prod'):
         # function = 'allocate_sales_orders'
-        super().__init__(pipeline_name='allocate-sales-orders', function=function, env=env)
+        super().__init__(pipeline_name='AllocateSalesOrders', function=function, env=env)
         self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
             pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
         )

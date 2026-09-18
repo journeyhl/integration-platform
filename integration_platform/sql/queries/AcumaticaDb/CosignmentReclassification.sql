@@ -40,7 +40,7 @@ inner join INTran it on b.CompanyID = it.CompanyID and ir.RefNbr = it.RefNbr and
 inner join SOOrder s on b.CompanyID = s.CompanyID and it.SOOrderType = s.OrderType and it.SOOrderNbr = s.OrderNbr
 inner join SOShipment sh on b.CompanyID = sh.CompanyID and it.SOShipmentNbr = sh.ShipmentNbr
 inner join JJStatusLookup jbt on b.BatchType = jbt.CStatus and jbt.Tbl = 'Batch.Type'
-inner join JJStatusLookup jb on b.BatchType = jb.CStatus and jb.Tbl = 'Batch'
+inner join JJStatusLookup jb on b.[Status] = jb.CStatus and jb.Tbl = 'Batch'
 where gt.CompanyID = 2 
 and b.Module = 'IN'
 --and b.BatchNbr = 'IN187088'

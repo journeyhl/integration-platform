@@ -898,7 +898,7 @@ def cron_calendar(timer: af.TimerRequest):
 )
 def rmi_inventory(timer: af.TimerRequest):
     from integration_platform.pipelines.rmi_inventory import RMIInventory
-    rmi_inventory = RMIInventory(function='rmi_inventory') #rmi-inventory
+    rmi_inventory = RMIInventory(function='rmi_inventory') #RMIInventory
     rmi_inventory.run()
 #endregion                                  rmi_inventory
 
@@ -916,7 +916,7 @@ def rmi_inventory(timer: af.TimerRequest):
 )
 def allocate_sales_orders(timer: af.TimerRequest):
     from integration_platform.pipelines.allocate_sales_orders import AllocateSalesOrders
-    sales_order_allocations = AllocateSalesOrders(function='allocate_sales_orders', env='prod') #allocate-sales-orders
+    sales_order_allocations = AllocateSalesOrders(function='allocate_sales_orders', env='prod') #AllocateSalesOrders
     sales_order_allocations.run()
 #endregion                                  allocate_sales_orders
 
@@ -932,12 +932,58 @@ def allocate_sales_orders(timer: af.TimerRequest):
 )
 def b2b_cohorts(timer: af.TimerRequest):
     from integration_platform.pipelines.b2b_cohorts import B2BCohorts
-    b2b_cohorts_to_dbc = B2BCohorts(function='b2b_cohorts', env='prod') #b2b-cohorts
+    b2b_cohorts_to_dbc = B2BCohorts(function='b2b_cohorts', env='prod') #B2BCohorts
     b2b_cohorts_to_dbc.run()
-
     from integration_platform.pipelines.link_b2b_cohorts_to_acu import B2BCohortsLinkToAcu
-
-    link_b2b_cohorts = B2BCohortsLinkToAcu(function='b2b_cohorts', env='prod') #b2b-cohorts-link-to-acu
+    link_b2b_cohorts = B2BCohortsLinkToAcu(function='b2b_cohorts', env='prod') #B2BCohortsLinkToAcu
     link_b2b_cohorts.run()
 #endregion                                               b2b_cohorts
 
+
+#region                                                 link_aftership_to_acu
+#                Populates AftershipID attribute in Acumatica from db_Central
+#                                   4x/day (12:23am, 11:23am, 4:23pm, 7:23pm)
+@app.timer_trigger(
+    schedule = '23 0,11,4,7 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def link_aftership_to_acu(timer: af.TimerRequest):
+    from integration_platform.pipelines.link_aftership_to_acu import AftershipLinkToAcu
+    b2b_cohorts_to_dbc = AftershipLinkToAcu(function='link_aftership_to_acu', env='prod') #LinkAftershipToAcu
+    b2b_cohorts_to_dbc.run()
+
+#endregion                                               link_aftership_to_acu
+
+
+
+
+
+#region                                                   klaviyo_newsletter
+#                Pulls 
+# Pulls Klaviyo profile data from members of newsletter list into db_Central
+#                                                    2x/day (3:33am, 7:33pm)
+@app.timer_trigger(
+    schedule = '33 3,19 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def klaviyo_newsletter(timer: af.TimerRequest):
+    from integration_platform.pipelines.klaviyo_newsletter import KlaviyoNewsletter
+    klaviyo = KlaviyoNewsletter('klaviyo_newsletter') #KlaviyoNewsletter
+    klaviyo.run()
+#endregion                                               klaviyo_newsletter
+
+
+
+#!!!!
+#MARK: Need to add!!!!!!
+#cosignment_reclassifications
+
+
+#MARK: Need to finish!!
+
+#ryder_to_dbc
+#ucmi_hubspot - need to make live with actual hubspot api, version right now is using excel export of list
+#hubspot_leads_to_dbc - Need to filter lists down
+#hubspot stuff

@@ -200,6 +200,17 @@ class AcumaticaAPIHelper:
         }
         return full_payload
     #endregion
+    def reclassify_transaction_response(self, payload_data: dict, response: requests.Response):
+        try:
+            json_response = response.json()
+        except Exception as e:
+            self.logger.info(payload_data['log_error'])
+            return_bool = False
+        if response.status_code == 500:
+            self.logger.error(f'{payload_data['log_error']}, {json_response['exceptionType']}')
+            bp = 'here'
+        bp = 'here'
+
 
     #region format_prepare_shopify
     def format_prepare_shopify(self, entity: str = 'Product Availability') -> dict:     

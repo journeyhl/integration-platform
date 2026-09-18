@@ -329,7 +329,7 @@ class AcumaticaAPI:
         response_str = f'{response.status_code}: {response.reason}'
         data_log = payload_data.get('acu_api_data_log') or {}
 
-        if descr in ['Override & Update', 'Reclassify Transaction']:
+        if descr in ['Override & Update']:
             try:
                 json_response = response.json()
                 self.logger.info(payload_data['log_success'])
@@ -337,6 +337,9 @@ class AcumaticaAPI:
             except Exception as e:
                 self.logger.info(payload_data['log_error'])
                 return_bool = False
+            self.helper.format_data_log_entry(entity=data_log['Entity'], key_value=data_log['Entity'], operation=data_log['Entity'], payload=data_log['Payload'], response=response_str, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
+        if descr == 'Reclassify Transaction':
+            self.helper.reclassify_transaction_response(payload_data=payload_data, response=response)
             self.helper.format_data_log_entry(entity=data_log['Entity'], key_value=data_log['Entity'], operation=data_log['Entity'], payload=data_log['Payload'], response=response_str, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
 
         elif descr == 'Manage Sales Allocation':
