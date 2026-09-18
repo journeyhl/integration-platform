@@ -28,7 +28,7 @@ class RMIInventory(Pipeline):
     '''
 
     def __init__(self, function: str):
-        super().__init__('rmi-inventory', function)
+        super().__init__('RMIInventory', function)
         self.transformer = Transform(self)
         self.rmi = RMIAPI(self)
 

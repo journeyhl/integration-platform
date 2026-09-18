@@ -13,11 +13,9 @@ class B2BCohorts(Pipeline):
     ---
     <hr>
 
-    Gets all ____ and upserts to **acu.TrialBalance**
-
     '''
     def __init__(self, function: str, env: str='prod'):
-        super().__init__('b2b-cohorts', function=function, env=env)
+        super().__init__('B2BCohorts', function=function, env=env)
         self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
             pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
         )

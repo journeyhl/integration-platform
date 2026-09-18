@@ -3,7 +3,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from integration_platform.pipelines import ConsignmentReclassification
 
-cosignments = ConsignmentReclassification(function='.debug', env='dev')
+cosignments = ConsignmentReclassification(function='.debug', )
 
 cosignments.run()
 

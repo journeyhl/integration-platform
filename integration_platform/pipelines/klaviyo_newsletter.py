@@ -6,7 +6,7 @@ from integration_platform.transform.klaviyo_newsletter import Transform
 
 class KlaviyoNewsletter(Pipeline):
     def __init__(self, function: str):
-        super().__init__('klaviyo-newsletter', function)
+        super().__init__('KlaviyoNewsletter', function)
         self.klaviyo = KlaviyoAPI(self)
         self.transformer = Transform(self)
 

@@ -9,7 +9,6 @@ from zoneinfo import ZoneInfo
 
 class DarwillAddresses(Pipeline):
     def __init__(self, function: str, env: str='prod'):
-        # function = 'consignment_reclassifications'
         super().__init__(pipeline_name='darwill-addresses', function=function, env=env)
         self.transformer = Transform(self)
         self.sftp = SFTP(self, server='Darwill')

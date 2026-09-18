@@ -21,7 +21,7 @@ class AftershipLinkToAcu(Pipeline):
      - None needed
     '''
     def __init__(self, function: str, env: str='prod'):
-        super().__init__(pipeline_name='aftership-link-to-acu', function=function, env=env)
+        super().__init__(pipeline_name='LinkAftershipToAcu', function=function, env=env)
         self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
             pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
         )
