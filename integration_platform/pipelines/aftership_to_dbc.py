@@ -44,7 +44,7 @@ class AfterShipToDbc(Pipeline):
     def load(self, data_transformed):
         aftership_export = data_transformed['aftership_export']
         aftership_export_detail = data_transformed['aftership_export_detail']
-        self.centralstore.checked_upsert_paginated('acu.AftershipExportv2', aftership_export, page_size = 300)
+        self.centralstore.checked_upsert_paginated('acu.AftershipExportv2', aftership_export, page_size = 100)
         self.centralstore.checked_upsert_paginated('acu.AftershipExportDetailv2', aftership_export_detail, page_size = 300)
         return data_transformed
     

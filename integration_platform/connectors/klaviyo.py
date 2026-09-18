@@ -80,13 +80,11 @@ class KlaviyoAPI:
                 break
             url = next_page
             paged = True
-            if len(profiles) > 20000:
-                break
         return profiles
 
 
     #MARK: get_list
-    def get_list(self, list_id: str):
+    def get_list(self, list_id: str, profile_filter: str = ''):
         ''':class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.get_list`
         ---
         
@@ -108,6 +106,7 @@ class KlaviyoAPI:
         
          ### :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.get_list_profiles`
            
+         
           - Retrieves all profiles belonging to the list with the passed list_id value
         '''        
         url = f'{self.url_lists}/{list_id}'
@@ -116,7 +115,7 @@ class KlaviyoAPI:
             self.logger.info(f'{parsed_response['data']['attributes']['profile_count']} profiles belong to {parsed_response['data']['attributes']['name']} list')
         except Exception as e:
             self.logger.warning(f"Couldn't parse list record count from response! {e}")
-        profiles = self.get_list_profiles(url=url)
+        profiles = self.get_list_profiles(url=url, profile_filter=profile_filter)
         bp = 'here'
         parsed_response['profiles'] = profiles
         self.logger.info(f'List parsed in full...Extract complete.')
@@ -124,7 +123,7 @@ class KlaviyoAPI:
 
 
     #MARK: get_list_profiles
-    def get_list_profiles(self, url: str):
+    def get_list_profiles(self, url: str, profile_filter: str = ''):
         ''':class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.get_list_profiles`
         ---
         
@@ -150,7 +149,8 @@ class KlaviyoAPI:
          ### :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:class:`~integration_platform.helpers.klaviyo_api_helper.KlaviyoAPIHelper`.:meth:`~integration_platform.helpers.klaviyo_api_helper.KlaviyoAPIHelper.consolidate_profiles`
         '''        
         url = f'{url}/profiles'
-        params = f'?additional-fields[profile]={','.join([s for s in self.fields_add_profile])}&fields[profile]={','.join([s for s in self.fields_profile])}&page[size]=100'
+        filter = f'?{profile_filter}&' if profile_filter != '' else '?'
+        params = f'{filter}additional-fields[profile]={','.join([s for s in self.fields_add_profile])}&fields[profile]={','.join([s for s in self.fields_profile])}&page[size]=100'
         profiles = self.get_profiles(url=url, params=params)
         parsed_profiles = self.helper.consolidate_profiles(profiles=profiles)
         bp = 'here'
@@ -195,10 +195,9 @@ class KlaviyoAPI:
     #MARK: __page__
     def __page__(self, parsed_response: dict):
         paging_links = parsed_response.get('links')
-        if paging_links == None:
+        if paging_links == None or paging_links['next'] == None:
             self.logger.info(f'No more pages found')
             return False, ''
-        bp = 'here'
         return True, parsed_response['links']['next']
 
         #fill rate for

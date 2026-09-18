@@ -28,7 +28,7 @@ class Five9CallSegments(Pipeline):
         return data_transformed
     
     def load(self, data_transformed):
-        self.centralstore.checked_upsert_paginated('Five9CallSegments', data_transformed)
+        self.centralstore.merge_table_paginated('Five9CallSegments', data_transformed)
         data_loaded = data_transformed
         return data_loaded
     
