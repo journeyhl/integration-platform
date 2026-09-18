@@ -69,7 +69,7 @@ class DefaultTransformer:
         '''
         string = self._handle_none_and_empty_strings_(string=string, string_descr=string_descr, log_prefix=log_prefix)
         if string == None:
-            return ''
+            return None
         def split_by_character(check_str: str, split_char: str = ' '):
             new_str = ''
             if split_char == '-':
@@ -164,7 +164,7 @@ class DefaultTransformer:
 
     #MARK: parse_date_str
     def parse_date_str(self, date_str: str | None, tries: int, format: str = '%Y-%m-%dT%H:%M:%S.%fZ', offset: bool = False, log_prefix: str = ''):
-        self.logger.info(f'{log_prefix}Date string provided: {date_str}, format provided: {format}. {'No offset' if not offset else 'Offset'}')
+        # self.logger.info(f'{log_prefix}Date string provided: {date_str}, format provided: {format}. {'No offset' if not offset else 'Offset'}')
         date_str = self._handle_none_and_empty_strings_(string=date_str, string_descr='Date', additional_conditions=tries<5, log_prefix=log_prefix, additional_log_str='string is blank or fifth try has been exceeded, returning None...')
         if date_str == None:            
             return None        
@@ -178,15 +178,15 @@ class DefaultTransformer:
         try:
             date = datetime.strptime(date_str, format) + timedelta(hours=offset_hrs)
         except ValueError as e:
-            self.logger.warning(f"{log_prefix}Couldn't parse `{date_str}` in the format provided ({format}), trying backup format...")
+            # self.logger.warning(f"{log_prefix}Couldn't parse `{date_str}` in the format provided ({format}), trying backup format...")
             tries += 1
             try:
-                date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%SZ')
+                date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=offset_hrs)
             except ValueError as e:
-                self.logger.warning(f"{log_prefix}Couldn't parse date again...Appending Z and trying again as `{date_str}Z{offset_hr_str}`...")
+                # self.logger.warning(f"{log_prefix}Couldn't parse date again...Appending Z and trying again as `{date_str}Z{offset_hr_str}`...")
                 tries += 1
                 date = self.parse_date_str(date_str=f'{date_str}Z{offset_hr_str}', tries=tries, offset=offset_hr_str!='', log_prefix=log_prefix)
-        self.logger.info(f'{log_prefix}Parsed date successfully!')
+        # self.logger.info(f'{log_prefix}Parsed date successfully!')
         return date
 
 
@@ -224,7 +224,7 @@ class DefaultTransformer:
          ### _______replace_me_______
         '''
         if string == None or string.strip() == '' or not additional_conditions:
-            self.logger.error(f'{log_prefix}{string_descr} {'value is blank, returning None...' if additional_log_str == '' else additional_log_str}')
+            # self.logger.error(f'{log_prefix}{string_descr} {'value is blank, returning None...' if additional_log_str == '' else additional_log_str}')
             return None
         return string.strip()
 
@@ -252,7 +252,7 @@ class DefaultTransformer:
                 col_copy = col_copy.replace('(', '').replace(')', '').replace('–', '-').replace('-', ' ').replace('_', ' ').replace(ts_str, '').replace(':', '').replace(',', '').replace('  ', ' ')
             col_copy2 = self.string_case_pascal(string=col_copy)
             bp = 'here'
-            stripped = ''.join([s for s in col_copy2.split(' ')])
+            stripped = ''.join([s for s in col_copy2.split(' ')]) if col_copy2 != None else ''
             if strategy == '.get':
                 pstr = f"'{column}': '{stripped}'," if output_format == 'df' else f"'{stripped}': {dict_name}.get('{column}'),"
             else:

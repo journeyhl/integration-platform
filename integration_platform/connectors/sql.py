@@ -354,7 +354,7 @@ class SQLConnector(Generic[QT]):
         self.engine = self._create_engine_()
         self.raw_connection = self.engine.raw_connection()
         self.queries = _QUERY_CLASSES.get(database_name, Queries)(database_name)  # type: ignore[assignment]
-        self.sqlhelper = SQLHelper(sqldb=self)
+        self.sql_helper = SQLHelper(sqldb=self)
         pass
 
     #MARK: _create_engine_
@@ -688,6 +688,28 @@ end
 
     #MARK: merge_table_paginated
     def merge_table_paginated(self, table_name: str, data: list[dict], page_size: int = 500):
+        ''':class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector.merge_table_paginated`
+        ---
+        
+        Method to merge records into a given table. Can be used in place of :meth:`~integration_platform.connectors.sql.SQLConnector.checked_upsert_paginated`
+        
+        If row with key value exists, updates, if not, inserts
+        
+        Parameters
+        ---
+        :param (*str*) `table_name`: name of table to upsert/merge records into
+        :param (*list[dict]*) `data`: list of data that should be upserted/merged
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### :class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector._init_pagination_`
+        
+          - Sets variables needed for pagination operations
+        
+         ### :class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector._dict_to_params_`
+        
+          - Sets variables needed for pagination operations
+        '''        
         sql_table = self.tables[table_name]
         total, page_size, batches, merge_batch_counter = self._init_pagination_(data=data, page_size=page_size, table_name=table_name, operation='merge')
         cursor = self.raw_connection.cursor()
@@ -710,10 +732,12 @@ values ({', '.join(f'source.{column}' for column in sql_table['columns'])});
                 self.logger.info(f'{done}/{total} rows merged, {len(data) - done} remain. {merge_batch_counter + 1} merges complete{f", {batches - merge_batch_counter} to go" if batches - merge_batch_counter != 0 else ""}')
                 merge_batch_counter += 1
             except Exception as e:
-                self.logger.error({
+                err = {
                     'Table': table_name,
                     'err_msg': e
-                })
+                }
+                self.logger.error(err)
+                self.sql_helper.error_log.append({**err, 'Rows': page})
                 bp = 'here'
         self.logger.info('Merge sequence complete!')
 

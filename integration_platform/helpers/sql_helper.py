@@ -21,7 +21,8 @@ class SQLHelper:
         if type(sqldb.pipeline) == str:
             self.logger = logging.getLogger(f'{sqldb.pipeline}.SQLHelper')
         else:
-            self.logger = logging.getLogger(f'{sqldb.pipeline.pipeline_name}.SQLHelper')        
+            self.logger = logging.getLogger(f'{sqldb.pipeline.pipeline_name}.SQLHelper')
+        self.error_log = []
         pass
 
 
@@ -127,6 +128,8 @@ begin\n"""
                 dtype_str = f'varchar({maxlen}),'
             elif str(dtype) == 'Decimal(precision=38, scale=2)':
                 dtype_str = 'decimal(18,2),'
+            elif str(dtype) == 'Float64':
+                dtype_str = 'decimal(18,4),'
             elif str(dtype) == "Datetime(time_unit='us', time_zone='America/New_York')":
                 dtype_str = 'datetime,'
             elif str(dtype) == "Datetime(time_unit='us', time_zone=None)":
@@ -137,6 +140,8 @@ begin\n"""
                 dtype_str = 'int,'
             elif str(dtype) == 'Date':
                 dtype_str = 'Date,'
+            elif str(dtype) == 'Null':
+                dtype_str = 'varchar(55),'
             else:
                 dtype_str = str(dtype)
             if 'date' in column.lower():

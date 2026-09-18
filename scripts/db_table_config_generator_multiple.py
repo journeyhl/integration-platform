@@ -61,9 +61,9 @@ elif db_input.lower() == acudb[0:input_len].lower():
 
 db = SQLConnector('config-generator', db)
 tables = [
-
-'analytics.JHL_B2BCustomerCohorts',
-'analytics.JHL_B2BCustomerCohort_Snapshot'
+'klaviyo.ProfileHeader',
+'klaviyo.ProfileProperties',
+'klaviyo.ProfileSubscriptions',
 # 'ryder.Orders',
 # 'ryder.OrderEvents',
 # 'ryder.ShipmentEvents',
