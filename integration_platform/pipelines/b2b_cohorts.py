@@ -19,17 +19,18 @@ class B2BCohorts(Pipeline):
         self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
             pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
         )
+        self.b2b_d2c = 'B2B'
         self.transformer = Transform(self)
 
 
     def extract(self) -> dict[str, pl.DataFrame]:
         order_history = self.centralstore.query_to_dataframe(self.centralstore.queries.B2BCohorts_OrderHistory)
         data_extract = {
-            'order_history': order_history,
+            'customer_order_history': order_history,
         }
         return data_extract
 
-    def transform(self, data_extract: dict[str, pl.DataFrame]):
+    def transform(self, data_extract: dict[str, list[dict]]):
         customers_with_cohort = self.transformer.landing(data_extract)
         return customers_with_cohort
     

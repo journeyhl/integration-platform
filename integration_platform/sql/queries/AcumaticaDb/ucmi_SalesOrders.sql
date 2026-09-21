@@ -67,8 +67,8 @@ inner join SOAddress ba on s.CompanyID = ba.CompanyID and s.BillAddressID = ba.A
 inner join SOAddress sa on s.CompanyID = sa.CompanyID and s.ShipAddressID = sa.AddressID and s.CustomerID = sa.CustomerID
 inner join SOContact bc on s.CompanyID = bc.CompanyID and s.CustomerID = bc.CustomerID and s.BillContactID = bc.ContactID
 inner join SOContact sc on s.CompanyID = sc.CompanyID and s.CustomerID = sc.CustomerID and s.ShipContactID = sc.ContactID
-left join SOLine l on s.CompanyID = l.CompanyID and s.OrderNbr = l.OrderNbr and s.OrderType = l.OrderType and s.CustomerID = l.CustomerID
-left join InventoryItem i on s.CompanyID = i.CompanyID and l.InventoryID = i.InventoryID
+inner join SOLine l on s.CompanyID = l.CompanyID and s.OrderNbr = l.OrderNbr and s.OrderType = l.OrderType and s.CustomerID = l.CustomerID
+inner join InventoryItem i on s.CompanyID = i.CompanyID and l.InventoryID = i.InventoryID
 left join SOShipLine shl on s.CompanyID = shl.CompanyID and l.OrderNbr = shl.OrigOrderNbr and l.OrderType = shl.OrigOrderType and l.LineNbr = shl.OrigLineNbr and s.CustomerID = shl.CustomerID
 left join SOShipment sh on s.CompanyID = sh.CompanyID and shl.ShipmentNbr = sh.ShipmentNbr and s.CustomerID = sh.CustomerID
 left join CustSalesPeople csp on s.CompanyID = csp.CompanyID and s.CustomerID = csp.BAccountID

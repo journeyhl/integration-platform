@@ -100,6 +100,8 @@ class CentralStoreQueries(Queries):
     MFRInsertsExport: Query
     '''Summarized pull from analytics.mfr_with_spend filtered to category = 'Inserts', grouped by ad/version/product/start_date. Exported weekly to the INC_MEDIA SFTP.'''
     B2BCohorts_OrderHistory: Query
+    D2CCohorts_OrderHistory: Query
+    Cohorts_OrderHistory: Query
     B2BCohorts_GenerateAttributeIDs: Query
 
 class AcumaticaDbQueries(Queries):

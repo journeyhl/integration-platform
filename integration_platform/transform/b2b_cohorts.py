@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from integration_platform.pipelines.b2b_cohorts import B2BCohorts
+    from integration_platform.pipelines.customer_cohorts import CustomerCohorts
 import logging
 import polars as pl
 from datetime import datetime, timedelta
@@ -9,7 +10,7 @@ from zoneinfo import ZoneInfo
 from dateutil.relativedelta import relativedelta
 import uuid
 class Transform:
-    def __init__(self, pipeline: B2BCohorts):
+    def __init__(self, pipeline: B2BCohorts | CustomerCohorts):
         self.pipeline = pipeline        
         self.logger = logging.getLogger(f'{pipeline.pipeline_name}.Transform')
         self.customers = {}
@@ -29,8 +30,8 @@ class Transform:
         pass
 
 
-    def landing(self, data_extract: dict[str, pl.DataFrame]):
-        order_history = data_extract['order_history'].to_dicts()
+    def landing(self, data_extract: dict[str, list[dict]]):
+        order_history = data_extract['customer_order_history']
         bp = 'here'
         self.logger.info(f'Iterating through order history query')
         self.now = datetime.now(ZoneInfo('America/New_York')).date()
@@ -93,12 +94,12 @@ class Transform:
             if order['PartProdAccFee'] != 'No Orders':
                 self.customers[order['CustomerID']] = [order]
             else:
-                self.no_orders.append({'CustomerID': order['CustomerID'], 'Customer': order['AccountName'], 'CreatedOn': order['CreatedOn']})
+                self.no_orders.append({'CustomerID': order['CustomerID'], 'CustomerClass': order['CustomerClass'], 'Customer': order['AccountName'], 'CreatedOn': order['CreatedOn']})
         else:
             if order['PartProdAccFee'] != 'No Orders':
                 self.customers[order['CustomerID']].append(order)
             else:
-                self.no_orders.append({'CustomerID': order['CustomerID'], 'Customer': order['AccountName'], 'CreatedOn': order['CreatedOn']})
+                self.no_orders.append({'CustomerID': order['CustomerID'], 'CustomerClass': order['CustomerClass'], 'Customer': order['AccountName'], 'CreatedOn': order['CreatedOn']})
 
 
     def customer_landing(self):
@@ -198,6 +199,7 @@ class Transform:
         total = len(self.customers)
         for i, (customer, orders) in enumerate(self.customers.items()):
             self.log_prefix = f'{customer}, {i+1}/{total}: '
+            customer_class = orders[0].get('CustomerClass') or self.pipeline.b2b_d2c
             anchor_date = orders[0]['DatePlaced']
             created_on = orders[0]['CreatedOn']
             anchor_type = 'New Parts & Accessories'
@@ -233,6 +235,7 @@ class Transform:
             ) or ''
             self.logger.info(f'{self.log_prefix}{cohort}')
             customer_cohort = {
+                'CustomerClass': customer_class,
                 'CustomerID': customer,
                 'Cohort': cohort,
                 'AnchorDate': anchor_date,

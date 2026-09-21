@@ -19,12 +19,9 @@ from acu.Customers c
 left join acu.SalesOrders s on c.CustomerID = s.CustomerID
 left join acu.InventorySummary i on s.InventoryCD = i.InventoryCD
 left join acu.ItemClassification ic on i.InventoryCD = ic.InventoryCD
-where c.CustomerClass = 'B2B'
 )
 select *
 	 , row_number() over(partition by t.CustomerID, PartProdAccFee order by DatePlaced, OrderNbr) OrderProdAsc
 	 , row_number() over(partition by t.CustomerID, PartProdAccFee order by DatePlaced desc, OrderNbr desc) OrderProdDesc
 from TopLevel t
 order by CustomerID, OrdersDesc
-
-

@@ -64,6 +64,7 @@ from .ryder_to_dbc import RyderToDbc
 from .b2b_cohorts import B2BCohorts
 from .b2b_zipcodes import B2BZipCodes
 from .link_b2b_cohorts_to_acu import B2BCohortsLinkToAcu
+from .customer_cohorts import CustomerCohorts
 from .pack_ryder_shipments import PackRyderShipments
 from .ucmi_hubspot import UCMI_HubspotCustomers
 from .ucmi_acumatica import UCMI_AcumaticaCustomers
