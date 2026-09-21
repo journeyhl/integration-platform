@@ -995,14 +995,6 @@ class HubSpotAPI:
 
         Sets snapshot start windows for :class:`~integration_platform.pipelines.hubspot_snapshot.HubspotSnapshot`
 
-        Parameters
-        ---
-
-        <hr>
-
-        Returns
-        ---
-
         <hr>
 
         Sets

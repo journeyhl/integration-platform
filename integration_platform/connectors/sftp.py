@@ -13,31 +13,70 @@ class SFTP():
             self.logger = logging.getLogger(f'{pipeline}.SFTP')
         else:
             self.logger = logging.getLogger(f'{pipeline.pipeline_name}.SFTP')
-        if server == 'JHL':
-            self.host = JHL_SFTP['host']
-            self.port = JHL_SFTP['port']
-            self.username = JHL_SFTP['username']
-            self.password = JHL_SFTP['password']
-        elif server == 'Darwill':
-            self.host = DARWILL_SFTP['host']
-            self.port = DARWILL_SFTP['port']
-            self.username = DARWILL_SFTP['username']
-            self.password = DARWILL_SFTP['password']
-        elif server == 'INC_MEDIA':
-            self.host = INC_MEDIA_SFTP['host']
-            self.port = INC_MEDIA_SFTP['port']
-            self.username = INC_MEDIA_SFTP['username']
-            self.password = INC_MEDIA_SFTP['password']
-        else:
-            self.logger.error(f'Invalid server!')
-
+        self._set_server_config_(server=server)
         self._connect_()
 
         pass
 
 
+    def _set_server_config_(self, server: str):
+        ''':class:`~integration_platform.connectors.sftp.SFTP`.:meth:`~integration_platform.connectors.sftp.SFTP._set_server_config_`
+        ---
+        
+        Given the server name to connect to, resolve mapping for connection details found in .env file and set class level connection variables
+        
+        Parameters
+        ---
+        :param (*str*) `server`: string for server, mapping currently setup for 'JHL', 'Darwill', or 'INC_MEDIA' values
 
+        <hr>
+        
+        Sets
+        ---
+        - ### self.:attr:`~integration_platform.connectors.sftp.SFTP.host`, self.:attr:`~integration_platform.connectors.sftp.SFTP.port`, self.:attr:`~integration_platform.connectors.sftp.SFTP.username`, self.:attr:`~integration_platform.connectors.sftp.SFTP.password`
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.connectors.sftp.SFTP`.:meth:`~integration_platform.connectors.sftp.SFTP.__init__`
+        
+          - Called upon connector's initialization
+        '''        
+        try:
+            mapping = {
+                'JHL': JHL_SFTP,
+                'Darwill': DARWILL_SFTP,
+                'INC_MEDIA': INC_MEDIA_SFTP
+            }
+            self.host = mapping[server]['host']
+            self.port = mapping[server]['port']
+            self.username = mapping[server]['username']
+            self.password = mapping[server]['password']
+        except:
+            self.logger.error(f'Invalid server!')
+
+    #MARK: _connect_
     def _connect_(self):
+        ''':class:`~integration_platform.connectors.sftp.SFTP`.:meth:`~integration_platform.connectors.sftp.SFTP._connect_`
+        ---
+        
+        Using self.:attr:`~integration_platform.connectors.sftp.SFTP.host`, self.:attr:`~integration_platform.connectors.sftp.SFTP.port`, self.:attr:`~integration_platform.connectors.sftp.SFTP.username` and self.:attr:`~integration_platform.connectors.sftp.SFTP.password`, connect to a given SFTP server
+
+        <hr>
+
+        Sets
+        ---
+        - #### self.:attr:`~integration_platform.connectors.sftp.SFTP.sftp`
+
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.connectors.sftp.SFTP`.:meth:`~integration_platform.connectors.sftp.SFTP.__init__`
+        
+          - Called upon connector's initialization
+        '''        
         try:
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -50,7 +89,7 @@ class SFTP():
         bp = 'here'
         
 
-
+    #MARK: list_directory
     def list_directory(self, directory: str):
         files = []
         for file in self.sftp.listdir(directory):
@@ -68,14 +107,14 @@ class SFTP():
             bp = 'here'
         return files
 
+    #MARK: list_directories
     def list_directories(self):
         dirs = self.sftp.listdir('/')
         return dirs
 
 
-        bp = 'here'
-        # self.sftp.get(path, )
     
+    #MARK: get_file_as_dataframe
     def get_file_as_dataframe(self, type: Literal['csv', 'xlsx'], path: str = '/apps/five9/reports/CallSegments3.csv') -> pl.DataFrame:
         ''':class:`~integration_platform.connectors.sftp.SFTP`.:meth:`~integration_platform.connectors.sftp.SFTP.get_file_as_dataframe`
         ---
@@ -115,15 +154,13 @@ class SFTP():
             return pl.DataFrame()
 
 
+    #MARK: upload_dataframe_as_csv
     def upload_dataframe_as_csv(self, df: pl.DataFrame, remote_path: str):
-        '''`upload_dataframe_as_csv`(self, df: *pl.DataFrame*, remote_path: *str*):
+        '''`:class:`~integration_platform.connectors.sftp.SFTP`.:meth:`~integration_platform.connectors.sftp.SFTP.upload_dataframe_as_csv`
         ---
-        <hr>
 
         Serialize a Polars DataFrame to CSV and upload it to the connected SFTP
         server at `remote_path`.
-
-        <hr>
 
         Parameters
         ---
@@ -147,16 +184,15 @@ class SFTP():
             raise
 
 
-#region archive
-
+#region Archived methods
+#
+#
+#
+#
+    #MARK: get_csv_file_as_dataframe
     def get_csv_file_as_dataframe(self, type: str = 'csv', path: str = '/apps/five9/reports/CallSegments3.csv') -> pl.DataFrame:
-        '''`get_csv_file_as_dataframe`(self, path: *str = '/apps/five9/reports/CallSegments3.csv'*):
+        ''':class:`~integration_platform.connectors.sftp.SFTP`.:meth:`~integration_platform.connectors.sftp.SFTP.get_csv_file_as_dataframe`
         ---
-        <hr>
-        
-        
-            
-        <hr>
         
         Parameters
         ---
