@@ -19,6 +19,6 @@
 "workbench.editor.showTabIndex": true,
 "editor.minimap.scale": 3,
 "editor.colorDecorators": true,
-"editor.minimap.renderCharacters": false
+"editor.minimap.renderCharacters": true
     
 }

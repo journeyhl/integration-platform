@@ -68,9 +68,8 @@ class AcumaticaAPIHelper:
 
     #region format_manage_sales_allocations
     def format_manage_sales_allocations(self, order_data: dict) -> dict:
-        ''':class:`~AcumaticaAPIHelper`.:meth:`~format_manage_sales_allocations` (self, order_data: *dict*):
+        ''':class:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper`.:meth:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper.format_manage_sales_allocations`
         ---
-        <hr>
         
         Formats payload to pass to :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.target_api` for managing sales allocations
         

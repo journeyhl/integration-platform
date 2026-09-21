@@ -3,7 +3,7 @@ from integration_platform.connectors import AcumaticaAPI
 from integration_platform.transform.manage_sales_allocations import Transform
 
 from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
-
+from integration_platform.load.allocate_sales_orders import Load
 
 
 class AllocateSalesOrders(Pipeline):
@@ -13,10 +13,9 @@ class AllocateSalesOrders(Pipeline):
         self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
             pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
         )
-        # self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(pipeline=self, database_name='AcumaticaDb')
-        # self.acudev: SQLConnector[AcumaticaDbQueries] = SQLConnector(pipeline=self, database_name='AcudevDb')
         self.acu_api = AcumaticaAPI(self, env=env)
         self.transformer = Transform(self)
+        self.loader = Load(self)
 
     def extract(self):
         order_extract = self.acudb.query_to_dataframe(self.acudb.queries.AllocateSalesOrders)
@@ -32,6 +31,7 @@ class AllocateSalesOrders(Pipeline):
         return data_transformed
     
     def load(self, data_transformed):
+        self.loader.landing(data_transformed=data_transformed)
         data_loaded = data_transformed
         return data_loaded
     

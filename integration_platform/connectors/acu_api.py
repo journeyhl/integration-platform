@@ -218,23 +218,18 @@ class AcumaticaAPI:
     
     #region rc_send_to_wh
     def rc_send_to_wh(self, OrderNbr, OrderType, CustomerID):
-        '''`rc_send_to_wh`(self, OrderNbr, OrderType, CustomerID)
+        ''':class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.rc_send_to_wh`
         ---
-        <hr>
         
         * Marks an *Order*'s **RC Ship to Warehouse** attribute to true. (AttributeRCSHP2WH)
 
         * API Method: **PUT**
-        
-        <hr>
         
         Parameters
         ---
         :param (*str*) `OrderNbr`: OrderNbr of Order to update (AR078365)
         :param (*str*) `OrderType`: OrderType of Order to update (RC)
         :param (*str*) `CustomerID`: CustomerID or AcctCD of Customer on Order (C0090306, C0067451)
-        
-        <hr>
 
         Returns
         ---
@@ -264,24 +259,16 @@ class AcumaticaAPI:
 
     
     #region validate_order_address
-    def validate_order_address(self, order_data: dict):
-        """`validate_order_address`(self, order_data: *dict*)
+    def validate_order_address(self, order_data: dict):        
+        ''':class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.validate_order_address`
         ---
-        <hr>
         
         Given a dict containing **OrderType** and **OrderNbr**, attempts to validate a Sales Order's addresses
-        
-        <hr>
         
         Parameters
         ---
         :param (*dict*) `order_data`: dict containing **OrderNbr** and **OrderType**
-        
-        <hr>
-        
-        Returns
-        ---
-        """
+        '''
         payload = self.helper.format_validate_order_address(order=order_data)
 
         response = self.session.post(f'{self.base_uri}/SalesOrder/ValidateAddresses', json=payload)
@@ -300,13 +287,10 @@ class AcumaticaAPI:
 
     #region target_api
     def target_api(self, endpoint: str, payload_data: dict, operation: str = 'put', descr: str = None): #type: ignore
-        """`target_api`(self, endpoint: *str*, payload_data: *dict*, operation: *str*, descr: *str*)
+        """:class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.target_api`
         ---
-        <hr>
         
         Allows us to target the acumatica api with multiple endpoints in one method
-        
-        <hr>
         
         Parameters
         ---
@@ -314,8 +298,6 @@ class AcumaticaAPI:
         :param (*dict*) `payload_data`: Dictionary containing **target_api_update_payload**, **log_success**, **log_error**, **acu_api_data_log**    
         :param (*str*) `operation`: API Operation (**PUT**, **POST**, **GET**)
         :param (*str*) `descr`: What the payload will do (**Override & Update**)
-
-        <hr>
         
         Returns
         ---
@@ -338,7 +320,7 @@ class AcumaticaAPI:
                 self.logger.info(payload_data['log_error'])
                 return_bool = False
             self.helper.format_data_log_entry(entity=data_log['Entity'], key_value=data_log['Entity'], operation=data_log['Entity'], payload=data_log['Payload'], response=response_str, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
-        if descr == 'Reclassify Transaction':
+        elif descr == 'Reclassify Transaction':
             self.helper.reclassify_transaction_response(payload_data=payload_data, response=response)
             self.helper.format_data_log_entry(entity=data_log['Entity'], key_value=data_log['Entity'], operation=data_log['Entity'], payload=data_log['Payload'], response=response_str, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
 
@@ -382,7 +364,7 @@ class AcumaticaAPI:
 
     #region get_order_details
     def get_order_details(self, order_data: dict, additional_details: str = '') -> dict:
-        ''':class:`~AcumaticaAPI`.:meth:`~get_order_details`
+        ''':class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.get_order_details`
         ---
         
         Retrieves order details from Acumatica via API
@@ -396,8 +378,6 @@ class AcumaticaAPI:
         :param (*str*) `additional_details`: Additional data to get from API, for example, pass `?$expand=Shipments` to get Shipment details with response
 
             - #### To retrieve an attribute, pass it as follows: ?$custom=Document.AttributeAFTSHIPID
-        
-        <hr>
         
         Returns
         ---
@@ -438,20 +418,19 @@ class AcumaticaAPI:
 
     #region order_remove_hold
     def order_remove_hold(self, order_data: dict):
-        ''':class:`~AcumaticaAPI`.:meth:`~order_remove_hold`
+        ''':class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.order_remove_hold`
         ---
-        <hr>
         
         Given a dictionary containing OrderType and OrderNbr, removes an Order from hold
-        
-        ### Upstream Calls 
-         #### Address Validator - :class:`~load.address_validator.Load`.:meth:`~load.address_validator.Load.landing`
-            
-        <hr>
         
         Parameters
         ---
         :param (*dict*) `order_data`: dictionary containing at least OrderType and OrderNbr
+            
+        <hr>
+        
+        ### Upstream Calls 
+         #### Address Validator - :class:`~load.address_validator.Load`.:meth:`~load.address_validator.Load.landing`
         '''
         self.logger.info(f'{order_data['OrderNbr']}: Removing Order from hold')
         bp = 'here'   
@@ -540,11 +519,10 @@ class AcumaticaAPI:
 
     #region Shipment
 
-    #region shipment_details
+    #MARK: shipment_details
     def shipment_details(self, shipment_data: dict):
         '''shipment_details`(self, shipment_data)`
         ---
-        <hr>
 
         * Gets Shipment details for a given *Shipment*
 
@@ -574,9 +552,8 @@ class AcumaticaAPI:
         except Exception as e:
             self.logger.error(f'Error getting packages for {shipment_data['ShipmentNbr']}')
             return {}
-    #endregion
 
-    #region shipment_details_attr
+    #MARK: shipment_details_attr
     def shipment_details_attr(self, shipment_data: dict):
         '''shipment_details`(self, shipment_data)`
         ---
@@ -613,9 +590,8 @@ class AcumaticaAPI:
         except Exception as e:
             self.logger.error(f'Error getting packages for {shipment_data['ShipmentNbr']} ({shipment_data['OrderNbr']})')
             return {}
-    #endregion
         
-    #region add_package
+    #MARK: add_package
     def add_package(self, shipment_data: dict):
         '''add_package`(self, shipment_data: *dict*)`
         ---
@@ -673,10 +649,9 @@ class AcumaticaAPI:
         ]
         shipment_data = self.get_package_details(shipment_data, body)
         return shipment_data
-    #endregion
 
 
-    #region add_package_v2
+    #MARK: add_package_v2
     def add_package_v2(self, shipment_data: dict):
         '''`add_package_v2`(self, shipment_data: *dict*):
         ---
@@ -700,9 +675,8 @@ class AcumaticaAPI:
         shipment_data = self.get_package_details(shipment_data, shipment_data['PackagePayload'])
         bp = 'here'
         return shipment_data
-    #endregion
 
-    #region get_package_details
+    #MARK: get_package_details
     def get_package_details(self, shipment_data, body=None):
         '''`get_package_details`(self, shipment_data)
         ---
@@ -747,24 +721,23 @@ class AcumaticaAPI:
             self.logger.warning(response_str)
         self.helper.format_data_log_entry(entity='Shipment', key_value=shipment_data['ShipmentNbr'], operation=f'PUT: Package {verb} {shipment_data['ShipmentNbr']}!', payload=body, response=response_str, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
         return shipment_data
-    #endregion
 
-    #region confirm_shipment
+    #MARK: confirm_shipment
     def confirm_shipment(self, shipment_data: dict):
-        '''`confirm_shipment`(self, shipment_data: *dict* )
+        ''':class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.confirm_shipment`
         ---
-        <hr>
         
-        Confirms Shipment
-        <hr>
-
+        Given a dict of shipment data, ***`ShipmentNbr` required***, confirm the shipment in acumatica
+        
         Parameters
-        -------------
+        ---
+        :param (*dict*) `shipment_data`: dict containing `ShipmentNbr`
 
-        :param `shipment_data`: Dictionary of Shipment data.
-        :type shipment_data: dict
+        <hr>
         
-        - Required: **ShipmentNbr**
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### :class:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper`.:meth:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper.format_data_log_entry`
         '''
         self.logger.info(f'Confirming Shipment {shipment_data['ShipmentNbr']}')
         body = {
@@ -782,33 +755,34 @@ class AcumaticaAPI:
         self.logger.info(f'{response.status_code} {response.reason}')
         self.helper.format_data_log_entry(entity='Shipment', key_value=shipment_data['ShipmentNbr'], operation='POST - Confirm Shipment', payload=body, response=response_str, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
 
-    #endregion
 
 
-    #region update_reason_code
-    def update_reason_code(self, shipment_data: dict, line_data: dict):    
-        '''`update_reason_code`(self, shipment_data: *dict*, line_data: *dict*)
+    #MARK: update_reason_code
+    def update_reason_code(self, shipment_data: dict, line_data: dict):
+        ''':class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.update_reason_code`
         ---
-        <hr>
         
         Updates Reason Code on the line of a Shipment to *RETURN*
         
-        <hr>
-        
         Parameters
-        ----------
-        
-        :param `shipment_data`: Shipment data
-        :type shipment_data: dict
-        :param `line_data`: For each line on Shipment, line_data is that line's data dict
-        :type line_data: dict
-        
-        <hr>
+        ---
+        :param (*dict*) `shipment_data`: Shipment data
+        :param (*dict*) `line_data`: For each line on Shipment, line_data is that line's data dict
         
         Returns
-        ----------
+        ---
+        :return `line_data` (*dict*): Line data with updated Reason Code
         
-        :return `line_data` (*dict*): Line data with updated Reason Code'''
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.load.shipment_api.Load`.:meth:`~integration_platform.load.shipment_api.Load.check_reason_code`
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### :class:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper`.:meth:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper.format_data_log_entry`
+        '''
         self.logger.info(f'Updating ReasonCode on line {line_data['LineNbr']} of {shipment_data['ShipmentNbr']} from {line_data['ReasonCode']} to RETURN')
         body = {
             "ShipmentNbr": { "value": f"{shipment_data['ShipmentNbr']}" },
@@ -825,33 +799,34 @@ class AcumaticaAPI:
         response_str = f'{response.status_code} {response.reason}'
         self.helper.format_data_log_entry(entity='Shipment', key_value=shipment_data['ShipmentNbr'], operation='PUT - Update ReasonCode on Shipment Line', payload=body, response=response_str, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
         return line_data
-    #endregion
 
-    #region send_to_wh
+    #MARK: send_to_wh
     def send_to_wh(self, ShipmentNbr, CustomerID):
-        '''`send_to_wh`(ShipmentNbr, CustomerID, )
+        ''':class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.send_to_wh`
         ---
-        <hr>
         
-        _summary_
-        
-        <hr>
+        Mark a shipment as sent to warehouse in Acumatica
         
         Parameters
         ---
-        
-        :param `ShipmentNbr`: _description_
-        :type ShipmentNbr: _type_
-        :param `CustomerID`: _description_
-        :type CustomerID: _type_
-        
-        <hr>
+        :param (*str*) `ShipmentNbr`: ShipmentNbr of shipment to mark as sent
+        :param (*str*) `CustomerID`: CustomerID of customer on Shipment
         
         Returns
         ---
         :return `self.status_description` (*str*): Details of interaction with Acumatica API
 
-        :return `body` (*dict*): Dictionary of what was sent to Acumatica API'''
+        :return `body` (*dict*): Dictionary of what was sent to Acumatica API
+        
+        <hr>
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.parse_response`
+        
+         ### :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.send_to_wh`
+        '''        
+
         body = {
             "CustomerID": { "value": f"{CustomerID}" },
             "ShipmentNbr": { "value": f"{ShipmentNbr}" },
@@ -877,37 +852,32 @@ class AcumaticaAPI:
                 bp = 'here'
         self.helper.format_data_log_entry(entity='Shipment', key_value=ShipmentNbr, operation='PUT - Mark Shipment as Sent to WH', payload=body, response=self.status_description, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
         return self.status_description, body
-    #endregion
 
-    #region rc_send_to_wh_v2
+    #MARK: rc_send_to_wh_v2
     def rc_send_to_wh_v2(self, OrderNbr: str, OrderType: str, CustomerID: str, attribute_payload: dict = {}, log_prefix: str = ''):
-        '''`rc_send_to_wh_v2`(self, OrderNbr, OrderType, CustomerID)
+        ''':class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.rc_send_to_wh_v2`
         ---
-        <hr>
         
-        * Marks an *Order*'s **RC Ship to Warehouse** attribute to true. (**AttributeRCSHP2WH**)
-        - Additionally, sends the payload included in **attribute_payload**
-            - If none, only **AttributeRCSHP2H** is updated
+        Marks an *Order*'s **RC Ship to Warehouse** attribute to true. (**AttributeRCSHP2WH**)
 
-        * API Method: **PUT**
-        
-        <hr>
+        Additionally, sends the payload included in **attribute_payload**, If none, only **AttributeRCSHP2H** is updated
         
         Parameters
         ---
-        :param (*str*) `OrderNbr`: OrderNbr of Order to update (AR078365)
-        :param (*str*) `OrderType`: OrderType of Order to update (RC)
-        :param (*str*) `CustomerID`: CustomerID or AcctCD of Customer on Order (C0090306, C0067451)
+        :param (*str*) `OrderNbr`: OrderNbr of order to mark as sent
+        :param (*str*) `OrderType`: OrderType of order to mark as sent
+        :param (*str*) `CustomerID`: CustomerID on order
         
-        <hr>
-
+                
+           ### ***Optional***
+        :param (*dict = {}*) `attribute_payload`: Other attributes and values to send along with marking order as sent
+        :param (*str = ''*) `log_prefix`: String to prepend to any logger outputs. Usually used when iterating, like `'keyvalue1, 1/150: '`, `'keyvalue2, 2/150: '` and so on 
+        
         Returns
         ---
-
-            __self.status_description__ (str): Details of interaction with Acumatica API
-            __body__ (dict): Dictionary of what was sent to Acumatica API
-
-        '''
+        :return `status_description` (str): description of api operation result
+        :return `body` (dict): what was sent to acu api
+        '''  
         body = {
             "CustomerID": { "value": f"{CustomerID}" },
             "OrderType": {"value": f"{OrderType}"},
@@ -937,10 +907,9 @@ class AcumaticaAPI:
                 self.status_description = 'FAILURE'
         self.helper.format_data_log_entry(entity='SalesOrder', key_value=OrderNbr, operation='PUT - Mark RC Order as Sent To WH', payload=body, response=self.status_description, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
         return self.status_description, body
-    #endregion
     
 
-    #region send_to_wh_v2
+    #MARK: send_to_wh_v2
     def send_to_wh_v2(self, ShipmentNbr: str, CustomerID: str, attribute_payload: dict = {}, log_prefix: str = ''):
         '''`sent_to_wh_v2`(self, ShipmentNbr: *str*, CustomerID: *str*, attribute_payload: *dict*)
         ===
@@ -994,13 +963,13 @@ class AcumaticaAPI:
                 self.status_description = 'FAILURE'
         self.helper.format_data_log_entry(entity='Shipment', key_value=ShipmentNbr, operation='PUT - Mark Shipment as Sent to WH', payload=body, response=self.status_description, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
         return self.status_description, body
-    #endregion
-    #endregion Shipment
+    
+#endregion Shipment
 
 
 
 #region Utility
-    #region parse_shipment_details
+    #MARK: parse_shipment_details
     def parse_shipment_details(self, shipment_data: dict, response: requests.Response):
         '''`parse_shipment_details`(self, shipment_data, response)
         ===
@@ -1221,12 +1190,11 @@ class AcumaticaAPI:
             self._auth_()
         pass
 
-    #region _logout_
+    #MARK: _logout_
     def _logout_(self):
         self.session.post(f'{self.auth_url}/logout')
         self.logger.info('Logged out of Acumatica API session')
         pass
-    #endregion
 #endregion Authentication/Logout
 
 
@@ -1235,52 +1203,39 @@ class AcumaticaAPI:
 
 
 
-#region Journal Transactions
-    #region reclassify_transaction
+    #MARK: reclassify_transaction
     def reclassify_transaction(self, cogs_entry: dict):
         bp = 'here'
         full_payload = self.helper.format_reclassify_transaction(cogs_entry=cogs_entry)
         self.target_api(endpoint='/JournalTransaction/ReclassifyCorrections', payload_data=full_payload, operation='post', descr='Reclassify Transaction')
-    #endregion
 
-#endregion
 
-#region Allocate Sales Order
-    #region manage_sales_allocations
+
+    #MARK: manage_sales_allocations
     def manage_sales_allocations(self, order_data: dict):
         full_payload = self.helper.format_manage_sales_allocations(order_data=order_data)
         self.target_api(endpoint='/ManageSalesAllocations/ProcessAllAllocations', payload_data=full_payload, operation='post', descr='Manage Sales Allocation')
         bp = 'here'
-    #endregion
-#endregion
 
 
 
 
 
-#region prepare shopify entity
-    #region prepare_shopify
+
+    #MARK: prepare_shopify
     def prepare_shopify(self, entity: str = 'Product Availability'):
         full_payload = self.helper.format_prepare_shopify(entity=entity)
         self.target_api(endpoint='/PrepareShopify/PrepareEntity', payload_data=full_payload, operation='post', descr=f'Prepare Shopify')
         bp = 'here'
-    #endregion
-#endregion
     
 
-#region process shopify entity
-    #region process_shopify
+    #MARK: process_shopify
     def process_shopify(self, entity_data: dict, entity: str = 'Product Availability'):
         full_payload = self.helper.format_process_shopify(entity_data=entity_data, entity=entity)
         self.target_api(endpoint='/ProcessShopify/ProcessEntity', payload_data=full_payload, operation='post', descr=f'Process Shopify')
         bp = 'here'
-    #endregion
-#endregion
-
-
-
-
-    #region get_process_shopify_records
+    
+    #MARK: get_process_shopify_records
     def get_process_shopify_records(self, entity: str = 'Product Availability', store: str = 'ShopJourneyProductio'):
         params = {
             "$filter": f"Store eq '{store}' and EntityName eq '{entity}'"
@@ -1288,4 +1243,4 @@ class AcumaticaAPI:
         response = self.session.get(f'{self.base_uri}/ProcessShopify', params=params)
         jresponse = response.json()
         return response.json()
-    #endregion
+
