@@ -18,7 +18,7 @@ class SFTP():
 
         pass
 
-
+    #MARK: _set_server_config_
     def _set_server_config_(self, server: str):
         ''':class:`~integration_platform.connectors.sftp.SFTP`.:meth:`~integration_platform.connectors.sftp.SFTP._set_server_config_`
         ---
@@ -90,7 +90,20 @@ class SFTP():
         
 
     #MARK: list_directory
-    def list_directory(self, directory: str):
+    def list_directory(self, directory: str) -> list:
+        ''':class:`~integration_platform.connectors.sftp.SFTP`.:meth:`~integration_platform.connectors.sftp.SFTP.list_directory`
+        ---
+        
+        Given the path to a directory, return each item within as a list
+        
+        Parameters
+        ---
+        :param (*str*) `directory`: path to directory on sftp server
+        
+        Returns
+        ---
+        :return `files` (list): list of files found within the directory whose path was passed as a parameter
+        '''        
         files = []
         for file in self.sftp.listdir(directory):
             sftp_path = directory + '/' + file
@@ -109,6 +122,11 @@ class SFTP():
 
     #MARK: list_directories
     def list_directories(self):
+        ''':class:`~integration_platform.connectors.sftp.SFTP`.:meth:`~integration_platform.connectors.sftp.SFTP.list_directories`
+        ---
+        
+        Lists directories on the root of the server
+        '''        
         dirs = self.sftp.listdir('/')
         return dirs
 
@@ -156,7 +174,7 @@ class SFTP():
 
     #MARK: upload_dataframe_as_csv
     def upload_dataframe_as_csv(self, df: pl.DataFrame, remote_path: str):
-        '''`:class:`~integration_platform.connectors.sftp.SFTP`.:meth:`~integration_platform.connectors.sftp.SFTP.upload_dataframe_as_csv`
+        ''':class:`~integration_platform.connectors.sftp.SFTP`.:meth:`~integration_platform.connectors.sftp.SFTP.upload_dataframe_as_csv`
         ---
 
         Serialize a Polars DataFrame to CSV and upload it to the connected SFTP
@@ -165,14 +183,14 @@ class SFTP():
         Parameters
         ---
         :param (*pl.DataFrame*) `df`: DataFrame to write out as CSV
-        :param (*str*) `remote_path`: Destination path (or filename, relative to
-            the account's landing directory) on the SFTP server
+
+        :param (*str*) `remote_path`: Destination path (or filename, relative to the account's landing directory) on the SFTP server
 
         <hr>
 
         Returns
         ---
-        The `remote_path` the file was written to.
+        :return `remote_path` (str): path that the dataframe was uploaded to
         '''
         try:
             buffer = io.BytesIO(df.write_csv().encode('utf-8'))
@@ -193,6 +211,8 @@ class SFTP():
     def get_csv_file_as_dataframe(self, type: str = 'csv', path: str = '/apps/five9/reports/CallSegments3.csv') -> pl.DataFrame:
         ''':class:`~integration_platform.connectors.sftp.SFTP`.:meth:`~integration_platform.connectors.sftp.SFTP.get_csv_file_as_dataframe`
         ---
+
+        Outdated, use :class:`~integration_platform.connectors.sftp.SFTP`.:meth:`~integration_platform.connectors.sftp.SFTP.get_file_as_dataframe`
         
         Parameters
         ---
