@@ -733,7 +733,7 @@ def acu_to_dbc_backorders(timer: af.TimerRequest):
 #   Ensure no chair removals are shipping separately
 # every 0:10 from 6am-10:50pm
 @app.timer_trigger(
-    schedule = '*/10 6-22 * * *',
+    schedule = '8/10 6-22 * * *',
     arg_name = 'timer',
     run_on_startup = False
 )
@@ -910,7 +910,7 @@ def rmi_inventory(timer: af.TimerRequest):
 #                           Allocates stock for any RMI wb orders    
 #                      3x/hr (:10, :30, :50) (once a day for now)
 @app.timer_trigger(
-    schedule = '10/20 * * * *',
+    schedule = '11/20 * * * *',
     arg_name = 'timer',
     run_on_startup = False
 )
