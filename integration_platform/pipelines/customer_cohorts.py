@@ -57,7 +57,8 @@ class CustomerCohorts(Pipeline):
 
     def _load_order_history_(self, order_history: list[dict]):
         order_history = self.default_loader.add_to_list(ldata=order_history, additions={'InsertedDT': self.ts_load, 'LastChecked': self.ts_load})
-        self.centralstore.merge_table_paginated(table_name=f'analytics.JHL_{self.b2b_d2c}CustomerOrderHistory', data=order_history, page_size=200)
+        self.centralstore.merge_table_paginated(table_name=f'analytics.JHL_{self.b2b_d2c}CustomerOrderHistory', data=order_history, page_size=500)
+        self.logger.info('Order history load complete!')
         bp = 'here'
         
     

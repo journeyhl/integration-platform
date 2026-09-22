@@ -421,11 +421,6 @@ class SQLConnector(Generic[QT]):
 
         <hr>
 
-        Returns
-        ---
-
-        <hr>
-
         ## Upstream Calls (Methods/Functions Called by)
 
          - Used throughout the project — called from pipeline `_load_` methods to append DataFrame contents into `db_CentralStore` tables
@@ -537,7 +532,7 @@ end
 
     #MARK: checked_upsert_paginated
     def checked_upsert_paginated(self, table_name: str, data: list, page_size: int = 100):
-        ''':class:`~SQLConnector`.:meth:`~checked_upsert_paginated`
+        ''':class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector.checked_upsert_paginated`
         ---
 
         Given a table name and a list of rows (dicts) to insert, performs a paginated upsert to database.
@@ -748,10 +743,10 @@ values ({', '.join(f'source.{column}' for column in sql_table['columns'])});
 
     #MARK: query_to_dataframe
     def query_to_dataframe(self, query: Query):
-        ''':class:`~SQLConnector`.:meth:`~query_to_dataframe`
+        ''':class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector.query_to_dataframe`
         ---
 
-        Given a **_Query_** (see AcumaticaDbQueries and CentralStoreQueries), execute its query and return a polars dataframe
+        Given a **_Query_** (see :class:`~integration_platform.connectors.sql.AcumaticaDbQueries` and :class:`~integration_platform.connectors.sql.CentralStoreQueries`), execute its query and return a polars dataframe
 
         Parameters
         ---
@@ -778,7 +773,7 @@ values ({', '.join(f'source.{column}' for column in sql_table['columns'])});
 
     #MARK: raw_execute
     def raw_execute(self, query: str):
-        ''':class:`~SQLConnector`.:meth:`~raw_execute`
+        ''':class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector.raw_execute`
         ---
 
         Given an Insert, Update or Delete command, execute on db
@@ -786,11 +781,6 @@ values ({', '.join(f'source.{column}' for column in sql_table['columns'])});
         Parameters
         ---
         :param (*str*) `query`: Query to be executed in Database as plain text
-
-        <hr>
-
-        Returns
-        ---
 
         <hr>
 

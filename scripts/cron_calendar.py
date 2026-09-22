@@ -203,8 +203,9 @@ ip_cron = json.loads(jstring)
 dbc_executions = cron_to_db_central(ip_cron)
 
 
-
-with open(r'C:\Users\jordanj\Desktop\integration-dashboard\utilities\schedule.py', 'r') as file_with_schedule:
+path = r'C:\Users\jordanj\Desktop\integration-dashboard\utilities\schedule.py'
+path = r'C:\Users\derfj\Desktop\Python\Work\riptide\utilities\schedule.py'
+with open(path, 'r') as file_with_schedule:
     file_text = file_with_schedule.read()
 
 file_lines = file_text.split('\n')
@@ -216,9 +217,9 @@ replace_end = file_lines.index('def upcoming_runs_today(per_function_cap: int = 
 
 first_segment = file_lines[:replace_start]
 second_segment = file_lines[replace_end:]
-new_file = first_segment + schedule_string.split('\n') + ['', ''] + second_segment
+new_file = first_segment + schedule_string.split('\n') + ['}', ''] + second_segment
 
-with open(r'C:\Users\jordanj\Desktop\integration-dashboard\utilities\schedule.py', 'w', newline='\n') as file_with_schedule:
+with open(path, 'w', newline='\n') as file_with_schedule:
     file_with_schedule.write('\n'.join(new_file))
 
 

@@ -513,7 +513,7 @@ def kustomer_order_ingest(timer: af.TimerRequest):
 
 #region kustomer_order_backfill
 #        Order data to Kustomer
-#           3x/hour (0, 29, 58)
+#           1x/hour
 @app.timer_trigger(
     schedule = '43 * * * *',
     arg_name = 'timer',
@@ -533,7 +533,7 @@ def kustomer_order_backfill(timer: af.TimerRequest):
 
     Schedule
     ===
-        Runs every 24 minutes
+        Runs every 43 mins
     '''
     from integration_platform.pipelines.kustomer import SendOrderDetailsToKustomer #kustomer-orders
     kustomer_pipeline = SendOrderDetailsToKustomer('kustomer_order_backfill')
@@ -618,6 +618,7 @@ def hubspot_property_update(timer: af.TimerRequest):
     hubspot_property_update = HubspotPropertyUpdate('hubspot_property_update')
     hubspot_property_update.run()
 #endregion      hubspot_property_update
+
 
 
 #region             rmi_link_to_acumatica
@@ -742,6 +743,7 @@ def ship_chair_removal_separate(timer: af.TimerRequest):
     chair_removals = ShipChairRemovalSeparate(function='ship_chair_removal_separate')
     chair_removals.run()
 #endregion       ship_chair_removal_separate
+
 
 
 #region            sharepoint_dm_tracker
@@ -940,6 +942,7 @@ def b2b_cohorts(timer: af.TimerRequest):
 #endregion                                               b2b_cohorts
 
 
+
 #region                                                 link_aftership_to_acu
 #                Populates AftershipID attribute in Acumatica from db_Central
 #                                   4x/day (12:23am, 11:23am, 4:23pm, 7:23pm)
@@ -959,8 +962,8 @@ def link_aftership_to_acu(timer: af.TimerRequest):
 
 
 
+
 #region                                                   klaviyo_newsletter
-#                Pulls 
 # Pulls Klaviyo profile data from members of newsletter list into db_Central
 #                                                    2x/day (3:33am, 7:33pm)
 @app.timer_trigger(
@@ -973,6 +976,10 @@ def klaviyo_newsletter(timer: af.TimerRequest):
     klaviyo = KlaviyoNewsletter('klaviyo_newsletter') #KlaviyoNewsletter
     klaviyo.run()
 #endregion                                               klaviyo_newsletter
+
+
+
+
 
 
 

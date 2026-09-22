@@ -20,12 +20,12 @@ class AcumaticaAPIHelper:
         
         pass
     
-    #region format_data_log_entry
+    #MARK: format_data_log_entry
     def format_data_log_entry(self, entity: str, key_value: str, operation: str, payload: dict, response: str, tstamp: datetime, options: Literal['append', 'return']):
         ''':class:`AcumaticaAPI`.:class:`~AcumaticaAPIHelper`.:meth:`~format_data_log_entry`
         ---
         
-        put_summary_here
+        Formats a log record for a given acu api interaction
         
         Parameters
         ---
@@ -64,9 +64,9 @@ class AcumaticaAPIHelper:
         else:
             self.acu.data_log.append(entry)
             return entry
-    #endregion
+    
 
-    #region format_manage_sales_allocations
+    #MARK: format_manage_sales_allocations
     def format_manage_sales_allocations(self, order_data: dict) -> dict:
         ''':class:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper`.:meth:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper.format_manage_sales_allocations`
         ---
@@ -142,20 +142,15 @@ class AcumaticaAPIHelper:
             'acu_api_data_log': acu_data_log_entry,
         }
         return full_payload
-    #endregion
+    
 
-    #region format_reclassify_transaction
+    #MARK: format_reclassify_transaction
     def format_reclassify_transaction(self, cogs_entry: dict) -> dict:
         ''':class:`~AcumaticaAPIHelper`.:meth:`~format_reclassify_transaction` (self, cogs_entry: *dict*):
         ---
         <hr>
         
         Formats payload to pass to :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.target_api` for reclassifying a transaction
-        
-        ### Upstream Calls 
-         #### :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.reclassify_transaction`
-            
-        <hr>
         
         Parameters
         ---
@@ -166,6 +161,11 @@ class AcumaticaAPIHelper:
         Returns
         ---
         :return `full_payload` (dict): payload to be sent to :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.target_api`
+            
+        <hr>
+        
+        ### Upstream Calls 
+         #### :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.reclassify_transaction`
         '''
         batch_nbr = cogs_entry['BatchNbr']
         payload = {
@@ -198,7 +198,7 @@ class AcumaticaAPIHelper:
             'acu_api_data_log': acu_data_log_entry,
         }
         return full_payload
-    #endregion
+    
     def reclassify_transaction_response(self, payload_data: dict, response: requests.Response):
         try:
             json_response = response.json()
@@ -211,29 +211,27 @@ class AcumaticaAPIHelper:
         bp = 'here'
 
 
-    #region format_prepare_shopify
+    #MARK: format_prepare_shopify
     def format_prepare_shopify(self, entity: str = 'Product Availability') -> dict:     
-        ''':class:`~AcumaticaAPIHelper`.:meth:`~format_prepare_shopify` (self, entity: *str = 'Product Availability'*):
+        ''':class:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper`.:meth:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper.format_prepare_shopify`
         ---
-        <hr>
         
         Formats payload to pass to :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.target_api` when ***preparing*** shopify sync records for a given Entity
-        
-        ### Upstream Calls 
-         #### :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.prepare_shopify`
-            
-        <hr>
         
         Parameters
         ---
         :param (*str*) `entity`: Entity to prepare. Defaults to *`Product Availability`*
         
-        <hr>
-        
         Returns
         ---
         :return `full_payload` (dict): payload to be sent to :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.target_api`
-        '''           
+
+        <hr>
+        
+        ## Upstream Calls 
+
+         ### :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.prepare_shopify`
+        '''
         payload = {
             "entity": {
                 "Store":{
@@ -273,11 +271,11 @@ class AcumaticaAPIHelper:
             'acu_api_data_log': acu_data_log_entry,
         }
         return full_payload
-    #endregion
+    
 
-    #region format_process_shopify
+    #MARK: format_process_shopify
     def format_process_shopify(self, entity_data: dict, entity: str = 'Product Availability') -> dict:
-        ''':class:`~AcumaticaAPIHelper`.:meth:`~format_process_shopify`
+        ''':class:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper`.:meth:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper.format_process_shopify`
         ---
         
         Formats payload to pass to :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.target_api` when ***processing*** shopify sync records for a given Entity
@@ -357,10 +355,10 @@ class AcumaticaAPIHelper:
             'acu_api_data_log': acu_data_log_entry,
         }
         return full_payload
-    #endregion
+    
 
 
-    #region format_put_on_hold
+    #MARK: format_put_on_hold
     def format_put_on_hold(self, order: dict) -> dict:
         ''':class:`~AcumaticaAPIHelper`.:meth:`~format_put_on_hold` (self, order: *dict*):
         ---
@@ -387,9 +385,9 @@ class AcumaticaAPIHelper:
         self.logger.info(f'Placing {order['OrderNbr']} On Hold!')
         hold_payload = self._format_sales_order_entity_payload_(order=order)
         return hold_payload
-    #endregion
     
-    #region format_order_remove_hold
+    
+    #MARK: format_order_remove_hold
     def format_order_remove_hold(self, order: dict) -> dict:
         ''':class:`~AcumaticaAPIHelper`.:meth:`~format_order_remove_hold` (self, order: *dict*, ):
         ---
@@ -417,9 +415,9 @@ class AcumaticaAPIHelper:
         '''
         payload = self._format_sales_order_entity_payload_(order)
         return payload
-    #endregion
+    
 
-    #region format_soline_wh_update
+    #MARK: format_soline_wh_update
     def format_soline_wh_update(self, order: dict):
         ''':class:`~AcumaticaAPIHelper`.:meth:`~format_soline_wh_update` (self, order: *dict*):
         ---
@@ -469,9 +467,9 @@ class AcumaticaAPIHelper:
         }
         dl_entry = self._format_pre_response_data_log_entry_(entity='SalesOrder', key_value=order['OrderNbr'], operation=f"PUT - Update SOLine Warehouse", payload=update_soline_wh_payload)
         return update_soline_wh_payload, dl_entry
-    #endregion
+    
 
-    #region format_ship_separately
+    #MARK: format_ship_separately
     def format_ship_separately(self, order: dict):
         ''':class:`~AcumaticaAPIHelper`.:meth:`~format_ship_separately` (self, order: *dict*):
         ---
@@ -518,7 +516,7 @@ class AcumaticaAPIHelper:
         }
         dl_entry = self._format_pre_response_data_log_entry_(entity='SalesOrder', key_value=order['OrderNbr'], operation=f"PUT - Updating {order['OrderNbr']}'s Ship Separately value to False", payload=ship_sep_payload)
         return ship_sep_payload, dl_entry
-    #endregion
+    
 
     def _format_pre_response_data_log_entry_(self, entity: str, key_value: str, operation: str, payload: dict = {}):
         data_log_entry = {
@@ -528,7 +526,7 @@ class AcumaticaAPIHelper:
             'Payload': payload
         }
         return data_log_entry
-    #region format_order_create_receipt
+    #MARK: format_order_create_receipt
     def format_order_create_receipt(self, order: dict) -> dict:
         ''':class:`~AcumaticaAPIHelper`.:meth:`~format_order_create_receipt` (self, order: *dict*):
         ---
@@ -559,9 +557,9 @@ class AcumaticaAPIHelper:
             }
         }
         return create_receipt_payload
-    #endregion
+    
 
-    #region format_order_create_shipment
+    #MARK: format_order_create_shipment
     def format_order_create_shipment(self, order: dict) -> dict:
         ''':class:`~AcumaticaAPIHelper`.:meth:`~format_order_create_shipment` (self, order: *dict*):
         ---
@@ -597,9 +595,9 @@ class AcumaticaAPIHelper:
                 "WarehouseID": {"value": order['properties']['WarehouseID']}, 
             }
         return create_shipment_payload
-    #endregion
+    
 
-    #region format_rc_send_to_wh
+    #MARK: format_rc_send_to_wh
     def format_rc_send_to_wh(self, order: dict) -> dict:
         ''':class:`~AcumaticaAPIHelper`.:meth:`~format_rc_send_to_wh` (self, order: *dict*):
         ---
@@ -647,17 +645,17 @@ class AcumaticaAPIHelper:
             } 
         }
         return mark_rc_as_sent_payload
-    #endregion
+    
 
 
-    #region format_validate_order_address
+    #MARK: format_validate_order_address
     def format_validate_order_address(self, order: dict) -> dict:
         payload = self._format_sales_order_entity_payload_(order)
         return payload
 
-    #endregion
+    
 
-    #region format_sales_order_entity_payload
+    #MARK: format_sales_order_entity_payload
     def _format_sales_order_entity_payload_(self, order: dict) -> dict:
         ''':class:`~`.:meth:`~_format_sales_order_entity_payload_` (self, order: *dict*, ):
         ---
