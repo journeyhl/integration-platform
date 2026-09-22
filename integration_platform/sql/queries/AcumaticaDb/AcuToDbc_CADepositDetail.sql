@@ -1,4 +1,5 @@
 select dd.TranType TranType
+	 , jt.Status Type
 	 , dd.RefNbr RefNbr
 	 , dd.LineNbr LineNbr
 	 , dd.DetailType DetailType
@@ -6,9 +7,9 @@ select dd.TranType TranType
 	 , dd.OrigDocType OrigDocType
 	 , dd.OrigRefNbr OrigRefNbr
 	 , dd.AccountID AccountID
-	 , dd.CashAccountID CashAccountID
-	 , cash.CashAccountCD
-	 , cash.Descr CashAccountDescr
+	 , dd.CashAccountID CashAcctID
+	 , cash.CashAccountCD CashAcctCD
+	 , cash.Descr CashAcctDescr
 	 , dd.SubID SubID
 	 , dd.PaymentMethodID PaymentMethodID
 	 , dd.DrCr DrCr
@@ -19,15 +20,19 @@ select dd.TranType TranType
 	 , cast(dd.TranAmt as decimal(18,2)) TranAmt
 	 , dd.ChargeEntryTypeID ChargeEntryTypeID
 	 , dd.TranID TranID
-	 , dd.CreatedByID CreatedByID
-	 , dd.CreatedByScreenID CreatedByScreenID
-	 , dd.CreatedDateTime CreatedDateTime
-	 , dd.LastModifiedByID LastModifiedByID
-	 , dd.LastModifiedByScreenID LastModifiedByScreenID
-	 , dd.LastModifiedDateTime LastModifiedDateTime
-	 , dd.tstamp tstamp
+	 , coalesce(replace(uc.Email, '@journeyhl.com', ''), replace(uc.username, 'journeyhl.com\', '')) Created_username
+	 , uc.FullName Created_Name
+	 , dd.CreatedByScreenID Created_ScreenID
+	 , dd.CreatedDateTime Created_Datetime
+	 , coalesce(replace(um.Email, '@journeyhl.com', ''), replace(um.username, 'journeyhl.com\', '')) LastMod_username
+	 , um.FullName LastMod_Name
+	 , dd.LastModifiedByScreenID LastMod_ScreenID
+	 , dd.LastModifiedDateTime LastMod_Datetime
 from CADepositDetail dd
 left join CashAccount cash on dd.CompanyID = cash.CompanyID and dd.CashAccountID = cash.CashAccountID
+left join Users uc on dd.CompanyID = uc.CompanyID and dd.CreatedByID = uc.PKID
+left join Users um on dd.CompanyID = um.CompanyID and dd.LastModifiedByID = um.PKID
+left join JJStatusLookup jt on dd.TranType = jt.CStatus and jt.Tbl = 'CADeposit.TranType'
 where dd.CompanyID = 2
 
 /*

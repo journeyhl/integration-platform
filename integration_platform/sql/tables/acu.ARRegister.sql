@@ -1,0 +1,97 @@
+if not exists(
+    select *
+    from sys.schemas s
+    where s.name = 'acu'
+)
+begin
+    exec('create schema acu');
+end
+if not exists(
+    select * 
+    from sys.tables t 
+    inner join sys.schemas s on t.schema_id = s.schema_id
+    where t.name = 'ARRegister' and s.name = 'acu'
+)
+begin
+	create table acu.ARRegister(
+	DocType char(3) not null,
+	Type varchar(255),
+	RefNbr varchar(15) not null,
+	BatchNbr varchar(15),
+	CustomerID varchar(30),
+	Customer varchar(255),
+	ARAccountID int,
+	ARAccountCD varchar(10),
+	ARAccountDesc varchar(60),
+	ARSubID int,
+	DocDate date,
+	OrigDocDate date,
+	DocDesc varchar(512),
+	OrigDocAmt decimal(18,2),
+	DocBal decimal(18,2),
+	InitDocBal decimal(18,2),
+	DiscBal decimal(18,2),
+	DiscTaken decimal(18,2),
+	ChargeAmt decimal(18,2),
+	Status varchar(255),
+	StatusCD char(1),
+	DueDate date,
+	StatementDate date,
+	FinPeriodID char(6),
+	TranPeriodID char(6),
+	ClosedTranPeriodID char(6),
+	ClosedFinPeriodID char(6),
+	ClosedDate date,
+	OpenDoc bit,
+	Released bit,
+	Hold bit,
+	OrigDiscAmt decimal(18,2),
+	SalesPersonID int,
+	SalespersonCD varchar(15),
+	OrigModule char(2),
+	OrigDocType char(3),
+	OrigRefNbr varchar(15),
+	DisableAutomaticTaxCalculation int,
+	TaxCalcMode char(1),
+	IsTaxValid bit,
+	IsTaxSaved bit,
+	IsTaxPosted bit,
+	NonTaxable bit,
+	LineCntr int,
+	AdjCntr int,
+	Voided bit,
+	Scheduled bit,
+	PendingProcessing bit,
+	HasPPDTaxes bit,
+	PendingPPD bit,
+	PaymentsByLinesAllowed bit,
+	Approved bit,
+	Rejected bit,
+	DontApprove bit,
+	IsCancellation bit,
+	IsCorrection bit,
+	IsUnderCorrection bit,
+	Canceled bit,
+	PendingPayment bit,
+	DontPrint bit,
+	Printed bit,
+	DontEmail bit,
+	Emailed bit,
+	DeletedDatabaseRecord bit,
+	IsMigratedRecord bit,
+	ExternalRef varchar(80),
+	ApproverID int,
+	ApproverWorkGroupID int,
+	Created_username varchar(355),
+	Created_Name varchar(255),
+	Created_ScreenID char(8),
+	Created_Datetime datetime,
+	LastMod_username varchar(355),
+	LastMod_Name varchar(255),
+	LastMod_ScreenID char(8),
+	LastMod_Datetime datetime,
+	NoteID uniqueidentifier,
+    InsertedDT datetime,
+    LastChecked datetime,
+	primary key(DocType, RefNbr))
+end
