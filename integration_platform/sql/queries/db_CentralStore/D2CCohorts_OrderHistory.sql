@@ -24,6 +24,8 @@ left join acu.SalesOrders s on c.CustomerID = s.CustomerID
 left join acu.InventorySummary i on s.InventoryCD = i.InventoryCD
 left join acu.ItemClassification ic on i.InventoryCD = ic.InventoryCD
 where c.CustomerClass = 'D2C'
+and c.CustomerID != 'C0008267'
+-- and OrderNumber is not null
 )
 select *
 	 , row_number() over(partition by t.CustomerID, PartProdAccFee order by DatePlaced, OrderNbr) OrderProdAsc

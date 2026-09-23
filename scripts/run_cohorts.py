@@ -4,9 +4,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from integration_platform.pipelines import CustomerCohorts
 
 
-# d2c = CustomerCohorts(function='.debug', b2b_d2c='D2C')
-# d2c.run()
-# bp = 'here'
+d2c = CustomerCohorts(function='.debug', b2b_d2c='D2C')
+d2c.run()
+bp = 'here'
 
 
 # cohorts = CustomerCohorts(function='.debug', b2b_d2c='Both')

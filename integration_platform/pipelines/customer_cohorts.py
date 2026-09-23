@@ -16,9 +16,6 @@ class CustomerCohorts(Pipeline):
     '''
     def __init__(self, function: str, b2b_d2c: Literal['B2B', 'D2C', 'Both'], env: str='prod'):
         super().__init__('Cohorts', function=function, env=env)
-        self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
-            pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
-        )
         self.b2b_d2c = b2b_d2c
         self.transformer = Transform(self)
         if b2b_d2c == 'B2B':
