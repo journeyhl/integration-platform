@@ -61,9 +61,19 @@ elif db_input.lower() == acudb[0:input_len].lower():
 
 db = SQLConnector('config-generator', db)
 tables = [
-'analytics.JHL_CustomerOrderHistory',
-'analytics.JHL_B2BCustomerOrderHistory',
-'analytics.JHL_D2CCustomerOrderHistory',
+'acu.Account',
+'acu.ARAdjust',
+'acu.ARRegister',
+'acu.ARTran',
+'acu.CADeposit',
+'acu.CADepositCharge',
+'acu.CADepositDetail',
+'acu.CashAccount',
+'acu.CATran',
+'acu.Sub',
+# 'analytics.JHL_CustomerOrderHistory',
+# 'analytics.JHL_B2BCustomerOrderHistory',
+# 'analytics.JHL_D2CCustomerOrderHistory',
 
 # 'analytics.JHL_CustomerCohorts',
 # 'analytics.JHL_CustomerCohort_Snapshot',
@@ -125,7 +135,7 @@ for name in tables:
     }
     results[name]['keys'] = [value['cName'] for value in config_results.sql("select cName from self where ColumnType in('Key', 'Not Null (Maybe key)')").to_dicts()]
     results[name]['columns'] = [row['cName'] for row in config_results.iter_rows(named=True)]
-    results[name]['update_columns'] = [value['cName'] for value in config_results.sql("select cName from self where ColumnType = 'Update'").to_dicts()]
+    results[name]['update_columns'] = [value['cName'] for value in config_results.sql("select cName from self where ColumnType = 'Update' and cName != 'InsertedDT'").to_dicts()]
     bp = 'here'
 
     def format_entry(table_name, cfg):

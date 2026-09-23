@@ -277,9 +277,32 @@ class AcumaticaDbQueries(Queries):
     AcuToDbc_B2BCollections: Query
     '''Query that mirrors JHL Trial Balance GI in Acumatica'''
     Aftership_LinkID_Acu: Query
+    '''Query to link AfterShipIDs to Acumatica orders'''
     RyderToDbc: Query
     B2BCohorts_CustomerNoteIDs: Query
+    '''Query used to pulled Customer NoteID values to load attributes to'''
     B2BZipcodes_Customers: Query
+    '''Query used to pull all B2B Customers and primary zipcode'''
+    AcuToDbc_Account: Query 
+    '''Extraction query for Account table in acumatica'''
+    AcuToDbc_ARAdjust: Query
+    '''Extraction query for ARAdjust table in acumatica'''
+    AcuToDbc_ARRegister: Query
+    '''Extraction query for ARRegister table in acumatica'''
+    AcuToDbc_ARTran: Query
+    '''Extraction query for ARTran table in acumatica'''
+    AcuToDbc_CADeposit: Query
+    '''Extraction query for CADeposit table in acumatica'''
+    AcuToDbc_CADepositCharge: Query
+    '''Extraction query for CADepositCharge table in acumatica'''
+    AcuToDbc_CADepositDetail: Query
+    '''Extraction query for CADepositDetail table in acumatica'''
+    AcuToDbc_CashAccount: Query
+    '''Extraction query for CashAccount table in acumatica'''
+    AcuToDbc_CATran: Query
+    '''Extraction query for CATran table in acumatica'''
+    AcuToDbc_Sub: Query
+    '''Extraction query for Sub table in acumatica'''
 
 _QUERY_CLASSES: dict[str, type[Queries]] = {
     'db_CentralStore': CentralStoreQueries,

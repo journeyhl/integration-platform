@@ -11,15 +11,15 @@ select rtrim(b.AcctCD) CustomerID
 	 , a.AdjBatchNbr
 	 , cast(a.AdjgDocDate as date) AdjgDocDate
 	 , cast(a.AdjdDocDate as date) AdjdDocDate
-	 , cast(a.CuryAdjgAmt as decimal(18,2)) CuryAdjgAmt
-	 , cast(a.CuryAdjgDiscAmt as decimal(18,2)) CuryAdjgDiscAmt
-	 , cast(a.CuryAdjgPPDAmt as decimal(18,2)) CuryAdjgPPDAmt
-	 , cast(a.CuryAdjgWOAmt as decimal(18,2)) CuryAdjgWOAmt
-	 , cast(a.CuryAdjdAmt as decimal(18,2)) CuryAdjdAmt
-	 , cast(a.CuryAdjdOrigAmt as decimal(18,2)) CuryAdjdOrigAmt
-	 , cast(a.CuryAdjdDiscAmt as decimal(18,2)) CuryAdjdDiscAmt
-	 , cast(a.CuryAdjdPPDAmt as decimal(18,2)) CuryAdjdPPDAmt
-	 , cast(a.CuryAdjdWOAmt as decimal(18,2)) CuryAdjdWOAmt
+	 , cast(a.CuryAdjgAmt as decimal(18,2)) AdjgAmt
+	 , cast(a.CuryAdjgDiscAmt as decimal(18,2)) AdjgDiscAmt
+	 , cast(a.CuryAdjgPPDAmt as decimal(18,2)) AdjgPPDAmt
+	 , cast(a.CuryAdjgWOAmt as decimal(18,2)) AdjgWOAmt
+	 , cast(a.CuryAdjdAmt as decimal(18,2)) AdjdAmt
+	 , cast(a.CuryAdjdOrigAmt as decimal(18,2)) AdjdOrigAmt
+	 , cast(a.CuryAdjdDiscAmt as decimal(18,2)) AdjdDiscAmt
+	 , cast(a.CuryAdjdPPDAmt as decimal(18,2)) AdjdPPDAmt
+	 , cast(a.CuryAdjdWOAmt as decimal(18,2)) AdjdWOAmt
 	 , cast(a.AdjAmt as decimal(18,2)) AdjAmt
 	 , cast(a.AdjDiscAmt as decimal(18,2)) AdjDiscAmt
 	 , cast(a.AdjPPDAmt as decimal(18,2)) AdjPPDAmt
@@ -29,7 +29,7 @@ select rtrim(b.AcctCD) CustomerID
 	 , a.Released
 	 , a.Hold
 	 , a.AdjdARAcct
-	 , aa.Description
+	 , aa.Description AdjdARAcctDescr
 	 , a.AdjdARSub
 	 , cast(a.StatementDate as date) StatementDate
 	 , a.AdjgFinPeriodID
