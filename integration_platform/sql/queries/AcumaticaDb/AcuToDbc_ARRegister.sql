@@ -6,7 +6,7 @@ select ar.DocType DocType
 	 , rtrim(b.AcctcD) CustomerID
 	 , b.AcctName Customer
 	 , ar.ARAccountID ARAccountID
-	 , a.AccountCD ARAccountCD
+	 , rtrim(a.AccountCD) ARAccountCD
 	 , a.Description ARAccountDesc
 	 , ar.ARSubID
 	 , cast(ar.DocDate as date) DocDate
@@ -19,7 +19,7 @@ select ar.DocType DocType
 	 , cast(ar.DiscTaken as decimal(18,2)) DiscTaken
 	 , cast(ar.ChargeAmt as decimal(18,2)) ChargeAmt
 	 , j.Status Status
-	 , ar.Status StatusCD
+	 , rtrim(ar.Status) StatusCD
 	 , cast(ar.DueDate as date) DueDate
 	 , cast(ar.StatementDate as date) StatementDate
 	 , ar.FinPeriodID FinPeriodID
@@ -67,11 +67,11 @@ select ar.DocType DocType
 	 , ar.ExternalRef ExternalRef
 	 , ar.ApproverID ApproverID
 	 , ar.ApproverWorkGroupID ApproverWorkGroupID
-     , coalesce(replace(uc.Email, '@journeyhl.com', ''), replace(uc.username, 'journeyhl.com\', '')) Created_username
+     , coalesce(replace(uc.Email, '@journeyhl.com', ''), replace(uc.username, 'journeyhl.com\', '')) Created_Username
      , uc.FullName Created_Name
      , ar.CreatedByScreenID Created_ScreenID
      , ar.CreatedDateTime Created_Datetime
-     , coalesce(replace(um.Email, '@journeyhl.com', ''), replace(um.username, 'journeyhl.com\', '')) LastMod_username
+     , coalesce(replace(um.Email, '@journeyhl.com', ''), replace(um.username, 'journeyhl.com\', '')) LastMod_Username
      , um.FullName LastMod_Name
      , ar.LastModifiedByScreenID LastMod_ScreenID
      , ar.LastModifiedDateTime LastMod_Datetime

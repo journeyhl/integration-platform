@@ -50,11 +50,11 @@ select rtrim(b.AcctCD) CustomerID
 	 , a.IsCCAuthorized
 	 , a.IsCCCaptured
 	 , a.PaymentCaptureFailed
-     , coalesce(replace(uc.Email, '@journeyhl.com', ''), replace(uc.username, 'journeyhl.com\', '')) Created_username
+     , coalesce(replace(uc.Email, '@journeyhl.com', ''), replace(uc.username, 'journeyhl.com\', '')) Created_Username
      , uc.FullName Created_Name
      , a.CreatedByScreenID Created_ScreenID
      , a.CreatedDateTime Created_Datetime
-     , coalesce(replace(um.Email, '@journeyhl.com', ''), replace(um.username, 'journeyhl.com\', '')) LastMod_username
+     , coalesce(replace(um.Email, '@journeyhl.com', ''), replace(um.username, 'journeyhl.com\', '')) LastMod_Username
      , um.FullName LastMod_Name
      , a.LastModifiedByScreenID LastMod_ScreenID
      , a.LastModifiedDateTime LastMod_Datetime

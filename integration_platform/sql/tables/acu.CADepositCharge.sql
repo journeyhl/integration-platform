@@ -31,13 +31,15 @@ begin
 	ChargeRate decimal(18,2),
 	ChargeableAmt decimal(18,2),
 	ChargeAmt decimal(18,2),
-	Created_username varchar(355),
+	Created_Username varchar(355),
 	Created_Name varchar(255),
 	Created_ScreenID char(8),
 	Created_Datetime datetime,
-	LastMod_username varchar(355),
+	LastMod_Username varchar(355),
 	LastMod_Name varchar(255),
 	LastMod_ScreenID char(8),
 	LastMod_Datetime datetime,
+    InsertedDT datetime,
+    LastChecked datetime,
 	primary key(TranType, RefNbr, LineNbr))
 end

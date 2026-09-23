@@ -4,7 +4,7 @@ select c.TranType
      , c.RefNbr
      , c.ExtRefNbr
      , c.CashAccountID CashAcctID
-     , cash.CashAccountCD CashAcctCD
+     , rtrim(cash.CashAccountCD) CashAcctCD
      , cash.Descr CashAcctDescr
      , cast(c.TranDate as date) TranDate
      , c.DrCr
@@ -14,7 +14,7 @@ select c.TranType
      , c.Hold
      , c.Voided
      , j.Status
-     , c.Status StatusCD
+     , rtrim(c.Status) StatusCD
      , c.Released
      , cast(c.TranAmt as decimal(18,2)) TranAmt
      , c.TranID
@@ -30,11 +30,11 @@ select c.TranType
      , c.ExtraCashAccountID
      , c.CashTranID
      , c.ChargeTranID
-     , coalesce(replace(uc.Email, '@journeyhl.com', ''), replace(uc.username, 'journeyhl.com\', '')) Created_username
+     , coalesce(replace(uc.Email, '@journeyhl.com', ''), replace(uc.username, 'journeyhl.com\', '')) Created_Username
      , uc.FullName Created_Name
      , c.CreatedByScreenID Created_ScreenID
      , c.CreatedDateTime Created_Datetime
-     , coalesce(replace(um.Email, '@journeyhl.com', ''), replace(um.username, 'journeyhl.com\', '')) LastMod_username
+     , coalesce(replace(um.Email, '@journeyhl.com', ''), replace(um.username, 'journeyhl.com\', '')) LastMod_Username
      , um.FullName LastMod_Name
      , c.LastModifiedByScreenID LastMod_ScreenID
      , c.LastModifiedDateTime LastMod_Datetime

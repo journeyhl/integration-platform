@@ -8,7 +8,7 @@ select dd.TranType TranType
 	 , dd.OrigRefNbr OrigRefNbr
 	 , dd.AccountID AccountID
 	 , dd.CashAccountID CashAcctID
-	 , cash.CashAccountCD CashAcctCD
+	 , rtrim(cash.CashAccountCD) CashAcctCD
 	 , cash.Descr CashAcctDescr
 	 , dd.SubID SubID
 	 , dd.PaymentMethodID PaymentMethodID
@@ -20,11 +20,11 @@ select dd.TranType TranType
 	 , cast(dd.TranAmt as decimal(18,2)) TranAmt
 	 , dd.ChargeEntryTypeID ChargeEntryTypeID
 	 , dd.TranID TranID
-	 , coalesce(replace(uc.Email, '@journeyhl.com', ''), replace(uc.username, 'journeyhl.com\', '')) Created_username
+	 , coalesce(replace(uc.Email, '@journeyhl.com', ''), replace(uc.username, 'journeyhl.com\', '')) Created_Username
 	 , uc.FullName Created_Name
 	 , dd.CreatedByScreenID Created_ScreenID
 	 , dd.CreatedDateTime Created_Datetime
-	 , coalesce(replace(um.Email, '@journeyhl.com', ''), replace(um.username, 'journeyhl.com\', '')) LastMod_username
+	 , coalesce(replace(um.Email, '@journeyhl.com', ''), replace(um.username, 'journeyhl.com\', '')) LastMod_Username
 	 , um.FullName LastMod_Name
 	 , dd.LastModifiedByScreenID LastMod_ScreenID
 	 , dd.LastModifiedDateTime LastMod_Datetime

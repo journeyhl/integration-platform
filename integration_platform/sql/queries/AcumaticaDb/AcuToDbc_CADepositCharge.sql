@@ -6,20 +6,20 @@ select dc.TranType TranType
 	 , dc.DepositAcctID DepositAcctID
 	 , dc.PaymentMethodID PaymentMethodID
 	 , dc.AccountID AcctID
-	 , a.AccountCD AcctCD
+	 , rtrim(a.AccountCD) AcctCD
 	 , a.Description AcctDescr
 	 , dc.SubID SubID
-	 , s.SubCD SubCD
+	 , rtrim(s.SubCD) SubCD
 	 , s.Description SubDescr
 	 , dc.DrCr DrCr
 	 , cast(dc.ChargeRate as decimal(18,2)) ChargeRate
 	 , cast(dc.ChargeableAmt as decimal(18,2)) ChargeableAmt
 	 , cast(dc.ChargeAmt as decimal(18,2)) ChargeAmt
-     , coalesce(replace(uc.Email, '@journeyhl.com', ''), replace(uc.username, 'journeyhl.com\', '')) Created_username
+     , coalesce(replace(uc.Email, '@journeyhl.com', ''), replace(uc.username, 'journeyhl.com\', '')) Created_Username
      , uc.FullName Created_Name
      , dc.CreatedByScreenID Created_ScreenID
      , dc.CreatedDateTime Created_Datetime
-     , coalesce(replace(um.Email, '@journeyhl.com', ''), replace(um.username, 'journeyhl.com\', '')) LastMod_username
+     , coalesce(replace(um.Email, '@journeyhl.com', ''), replace(um.username, 'journeyhl.com\', '')) LastMod_Username
      , um.FullName LastMod_Name
      , dc.LastModifiedByScreenID LastMod_ScreenID
      , dc.LastModifiedDateTime LastMod_Datetime
