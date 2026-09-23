@@ -44,7 +44,7 @@ begin
     IsTranCostFinal bit,
     ExtPrice decimal(18,2),
     LineAmt decimal(18,2),
-    DiscountsAppliedToLine varbinary(max),
+    DiscountsAppliedToLine varchar(10),
     OrigLineNbr int,
     OrigGroupDiscountRate decimal(18,2),
     OrigDocumentDiscountRate decimal(18,2),
