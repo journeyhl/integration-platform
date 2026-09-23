@@ -80,7 +80,7 @@ begin
     NoteID_Memo uniqueidentifier,
     InsertedDT datetime,
     LastChecked datetime,
-    primary key (AdjdDocType, AdjdRefNbr, AdjgDocType, AdjgRefNbr)
+    primary key (AdjdDocType, AdjdRefNbr, AdjgDocType, AdjgRefNbr, AdjNbr)
     )
 end
 

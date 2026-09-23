@@ -1,3 +1,4 @@
+with TopLevel as(
 select rtrim(b.AcctCD) CustomerID
 	 , a.AdjdDocType
 	 , jd.Status AdjdType
@@ -71,3 +72,8 @@ left join JJStatusLookup jg on a.AdjgDocType = jg.CStatus and jg.tbl = 'ARRegist
 left join Account aa on a.CompanyID = aa.CompanyID and a.AdjdARAcct = aa.AccountID
 left join Sub sa on a.CompanyID = sa.CompanyID and a.AdjdARSub = sa.SubID
 where a.CompanyID = 2
+)
+select AdjdDocType, AdjdRefNbr, AdjgDocType, AdjgRefNbr, AdjNbr, count(LastMod_Datetime) a
+from TopLevel
+group by AdjdDocType, AdjdRefNbr, AdjgDocType, AdjgRefNbr, AdjNbr
+order by a desc
