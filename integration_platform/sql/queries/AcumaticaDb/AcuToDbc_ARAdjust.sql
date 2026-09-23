@@ -1,3 +1,11 @@
+/*Pulls Acumatica Accounts Receivable document adjustments
+Acumatica definition: 
+The fact of application of one accounts receivable document to another, 
+which results in an adjustment of the balances of both documents. 
+It can be either an application of a payment document to an invoice document 
+(such as when a payment closes an invoice), or an application of one payment 
+document to another, such as an application of a customer refund to a payment.
+*/
 select rtrim(b.AcctCD) CustomerID
 	 , a.AdjdDocType
 	 , jd.Status AdjdType

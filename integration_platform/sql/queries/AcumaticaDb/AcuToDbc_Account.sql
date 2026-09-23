@@ -1,3 +1,4 @@
+/*Pulls Chart of Account data from AcumaticaDb*/
 select a.AccountID AcctID
 	 , rtrim(a.AccountCD) AcctCD
 	 , a.AccountingType

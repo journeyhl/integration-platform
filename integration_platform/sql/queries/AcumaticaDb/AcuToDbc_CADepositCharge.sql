@@ -1,3 +1,4 @@
+/**/
 select dc.TranType TranType
 	 , jt.Status Type
 	 , dc.RefNbr RefNbr

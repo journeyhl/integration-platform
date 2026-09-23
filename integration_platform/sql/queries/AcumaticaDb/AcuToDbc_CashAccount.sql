@@ -1,3 +1,5 @@
+/*Pulls details and settings of cash accounts from AcumaticaDb
+*/
 select c.CashAccountID CashAcctID
 	 , rtrim(c.CashAccountCD) CashAcctCD
 	 , c.Descr

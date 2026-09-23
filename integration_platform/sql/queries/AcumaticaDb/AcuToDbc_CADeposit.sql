@@ -1,3 +1,4 @@
+/**/
 with TopLevel as(
 select c.TranType
      , jt.Status Type
