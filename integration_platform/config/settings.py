@@ -5,8 +5,14 @@ load_dotenv()
 
 
 TABLES = {
+    #MARK: rmi_Receipts
     'rmi_Receipts':{
-        'keys': ['RMANumber', 'ReceiptID', 'RMAID', 'RMALineID'],
+        'keys': [
+            'RMANumber', 
+            'ReceiptID', 
+            'RMAID', 
+            'RMALineID'
+        ],
         'columns': [
             'RMANumber',
             'ReceiptDate',
@@ -22,10 +28,26 @@ TABLES = {
             'Price',
             'Cost'
         ],
-        'update_columns':['ReceiptDate', 'Qty', 'InventoryCD', 'Location', 'ItemType', 'ItemCategory', 'Descr', 'Price', 'Cost']
+        'update_columns':[
+            'ReceiptDate',
+            'Qty',
+            'InventoryCD',
+            'Location',
+            'ItemType',
+            'ItemCategory',
+            'Descr',
+            'Price',
+            'Cost'
+        ]
     },    
+    #MARK: rmi_ClosedShipments
     'rmi_ClosedShipments':{
-        'keys': ['RMANumber', 'RMAID', 'RMALineID', 'RMAType'],
+        'keys': [
+            'RMANumber', 
+            'RMAID', 
+            'RMALineID', 
+            'RMAType'
+        ],
         'columns': [
             'RMANumber',
             'RMAID',
@@ -63,6 +85,7 @@ TABLES = {
             'OutboundShipMethod'
         ]
     }, 
+    #MARK: rmi_RMAStatus
     'rmi_RMAStatus':{
         'keys': ['RMANumber', 'RMAID', 'RMALineID', 'RMAType'],
         'columns': [
@@ -100,6 +123,7 @@ TABLES = {
             'Priority'
         ]
     }, 
+    #MARK: RedstagInventorySummary
     'RedstagInventorySummary':{
         'keys': ['InventoryCD',],
         'columns': [
@@ -128,6 +152,7 @@ TABLES = {
             'Timestamp',
         ]
     },
+    #MARK: RedstagInventoryDetail
     'RedstagInventoryDetail':{
         'keys': ['InventoryCD', 'Warehouse'],
         'columns': [
@@ -157,6 +182,7 @@ TABLES = {
             'Timestamp',
         ]
     },
+    #MARK: _util.acu_api_log
     '_util.acu_api_log':{
         'keys': [
             'Entity',
@@ -177,6 +203,7 @@ TABLES = {
             'Response',
         ]
     },
+    #MARK: _util.SOOrderDeletions
     '_util.SOOrderDeletions':{
         'keys': ['OrderType', 'OrderNbr'],
         'columns': [
@@ -190,6 +217,7 @@ TABLES = {
             'DeletedDatetime'
         ]
     },
+    #MARK: _util.SOLineDeletions
     '_util.SOLineDeletions':{
         'keys': ['OrderType', 'OrderNbr', 'LineNbr'],
         'columns': [
@@ -304,6 +332,7 @@ TABLES = {
             'CreatedBy',
         ]
     },
+    #MARK: _util.SOShipmentDeletions
     '_util.SOShipmentDeletions':{
         'keys': ['ShipmentNbr'],
         'columns': [
@@ -318,6 +347,7 @@ TABLES = {
             'DeletedDatetime'
         ]
     },
+    #MARK: 
     '_util.SOOrderShipmentDeletions':{
         'keys': ['OrderType', 'OrderNbr', 'ShipmentNbr'],
         'columns': [
@@ -509,6 +539,7 @@ TABLES = {
             'LastChecked'
         ],
     },
+    #MARK: acu.SalesOrders
     'acu.SalesOrders': {
         'keys': [
             'OrderType',
@@ -639,6 +670,7 @@ TABLES = {
     #         'ResponseText',
     #     ],
     # },
+    #MARK: K_OrderIngest
     'K_OrderIngest': {
         'keys': [
             'OrderNbr',
@@ -660,6 +692,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: acu.Shipments
     'acu.Shipments': {
         'keys': [
             'ShipmentNbr',
@@ -740,6 +773,7 @@ TABLES = {
             'CreatedDatetime',
         ],
     },
+    #MARK: _util.AfterShipLog
     '_util.AfterShipLog': {
         'keys': [
             'ShipmentNbr',
@@ -762,6 +796,7 @@ TABLES = {
             'Timestamp'
         ],
     },
+    #MARK: hs.deal_snapshots
     'hs.deal_snapshots': {
         'keys': [
             'snapshot_at',
@@ -810,6 +845,7 @@ TABLES = {
             'primary_competitor',
         ],
     },
+    #MARK: hs.deal_tracking
     'hs.deal_tracking': {
         'keys': [
             'deal_id',
@@ -858,6 +894,7 @@ TABLES = {
             'snapshot_at',
         ],
     },
+    #MARK: hs.activity_snapshots
     'hs.activity_snapshots': {
         'keys': [
             'rep_name',
@@ -888,6 +925,7 @@ TABLES = {
             'snapshot_at',
         ],
     },
+    #MARK: SOShipmentKvExt
     'SOShipmentKvExt': {
         'keys': [
             'CompanyID',
@@ -910,6 +948,7 @@ TABLES = {
             'ValueText',
         ],
     },
+    #MARK: acu.AftershipExportv2
     'acu.AftershipExportv2': {
         'keys': [
             'OrderNbr',
@@ -954,6 +993,7 @@ TABLES = {
             'ShipmentNbr',
         ],
     },
+    #MARK: acu.AftershipExportDetailv2
     'acu.AftershipExportDetailv2': {
         'keys': [
             'OrderNbr',
@@ -994,6 +1034,7 @@ TABLES = {
             'ShipmentNbr',
         ],
     },
+    #MARK: hs.Properties
     'hs.Properties': {
         'keys': [
             'ObjectType',
@@ -1034,6 +1075,7 @@ TABLES = {
             'UpdatedAt',
         ],
     },
+    #MARK: acu.PhoneRevByMonth
     'acu.PhoneRevByMonth': {
         'keys': [
             'AcctCD',
@@ -1064,6 +1106,7 @@ TABLES = {
             'Agent',
         ],
     },
+    #MARK: acu.Shipments
     'acu.Shipments': {
         'keys': [
             'ShipmentNbr',
@@ -1153,6 +1196,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: acu.Customers
     'acu.Customers': {
         'keys': [
             'CustomerID',
@@ -1208,6 +1252,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: hs.AcuCompanies
     'hs.AcuCompanies': {
         'keys': [
             'hsID',
@@ -1242,6 +1287,7 @@ TABLES = {
             'LastUpdated',
         ],
     },
+    #MARK:hs.UnmatchedCompanies 
     'hs.UnmatchedCompanies': {
         'keys': [
             'hsID',
@@ -1266,6 +1312,7 @@ TABLES = {
             'LastExtracted',
         ],
     },
+    #MARK: Five9CallSegments
     'Five9CallSegments': {
         'keys': [
             'CallID',
@@ -1316,6 +1363,7 @@ TABLES = {
             'TotalQueueDuration',
         ],
     },
+    #MARK: ucmi.DarwillAddresses
     'ucmi.DarwillAddresses': {
         'keys': [
             'ANI',
@@ -1352,7 +1400,7 @@ TABLES = {
             'DateAdded',
         ],
     },
-    
+    #MARK: acu.BackordersPointInTime
     'acu.BackordersPointInTime': {
         'keys': [
             'OrderType',
@@ -1469,6 +1517,7 @@ TABLES = {
             'PONbr',
         ],
     },
+    #MARK: src_dm_tracker
     'src_dm_tracker': {
         'keys': ['SpendMonth', 'MailName', 'Campaign', 'TFN'],
         'columns': [
@@ -1488,6 +1537,7 @@ TABLES = {
             'LoadTimestamp',
         ],
     },
+    #MARK: acu.TrialBalance
     'acu.TrialBalance': {
         'keys': [
             'AccountCD',
@@ -1527,6 +1577,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_CallsBySkillMonth
     'analytics.JHL_CallsBySkillMonth': {
         'keys': [
             'RawSkill',
@@ -1550,6 +1601,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_CallsBySkillDate
     'analytics.JHL_CallsBySkillDate': {
         'keys': [
             'RawSkill',
@@ -1575,6 +1627,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_CallsByAgentMonth
     'analytics.JHL_CallsByAgentMonth': {
         'keys': [
             'Agent',
@@ -1596,6 +1649,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_CallsByAgentDate
     'analytics.JHL_CallsByAgentDate': {
         'keys': [
             'Agent',
@@ -1619,6 +1673,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_CallsBySkillAgentMonth
     'analytics.JHL_CallsBySkillAgentMonth': {
         'keys': [
             'RawSkill',
@@ -1644,6 +1699,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_CallsBySkillAgentDate
     'analytics.JHL_CallsBySkillAgentDate': {
         'keys': [
             'RawSkill',
@@ -1671,6 +1727,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_CallsByDeptMonth
     'analytics.JHL_CallsByDeptMonth': {
         'keys': [
             'Department',
@@ -1692,6 +1749,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_CallsByDeptDate
     'analytics.JHL_CallsByDeptDate': {
         'keys': [
             'Department',
@@ -1715,6 +1773,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_CallsBySkillDeptMonth
     'analytics.JHL_CallsBySkillDeptMonth': {
         'keys': [
             'RawSkill',
@@ -1740,6 +1799,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_CallsBySkillDeptDate
     'analytics.JHL_CallsBySkillDeptDate': {
         'keys': [
             'RawSkill',
@@ -1767,6 +1827,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_CallsByDuringBusinessHrMonth
     'analytics.JHL_CallsByDuringBusinessHrMonth': {
         'keys': [
             'DuringBusinessHours',
@@ -1788,6 +1849,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_CallsByDuringBusinessHrDate
     'analytics.JHL_CallsByDuringBusinessHrDate': {
         'keys': [
             'DuringBusinessHours',
@@ -1811,6 +1873,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_AgentsByMonth
     'analytics.JHL_AgentsByMonth': {
         'keys': [
             'Year',
@@ -1830,6 +1893,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_AgentsByDate
     'analytics.JHL_AgentsByDate': {
         'keys': [
             'Year',
@@ -1853,6 +1917,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_AdPhone
     'analytics.JHL_AdPhone': {
         'keys': [
             'AdCode',
@@ -1890,6 +1955,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_acuMFRAllocated
     'analytics.JHL_acuMFRAllocated': {
         'keys': [
             'AdCode',
@@ -1941,6 +2007,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_MFRAllocated
     'analytics.JHL_MFRAllocated': {
         'keys': [
             'RowNum',
@@ -2072,6 +2139,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.int_CallCounts
     'analytics.int_CallCounts': {
         'keys': [
             'TimeStamp',
@@ -2139,6 +2207,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_SalesSummary
     'analytics.JHL_SalesSummary': {
         'keys': [
             'MetricBucket',
@@ -2161,6 +2230,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.int_SalesSummary
     'analytics.int_SalesSummary': {
         'keys': [
             'MetricBucket',
@@ -2185,6 +2255,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.raw_SalesSummary
     'analytics.raw_SalesSummary': {
         'keys': [
             'OrderType',
@@ -2254,6 +2325,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: acu.InventorySummary
     'acu.InventorySummary': {
         'keys': [
             'InventoryCD',
@@ -2317,6 +2389,7 @@ TABLES = {
             'IsTemplate',
         ],
     },
+    #MARK: analytics.JHL_B2BCollectionsDetail
     'analytics.JHL_B2BCollectionsDetail': {
         'keys': [
             'CustomerID',
@@ -2386,6 +2459,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_B2BCollectionsSummary
     'analytics.JHL_B2BCollectionsSummary': {
         'keys': [
             'CustomerID',
@@ -2425,6 +2499,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_B2BCollectionsSummary_Snapshot
     'analytics.JHL_B2BCollectionsSummary_Snapshot': {
         'keys': [
             'CustomerID',
@@ -2463,6 +2538,7 @@ TABLES = {
             'TotalBalance',
         ],
     },
+    #MARK: analytics.JHL_B2BCollectionsByStatus
     'analytics.JHL_B2BCollectionsByStatus': {
         'keys': [
             'CustomerStatus',
@@ -2488,6 +2564,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_B2BCollectionsByStatus_Snapshot
     'analytics.JHL_B2BCollectionsByStatus_Snapshot': {
         'keys': [
             'CustomerStatus',
@@ -2512,6 +2589,7 @@ TABLES = {
             'TotalBalance',
         ],
     },
+    #MARK: analytics.JHL_B2BCollectionsBySalesRep
     'analytics.JHL_B2BCollectionsBySalesRep': {
         'keys': [
             'SalespersonID',
@@ -2537,6 +2615,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_B2BCollectionsBySalesRep_Snapshot
     'analytics.JHL_B2BCollectionsBySalesRep_Snapshot': {
         'keys': [
             'SalespersonID',
@@ -2561,6 +2640,7 @@ TABLES = {
             'TotalBalance',
         ],
     },
+    #MARK: SOOrderKvExt
     'SOOrderKvExt': {
         'keys': [
             'CompanyID',
@@ -2583,6 +2663,7 @@ TABLES = {
             'ValueText',
         ],
     },
+    #MARK: _util.Schedule
     '_util.Schedule': {
         'keys': [
             'AzureFunction',
@@ -2595,6 +2676,7 @@ TABLES = {
         'update_columns': [
         ],
     },
+    #MARK: hs.ContactLists
     'hs.ContactLists': {
         'keys': [
             'ListID',
@@ -2667,6 +2749,7 @@ TABLES = {
             'ExtractDatetime',
         ],
     },
+    #MARK: inv.RMI_Summary
     'inv.RMI_Summary': {
         'keys': [
             'InventoryCD',
@@ -2682,6 +2765,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: inv.RMI_SummarySnapshot
     'inv.RMI_SummarySnapshot': {
         'keys': [
             'InventoryCD',
@@ -2696,6 +2780,7 @@ TABLES = {
             'Qty',
         ],
     },
+    #MARK: inv.RMI_Detail
     'inv.RMI_Detail': {
         'keys': [
             'Location',
@@ -2715,6 +2800,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: inv.RMI_DetailSnapshot
     'inv.RMI_DetailSnapshot': {
         'keys': [
             'Location',
@@ -2732,7 +2818,9 @@ TABLES = {
             'Qty',
             'Serials',
         ],
-    },'ryder.Orders': {
+    },
+    #MARK: ryder.Orders
+    'ryder.Orders': {
         'keys': [
             'RLM_OrderNumber',
             'TrackingNbr',
@@ -2787,6 +2875,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: ryder.OrderEvents
     'ryder.OrderEvents': {
         'keys': [
             'ShipmentNbr',
@@ -2820,6 +2909,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: ryder.ShipmentEvents
     'ryder.ShipmentEvents': {
         'keys': [
             'ShipmentNbr',
@@ -2861,6 +2951,7 @@ TABLES = {
             'LastChecked'
         ],
     },
+    #MARK: ryder.ShipmentItems
     'ryder.ShipmentItems': {
         'keys': [
             'ShipmentNbr',
@@ -2916,6 +3007,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_B2BCustomerCohorts
     'analytics.JHL_B2BCustomerCohorts': {
         'keys': [
             'CustomerID',
@@ -2945,6 +3037,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_B2BCustomerCohort_Snapshot
     'analytics.JHL_B2BCustomerCohort_Snapshot': {
         'keys': [
             'CustomerID',
@@ -2973,6 +3066,7 @@ TABLES = {
             'CustomerCreated',
         ],
     },
+    #MARK: CSAnswers
     'CSAnswers': {
         'keys': [
             'CompanyID',
@@ -2992,6 +3086,7 @@ TABLES = {
             'Value',
         ],
     },
+    #MARK: ucmiraw.HubspotCustomers
     'ucmiraw.HubspotCustomers': {
         'keys': [
             'RecordID',
@@ -3154,6 +3249,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: SOPackageDetail
     'SOPackageDetail':{
         'keys': [
             'CompanyID',
@@ -3171,6 +3267,7 @@ TABLES = {
             'ContentTypeDesc'
         ]
     },
+    #MARK: _dev.B2BZipCodes
     '_dev.B2BZipCodes': {
         'keys': [
             'Zip',
@@ -3219,6 +3316,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: klaviyo.ProfileHeader
     'klaviyo.ProfileHeader': {
         'keys': [
             'ID',
@@ -3260,6 +3358,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: klaviyo.ProfileProperties
     'klaviyo.ProfileProperties': {
         'keys': [
             'ID',
@@ -3457,6 +3556,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: klaviyo.ProfileSubscriptions
     'klaviyo.ProfileSubscriptions': {
         'keys': [
             'ID',
@@ -3544,6 +3644,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_CustomerCohorts
     'analytics.JHL_CustomerCohorts': {
         'keys': [
             'CustomerID',
@@ -3575,6 +3676,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_CustomerCohort_Snapshot
     'analytics.JHL_CustomerCohort_Snapshot': {
         'keys': [
             'CustomerID',
@@ -3605,6 +3707,7 @@ TABLES = {
             'CustomerCreated',
         ],
     },
+    #MARK: analytics.JHL_D2CCustomerCohorts
     'analytics.JHL_D2CCustomerCohorts': {
         'keys': [
             'CustomerID',
@@ -3634,6 +3737,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_D2CCustomerCohort_Snapshot
     'analytics.JHL_D2CCustomerCohort_Snapshot': {
         'keys': [
             'CustomerID',
@@ -3662,6 +3766,7 @@ TABLES = {
             'CustomerCreated',
         ],
     },
+    #MARK: analytics.JHL_CustomerOrderHistory
     'analytics.JHL_CustomerOrderHistory': {
         'keys': [
             'CustomerClass',
@@ -3703,6 +3808,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_B2BCustomerOrderHistory
     'analytics.JHL_B2BCustomerOrderHistory': {
         'keys': [
             'CustomerID',
@@ -3744,6 +3850,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: analytics.JHL_D2CCustomerOrderHistory
     'analytics.JHL_D2CCustomerOrderHistory': {
         'keys': [
             'CustomerID',
@@ -3801,6 +3908,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: acu.Account
     'acu.Account': {
         'keys': [
             'AcctID',
@@ -3864,6 +3972,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: acu.ARAdjust
     'acu.ARAdjust': {
         'keys': [
             'AdjdDocType',
@@ -4003,6 +4112,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: acu.ARRegister
     'acu.ARRegister': {
         'keys': [
             'DocType',
@@ -4168,6 +4278,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: acu.ARTran
     'acu.ARTran': {
         'keys': [
             'TranType',
@@ -4377,6 +4488,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: acu.CADeposit
     'acu.CADeposit': {
         'keys': [
             'TranType',
@@ -4468,6 +4580,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: acu.CADepositCharge
     'acu.CADepositCharge': {
         'keys': [
             'TranType',
@@ -4529,6 +4642,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: acu.CADepositDetail
     'acu.CADepositDetail': {
         'keys': [
             'TranType',
@@ -4592,6 +4706,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: acu.CashAccount
     'acu.CashAccount': {
         'keys': [
             'CashAcctID',
@@ -4715,6 +4830,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: acu.CATran
     'acu.CATran': {
         'keys': [
             'OrigModule',
@@ -4802,6 +4918,7 @@ TABLES = {
             'LastChecked',
         ],
     },
+    #MARK: acu.Sub
     'acu.Sub': {
         'keys': [
             'SubID',
