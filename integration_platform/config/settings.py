@@ -5153,3 +5153,9 @@ RYDER = {
 KLAYVIO={
     'api_key': os.getenv('KLAYVIO_API_KEY')
 }
+
+FEDEX ={
+    'account_id': os.getenv('FEDEX_ACCOUNT_ID'),
+    'client_id': os.getenv('FEDEX_CLIENT_ID'),
+    'client_secret': os.getenv('FEDEX_CLIENT_SECRET')
+}
