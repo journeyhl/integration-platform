@@ -979,7 +979,52 @@ def klaviyo_newsletter(timer: af.TimerRequest):
 
 
 
+#MARK:                                                  acu_to_dbc_accounts
+#         Loads Account, Sub and CashAccount tables from Acumatica into dbc
+#                                                          1x/day @ 11:05pm
+@app.timer_trigger(
+    schedule = '05 23 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def acu_to_dbc_accounts(timer: af.TimerRequest):
+    from integration_platform.pipelines.acu_to_dbc import ModularAcuToDbc
+    accounts = ModularAcuToDbc(function='acu_to_dbc_accounts', table_name='acu.Account') #ModularAcuToDbc
+    accounts.run()
+    accounts.rerun(table_name='acu.CashAccount')
+    accounts.rerun(table_name='acu.Sub')
 
+
+#MARK:                                             acu_to_dbc_bank_deposits
+#                      Loads bank deposit(CA)tables from Acumatica into dbc
+#                                                          1x/day @ 11:10pm
+@app.timer_trigger(
+    schedule = '10 23 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def acu_to_dbc_bank_deposits(timer: af.TimerRequest):
+    from integration_platform.pipelines.acu_to_dbc import ModularAcuToDbc
+    deposits = ModularAcuToDbc(function='acu_to_dbc_bank_deposits', table_name='acu.CADeposit') #ModularAcuToDbc
+    deposits.run()
+    deposits.rerun(table_name='acu.CADepositCharge')
+    deposits.rerun(table_name='acu.CADepositDetail')
+    deposits.rerun(table_name='acu.CATran')
+
+#MARK:                                       acu_to_dbc_accounts_receivable
+#      Loads ARAdjust, ARRegister and ARTran tables from Acumatica into dbc
+#                                                          1x/day @ 11:15pm
+@app.timer_trigger(
+    schedule = '15 23 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def acu_to_dbc_accounts_receivable(timer: af.TimerRequest):
+    from integration_platform.pipelines.acu_to_dbc import ModularAcuToDbc
+    accts_receivable = ModularAcuToDbc(function='acu_to_dbc_accounts_receivable', table_name='acu.ARAdjust') #ModularAcuToDbc
+    accts_receivable.run()
+    accts_receivable.rerun(table_name='acu.ARRegister')
+    accts_receivable.rerun(table_name='acu.ARTran')
 
 
 

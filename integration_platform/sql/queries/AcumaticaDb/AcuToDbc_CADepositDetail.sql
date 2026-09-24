@@ -31,3 +31,4 @@ left join Users uc on dd.CompanyID = uc.CompanyID and dd.CreatedByID = uc.PKID
 left join Users um on dd.CompanyID = um.CompanyID and dd.LastModifiedByID = um.PKID
 left join JJStatusLookup jt on dd.TranType = jt.CStatus and jt.Tbl = 'CADeposit.TranType'
 where dd.CompanyID = 2
+and dateadd(hour, -4, dd.LastModifiedDateTime) >= dateadd(day, -1, getdate())

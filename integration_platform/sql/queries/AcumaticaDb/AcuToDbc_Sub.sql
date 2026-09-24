@@ -17,6 +17,7 @@ from Sub s
 left join Users uc on s.CompanyID = uc.CompanyID and s.CreatedByID = uc.PKID
 left join Users um on s.CompanyID = um.CompanyID and s.LastModifiedByID = um.PKID
 where s.CompanyID = 2
+and dateadd(hour, -4, s.LastModifiedDateTime) >= dateadd(day, -7, getdate())
 )
 select t.SubID
      , t.SubCD

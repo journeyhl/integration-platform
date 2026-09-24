@@ -104,4 +104,4 @@ left join BAccount b on a.CompanyID = b.CompanyID and a.CustomerID = b.BAccountI
 left join Account aa on a.CompanyID = aa.CompanyID and a.AccountID = aa.AccountID
 left join SalesPerson sp on a.CompanyID = sp.CompanyID and a.SalesPersonID = sp.SalespersonID
 where a.CompanyID = 2
-
+and dateadd(hour, -4, a.LastModifiedDateTime) >= dateadd(day, -1, getdate())

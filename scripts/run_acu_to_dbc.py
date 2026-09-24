@@ -3,27 +3,64 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from integration_platform.pipelines.acu_to_dbc import ModularAcuToDbc
 
-#TODO fix this
-# acu_to_dbc = ModularAcuToDbc(function='.debug', table_name='acu.ARAdjust')
-# acu_to_dbc.run()
-# bp = 'here'
 
-acu_to_dbc = ModularAcuToDbc(function='.debug', table_name='acu.ARRegister')
-acu_to_dbc.run()
+
+
+modular = ModularAcuToDbc(function='.debug', table_name='acu.Account')
+modular.run()
+modular.rerun(table_name='acu.CashAccount')
+modular.rerun(table_name='acu.Sub')
+modular.rerun(table_name='acu.CADeposit')
+modular.rerun(table_name='acu.CADepositCharge')
+modular.rerun(table_name='acu.CADepositDetail')
+modular.rerun(table_name='acu.CATran')
+modular.rerun(table_name='acu.ARRegister')
+modular.rerun(table_name='acu.ARAdjust')
+modular.rerun(table_name='acu.ARTran')
+modular.rerun(table_name='acu.ARRegister')
 bp = 'here'
 
-acu_to_dbc = ModularAcuToDbc(function='.debug', table_name='acu.ARTran')
-acu_to_dbc.run()
+
+
+modular = ModularAcuToDbc(function='.debug', table_name='acu.ARAdjust')
+modular.run()
+modular.rerun(table_name='acu.ARRegister')
+modular.rerun(table_name='acu.ARTran')
 bp = 'here'
 
-acu_to_dbc = ModularAcuToDbc(function='.debug', table_name='acu.CADeposit')
-acu_to_dbc.run()
+
+modular = ModularAcuToDbc(function='.debug', table_name='acu.ARTran')
+modular.run()
+bp = 'here'
+modular.rerun(table_name='acu.ARAdjust')
 bp = 'here'
 
-acu_to_dbc = ModularAcuToDbc(function='.debug', table_name='acu.CADepositCharge')
-acu_to_dbc.run()
+
+
+
+modular = ModularAcuToDbc(function='.debug', table_name='acu.Account')
+modular.run()
+modular.rerun(table_name='acu.Sub')
 bp = 'here'
 
-acu_to_dbc = ModularAcuToDbc(function='.debug', table_name='acu.CADepositDetail')
-acu_to_dbc.run()
+
+
+modular = ModularAcuToDbc(function='.debug', table_name='acu.ARRegister')
+modular.run()
+bp = 'here'
+
+modular = ModularAcuToDbc(function='.debug', table_name='acu.ARTran')
+modular.run()
+bp = 'here'
+
+modular = ModularAcuToDbc(function='.debug', table_name='acu.CADeposit')
+modular.run()
+bp = 'here'
+
+modular = ModularAcuToDbc(function='.debug', table_name='acu.CADepositCharge')
+modular.run()
+bp = 'here'
+
+modular = ModularAcuToDbc(function='.debug', table_name='acu.CADepositDetail')
+modular.run()
 bp = 'here'

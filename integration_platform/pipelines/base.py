@@ -11,6 +11,7 @@ from typing import TypeVar, Generic, Any
 
 T = TypeVar('T', list, dict)
 
+#MARK: MillisecondFormatter
 class MillisecondFormatter(colorlog.ColoredFormatter):
     def formatTime(self, record, datefmt = None):
         time = datetime.fromtimestamp(record.created)
@@ -19,13 +20,13 @@ class MillisecondFormatter(colorlog.ColoredFormatter):
             return new_time
         return time.isoformat()
 
+#MARK: LogHistory
 class LogHistory(logging.Handler):
     def __init__(self, logs: list, pipe_start: datetime, function: str):
         super().__init__()
         self.logs = logs
         self.pipe_start = pipe_start
         self.function = function
-    
     def emit(self, log_entry):
         self.logs.append(self.format(log_entry))
 
@@ -49,7 +50,7 @@ class LogHistory(logging.Handler):
             'PipeStartTimestamp': self.pipe_start
         }
         return new_log_entry
-
+#MARK: Pipeline
 class Pipeline(ABC):
     def __init__(self, pipeline_name: str, function: str, env: str = 'prod'):
         ''':class:`~integration_platform.pipelines.base.Pipeline`.:meth:`~integration_platform.pipelines.base.Pipeline.__init__`
@@ -61,7 +62,10 @@ class Pipeline(ABC):
         ---
         :param (*str*) `pipeline_name`: Name of Pipeline, passed from subclass
         :param (*str*) `function`: Name of function in Azure Functions, passed from subclass
-        :param (*str*) `env = 'prod'` `env`: Whether or not pipeline is to be run in 'prod' (AcumaticaDb) or 'dev' (AcudevDb)
+        
+                
+           ### ***Optional***
+        :param (*str = 'prod'*) `env`: Whether or not pipeline is to be run in 'prod' (AcumaticaDb) or 'dev' (AcudevDb)
         
         <hr>
         
@@ -90,6 +94,7 @@ class Pipeline(ABC):
         self.centralstore: SQLConnector[CentralStoreQueries] = SQLConnector(self, 'db_CentralStore')
         self.default_loader = DefaultLoader(self)
 
+    #MARK: _init_logging_
     def _init_logging_(self):
         ''':class:`~integration_platform.pipelines.base.Pipeline`.:meth:`~integration_platform.pipelines.base.Pipeline._init_logging_`
         ---
@@ -141,7 +146,7 @@ class Pipeline(ABC):
     def log_results(self, data_loaded) -> Any: ...
         
 
-
+    #MARK: run
     def run(self):
         self.ts_pipeline_start = datetime.now(ZoneInfo('America/New_York'))
         self.logger.info(f'Starting {self.pipeline_name}')
@@ -188,7 +193,7 @@ class Pipeline(ABC):
         }
 
 
-
+    #MARK: _time_differential_
     def _time_differential_(self, start: datetime, end: datetime):
         total_seconds = (end - start).seconds
         minutes = int(total_seconds / 60)

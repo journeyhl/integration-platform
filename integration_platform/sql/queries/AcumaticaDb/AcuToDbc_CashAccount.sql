@@ -62,3 +62,4 @@ left join Sub s on c.CompanyID = s.CompanyID and c.SubID = s.SubID
 left join Users uc on c.CompanyID = uc.CompanyID and c.CreatedByID = uc.PKID
 left join Users um on c.CompanyID = um.CompanyID and c.LastModifiedByID = um.PKID
 where c.CompanyID = 2
+and dateadd(hour, -4, c.LastModifiedDateTime) >= dateadd(day, -7, getdate())

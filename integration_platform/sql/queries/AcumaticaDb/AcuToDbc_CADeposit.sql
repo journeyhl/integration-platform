@@ -47,6 +47,7 @@ left join CashAccount cash on c.CompanyID = cash.CompanyID and c.CashAccountID =
 left join JJStatusLookup j on c.Status = j.CStatus and j.Tbl = 'CADeposit'
 left join JJStatusLookup jt on c.TranType = jt.CStatus and jt.Tbl = 'CADeposit.TranType'
 where c.Companyid = 2
+and dateadd(hour, -4, c.LastModifiedDateTime) >= dateadd(day, -1, getdate())
 )
 select *
 from TopLevel

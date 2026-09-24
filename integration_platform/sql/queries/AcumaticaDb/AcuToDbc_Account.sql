@@ -33,3 +33,4 @@ from Account a
 left join Users uc on a.CompanyID = uc.CompanyID and a.CreatedByID = uc.PKID
 left join Users um on a.CompanyID = um.CompanyID and a.LastModifiedByID = um.PKID
 where a.CompanyID = 2
+and dateadd(hour, -4, a.LastModifiedDateTime) >= dateadd(day, -1, getdate())

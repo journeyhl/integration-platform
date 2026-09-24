@@ -27,6 +27,7 @@ from .acu_to_dbc_backorders import AcuToDbcBackordersPointInTime
 from .acu_to_dbc_trial_balance import AcuToDbcTrialBalance
 from .acu_to_dbc_inventory_summary import AcuToDbcInventorySummary
 from .acu_to_dbc_b2b_collections import AcuToDbcB2BCollections
+from .acu_to_dbc import ModularAcuToDbc
 
 
 from .redstag_send_shipments import SendRedStagShipments

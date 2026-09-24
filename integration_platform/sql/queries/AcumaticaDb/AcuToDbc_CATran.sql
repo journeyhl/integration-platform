@@ -42,3 +42,4 @@ left join Users um on c.CompanyID = um.CompanyID and c.LastModifiedByID = um.PKI
 left join CashAccount cash on c.CompanyID = cash.CompanyID and c.CashAccountID = cash.CashAccountID
 left join JJStatusLookup j on c.OrigTranType = j.CStatus and j.Tbl = 'CATran.OrigTranType'
 where c.CompanyID = 2
+and dateadd(hour, -4, c.LastModifiedDateTime) >= dateadd(day, -1, getdate())

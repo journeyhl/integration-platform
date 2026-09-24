@@ -85,6 +85,7 @@ inner join JJStatusLookup j on ar.Status = j.CStatus and j.tbl = 'ARRegister'
 inner join JJStatusLookup jdt on ar.DocType = jdt.CStatus and jdt.tbl = 'ARRegister.DocType'
 left join SalesPerson sp on ar.CompanyID = sp.CompanyID and ar.SalesPersonID = sp.SalespersonID
 where ar.CompanyID = 2
+and dateadd(hour, -4, ar.LastModifiedDateTime) >= dateadd(day, -1, getdate())
 )
 select *
 from TopLevel

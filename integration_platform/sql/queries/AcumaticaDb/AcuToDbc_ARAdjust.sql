@@ -79,3 +79,4 @@ left join JJStatusLookup jg on a.AdjgDocType = jg.CStatus and jg.tbl = 'ARRegist
 left join Account aa on a.CompanyID = aa.CompanyID and a.AdjdARAcct = aa.AccountID
 left join Sub sa on a.CompanyID = sa.CompanyID and a.AdjdARSub = sa.SubID
 where a.CompanyID = 2
+and dateadd(hour, -4, a.LastModifiedDateTime) >= dateadd(day, -1, getdate())
