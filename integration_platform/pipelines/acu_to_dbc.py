@@ -38,6 +38,34 @@ class ModularAcuToDbc(Pipeline):
         pass
 
     def rerun(self, table_name: Literal['acu.BackordersPointInTime', 'acu.Account', 'acu.ARAdjust', 'acu.ARRegister', 'acu.ARTran', 'acu.CADeposit', 'acu.CADepositCharge', 'acu.CADepositDetail', 'acu.CashAccount', 'acu.CATran', 'acu.InventorySummary', 'acu.PhoneRevByMonth', 'acu.Quotes', 'acu.SalesOrders', 'acu.Shipments', 'acu.Sub', 'acu.TrialBalance']):
+        ''':class:`~integration_platform.pipelines.acu_to_dbc.ModularAcuToDbc`.:meth:`~integration_platform.pipelines.acu_to_dbc.ModularAcuToDbc.rerun`
+        ---
+        
+        Reconfigures pipeline to be used with a different table than that of which it was initialized with, then executes pipeline
+        
+        Parameters
+        ---
+        :param (*Literal*) `table_name`: string value of one of the tables that has been configured for use in ModularAcuToDbc pipe
+        
+        <hr>
+        
+        Sets
+        ---
+        - #### self.:meth:`~integration_platform.pipelines.acu_to_dbc.ModularAcuToDbc.query`
+        - #### self.:meth:`~integration_platform.pipelines.acu_to_dbc.ModularAcuToDbc.table_name`
+        
+        <hr>
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### :class:`~integration_platform.pipelines.base.Pipeline`.:meth:`~integration_platform.pipelines.base.Pipeline._init_logging_`
+        
+          - Reinitializes logs for next pipeline execution
+        
+         ### :class:`~integration_platform.pipelines.acu_to_dbc.ModularAcuToDbc`.:meth:`~integration_platform.pipelines.base.Pipeline.run`
+        
+          - Executes pipeline via base/super class
+        '''
         super()._init_logging_()
         self.query = self.map[table_name]
         self.table_name = table_name
@@ -60,8 +88,6 @@ class ModularAcuToDbc(Pipeline):
         ## Upstream Calls (Methods/Functions Called by)
         
          ### :class:`~integration_platform.pipelines.acu_to_dbc.ModularAcuToDbc`.:meth:`~integration_platform.pipelines.acu_to_dbc.ModularAcuToDbc.__init__`
-        
-         ### :class:`~integration_platform.pipelines.acu_to_dbc.ModularAcuToDbc`.:meth:`~integration_platform.pipelines.acu_to_dbc.ModularAcuToDbc.rerun`
         '''        
         self.map = {
             'acu.BackordersPointInTime': self.acudb.queries.AcuToDbc_BackordersPointInTime,
