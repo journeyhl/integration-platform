@@ -2,27 +2,24 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # from integration_platform.connectors import Teams, HubSpotAPI, SFTP, RyderAPI, RMIAPI
-from integration_platform.connectors.ryder_api import RyderAPI
-from integration_platform.connectors.klaviyo import KlaviyoAPI
-from integration_platform.pipelines.base import Pipeline
+# from integration_platform.connectors.ryder_api import RyderAPI
+from integration_platform.connectors.hubspot_api import HubSpotAPI
+# from integration_platform.connectors.klaviyo import KlaviyoAPI
+# from integration_platform.pipelines.base import Pipeline
 
+map = {
+    'territories':'2-67850902',
+    'zip_codes': '2-61043340',
+}
 
-klaviyo = KlaviyoAPI(pipeline='test')
+hs = HubSpotAPI(pipeline='.debug')
+test = hs._request_(method='get', path=f'/crm/v3/objects/{map['territories']}')
+t2 = hs.get_properties(object_type=map['territories'])
+
 bp = 'here'
-test2 = klaviyo.get_profiles()
+test2 = hs._request_(method='get', path=f'/crm/v3/objects/{map['zip_codes']}')
+
 bp = 'here'
-
-
-ryder = RyderAPI(pipeline='test', env='prod')
-bp = 'here'
-
-
-history = ryder.get_order_history(shipment_nbr='087465')
-bp = 'here'
-
-milestone = ryder.get_order_milestones(shipment_nbr='087465')
-bp = 'here'
-
 
 
 

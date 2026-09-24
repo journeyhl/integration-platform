@@ -1042,6 +1042,7 @@ TABLES = {
         ],
         'columns': [
             'ObjectType',
+            'otName',
             'Name',
             'Label',
             'GroupName',
@@ -1059,6 +1060,7 @@ TABLES = {
             'UpdatedAt',
         ],
         'update_columns': [
+            'otName',
             'Label',
             'GroupName',
             'Description',

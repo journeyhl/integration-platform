@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING,  Any, Iterator
 if TYPE_CHECKING:
-    from integration_platform.pipelines import HubspotSnapshot, HubSpotProperties, HubspotContacts, HubspotCompanyRevenue, HubspotPropertyUpdate, HubspotLeadsToDbc, UCMI_HubspotCustomers
+    from integration_platform.pipelines import HubspotSnapshot, HubSpotProperties, HubspotContacts, HubspotCompanyRevenue, HubspotPropertyUpdate, HubspotLeadsToDbc, UCMI_HubspotCustomers, B2BZipCodes
 from integration_platform.config.settings import HUBSPOT
 from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo
@@ -11,7 +11,7 @@ import time
 
 
 class HubSpotAPI:
-    def __init__(self, pipeline: HubspotSnapshot | HubSpotProperties | HubspotContacts | HubspotCompanyRevenue | HubspotPropertyUpdate | HubspotLeadsToDbc | UCMI_HubspotCustomers | str):
+    def __init__(self, pipeline: HubspotSnapshot | HubSpotProperties | HubspotContacts | HubspotCompanyRevenue | HubspotPropertyUpdate | HubspotLeadsToDbc | UCMI_HubspotCustomers | B2BZipCodes | str):
         self.pipeline = pipeline
         if type(pipeline) == str:
             self.logger = logging.getLogger(f'{pipeline}.HubSpotAPI')
@@ -34,9 +34,9 @@ class HubSpotAPI:
             self._get_owners_()
             self._set_snapshot_windows_()
 
-    #region _request_
+    #MARK: _request_
     def _request_(self, method: str, path: str, **kwargs) -> dict[str, Any]:
-        ''':class:`~HubSpotAPI`.:meth:`~_request_`
+        ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI._request_`
         ---
 
         Method that actually hits the HubSpot api with the method and args passed
@@ -118,12 +118,74 @@ class HubSpotAPI:
             return jresponse
         self.logger.error(f'{self.prefix}Error! {method} request to {path} failed after five retries...{last_status}')
         return {}
-    #endregion
 
 
-    #region Methods in development
+    #MARK: get_list_with_membership_details
+    def get_list_with_membership_details(self, list_id: int, object_type: str, limit: int=250, props: str = '', associations: str = '', object_data: dict = {}):
+        ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_list_with_membership_details`
+        ---
+        
+        Once complete, should be used in place of :meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_list_with_membership_contact_details`
+        
+        Parameters
+        ---
+        :param (*int*) `list_id`: ID of hubspot list
+        :param (*str*) `object_type`: ObjectType of hubspot entity
+        
+                
+           ### ***Optional***
+        :param (*str = ''*) `limit`: Limit of records to return
+        :param (*str = ''*) `props`: Properties to return from each individual member of list
+        :param (*str = ''*) `associations`: Properties to return from each individual member of list
+        :param (*str = ''*) `object_data`: ObjectType 
+        
+        Returns
+        ---
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### _______replace_me_______
+        
+          - Description
+        
+         ### _______replace_me_______
+           
+          - Description
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_list_with_membership`
+        
+          - Gets List and all its members(rows)
+        
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_object_by_id`
+           
+          - For each member(row), get its properties and associations
+        '''
+        list_data = self.get_list_with_membership(list_id, limit=limit)
+        list_members = list_data['rows']
+        rowlen = len(list_members)
+        detailed_rows = []
+        extracted_timestamp = datetime.now(ZoneInfo('America/New_York'))
+        props = self.contact_property_str if props == '' else props
+        for i, (id, data) in enumerate(list_members.items()):
+            self.prefix = f'{list_data['name']}, {i+1}/{rowlen}: '
+            self.logger.info(f'{self.prefix}Retrieving details for {id}')
+            member_details = self.get_object_by_id(object_id=id, object_type=object_type, props=props, associations=associations)
+            data = {**member_details, 'membershipTimestamp': data['membershipTimestamp']}
+            detailed_rows.append(data)
+        list_data['detailed_rows'] = detailed_rows
+        list_data['timestamp_extract'] = extracted_timestamp
+        self.logger.info(f'{list_data['name']} parsed successfully, {len(list_data['detailed_rows'])} rows returned')
+        return list_data
+
+
+
+    #MARK: get_list_with_membership_contact_details
     def get_list_with_membership_contact_details(self, list_id: int, limit: int=250, props: str = ''):
-        ''':class:`~HubSpotAPI`.:meth:`~get_list_with_membership_contact_details`
+        ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_list_with_membership_contact_details`
         ---
 
         Given a ListID, get list data, membership and contact details for each member
@@ -181,9 +243,9 @@ class HubSpotAPI:
         self.logger.info(f'{list_data['name']} parsed successfully, {len(list_data['detailed_rows'])} rows returned')
         return list_data
     
-
+    #MARK: get_list_with_membership
     def get_list_with_membership(self, list_id: int, limit: int = 250):
-        ''':class:`~HubSpotAPI`.:meth:`~get_list_with_membership`
+        ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_list_with_membership`
         ---
 
         Given a list id, get that list's details and membership(rows)
@@ -233,6 +295,7 @@ class HubSpotAPI:
             after = data.get('paging', {}).get('next', {}).get('after')
             if not after:
                 break
+            self.logger.info(f'{len(rows)} rows extracted')
         list_data = {
             **list_information['list'],
             'rows': rows 
@@ -240,8 +303,9 @@ class HubSpotAPI:
         self.logger.info(f'{list_data['name']} has {list_data['size']} rows')
         return list_data
 
+    #MARK: get_contact_by_id
     def get_contact_by_id(self, contact_id: int, properties: str = 'firstname,lastname,email,phone,name'):
-        ''':class:`~HubSpotAPI`.:meth:`~get_contact_by_id`
+        ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_contact_by_id`
         ---
 
         Given a Hubspot ContactID, retrieve contact details, including the properties passed
@@ -279,6 +343,20 @@ class HubSpotAPI:
         return contact_details
 
 
+    def get_object_by_id(self, object_id: int, object_type: str, object_data: dict = {}, props: str = 'firstname,lastname,email,phone,name', associations: str = ''):
+        if props != 'firstname,lastname,email,phone,name' + object_type == 'contacts':
+            props = 'firstname,lastname,email,phone,name,' + props
+        path = f'/crm/v3/objects/{object_type}/{object_id}'
+        params = {
+            'properties': props
+        }
+        if associations != '':
+            params['associations'] = associations
+        object_details = self._request_(method='GET', path=path, params=params)
+        return object_details
+
+
+
 
 
 
@@ -304,9 +382,9 @@ class HubSpotAPI:
 
 
     
-    #region get_properties
-    def get_properties(self, object_type: str, property_name: str = '') -> list[dict]:
-        ''':class:`~HubSpotAPI`.:meth:`~get_properties`
+    #MARK: get_properties
+    def get_properties(self, object_type: str, property_name: str = '', object_type_name: str = '') -> list[dict]:
+        ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_properties`
         ---
 
         Method that drives the extraction of HubSpot properties from the **object_type** passed as a parameter
@@ -317,7 +395,8 @@ class HubSpotAPI:
 
            ### ***Optional***
         :param (*str = ''*) `property_name`: If provided, filters the results down to only the property matching this name
-
+        :param (*str = ''*) `object_type_name`: Use when getting territories and zip_codes properties, otherwise dont pass
+        
         <hr>
 
         Returns
@@ -353,16 +432,15 @@ class HubSpotAPI:
             return results
         for result in results:
             result['ObjectType'] = object_type
-        # self.logger.info(f'')
+            result['otName'] = object_type if object_type_name == '' else object_type_name
         bp = 'here'
         return results
-    #endregion
 
 
     
-    #region search
+    #MARK: search
     def search(self, object_type: str, filter_groups: list[dict], properties: list[str], query: str = '', limit: int = 100) -> Iterator[dict]:
-        ''':class:`~HubSpotAPI`.:meth:`~search`
+        ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.search`
         ---
 
         Method that orchestrates how the request payload to the HubSpot API is actually delivered
@@ -450,20 +528,13 @@ class HubSpotAPI:
             bp = 'here'
         bp = 'here'
 
-
-    #endregion
     
-    #region search_deals
+    #MARK: search_deals
     def search_deals(self) -> list[dict]:
-        ''':class:`~HubSpotAPI`.:meth:`~search_deals`
+        ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.search_deals`
         ---
 
         Searches HubSpot for B2B deals: open deals created within the last two years, plus deals closed (won or lost) since the start of the current fiscal year
-
-        Parameters
-        ---
-
-        <hr>
 
         Returns
         ---
@@ -519,12 +590,10 @@ class HubSpotAPI:
                 deals.append(deal)
         return deals
 
-
-    #endregion
     
-    #region search_activities
+    #MARK: search_activities
     def search_activities(self, object_type: str) -> list[dict]:
-        ''':class:`~HubSpotAPI`.:meth:`~search_activities`
+        ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.search_activities`
         ---
 
         Method to search activities in hubspot for the ***object_type*** passed to the method
@@ -559,11 +628,11 @@ class HubSpotAPI:
             {"filters": [{"propertyName": "hs_timestamp", "operator": "GTE", "value": self.fiscal_year_start_ms}]}
         ]
         return list(self.search(object_type, filter_groups=filter_groups, properties=["hs_timestamp", "hubspot_owner_id"]))
-    #endregion
+
     
-    #region search_new_contacts
+    #MARK: search_new_contacts
     def search_new_contacts(self, properties: list = ["createdate", "hubspot_owner_id"]) -> list[dict]:
-        ''':class:`~HubSpotAPI`.:meth:`~search_new_contacts`
+        ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.search_new_contacts`
         ---
 
         Method to search Contacts in HubSpot specifically
@@ -594,11 +663,11 @@ class HubSpotAPI:
         ]
         results = list(self.search('contacts', filter_groups=filter_groups, properties=properties))
         return results
-    #endregion
+
     
-    #region search_contacts
+    #MARK: search_contacts
     def search_contacts(self, filter_groups: list = [], properties: list = ["createdate", "hubspot_owner_id"]) -> list[dict]:
-        ''':class:`~HubSpotAPI`.:meth:`~search_contacts`
+        ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.search_contacts`
         ---
 
         Method to search Contacts in HubSpot, optionally filtered by the given filter_groups
@@ -636,12 +705,12 @@ class HubSpotAPI:
             ]
         results = list(self.search('contacts', filter_groups=filter_groups, properties=properties))
         return results    
-    #endregion
+
 
     
-    #region search_by_phone
+    #MARK: search_by_phone
     def search_by_phone(self, phone_value: str, object_type: str = 'contacts', filter_groups: list = [], properties: list = ["createdate", "hubspot_owner_id", "email", "phone"]) -> list[dict]:
-        ''':class:`~HubSpotAPI`.:meth:`~search_by_phone`
+        ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.search_by_phone`
         ---
 
         Method to search HubSpot for records matching the given phone_value
@@ -675,13 +744,13 @@ class HubSpotAPI:
         #     ]
         results = list(self.search(object_type=object_type, filter_groups=filter_groups, properties=properties, query=phone_value))
         return results
-    #endregion
+
 
 
     
-    #region retrieve_companies    
+    #MARK: retrieve_companies    
     def retrieve_companies(self, limit: int = 100):
-        ''':class:`~HubSpotAPI`.:meth:`~retrieve_companies`
+        ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.retrieve_companies`
         ---
 
         Gets companies, contacts and contact information from Hubspot
@@ -750,12 +819,11 @@ class HubSpotAPI:
                 break
         self.logger.info(f'{self.calls} total hubspot api calls')
         return companies
-    #endregion
     
 
-    #region get_company_primary_contact
+    #MARK: get_company_primary_contact
     def get_company_primary_contact(self, company: dict) -> dict:
-        ''':class:`~HubSpotAPI`.:meth:`~get_company_primary_contact`
+        ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_company_primary_contact`
         ---
 
         Given a company, finds all primary contacts. Then for each contact, retrieves contact details (name, phone, email, etc.)
@@ -816,11 +884,10 @@ class HubSpotAPI:
             'contacts': contacts
         }
         return company
-    #endregion
     
-    #region update_company
+    #MARK: update_company
     def update_company(self, company: dict, property_payload: dict):
-        ''':class:`~HubSpotAPI`.:meth:`~update_company`
+        ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.update_company`
         ---
 
         Given a dict of company data and properties to update, update the specified properties for the passed company
@@ -862,11 +929,10 @@ class HubSpotAPI:
         time.sleep(1)
         bp = 'here'
         return company
-    #endregion
 
-    #region update_property_options
+    #MARK: update_property_options
     def update_property_options(self, property: dict):
-        ''':class:`~HubSpotAPI`.:meth:`~update_property_options`
+        ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.update_property_options`
         ---
 
         Given a property (Acumatica Items), update its dropdown options
@@ -905,7 +971,6 @@ class HubSpotAPI:
         time.sleep(1)
         bp = 'here'
         return jresponse
-    #endregion
 
     #TODO Pull in data on all the contacts
     #Track where they come from, attribute sales 
@@ -917,7 +982,7 @@ class HubSpotAPI:
 
     #region HubspotCompanyRevenue
  
-    #region _get_owners_
+    #MARK: _get_owners_
     def _get_owners_(self) -> dict[str, str]:
         ''':class:`~HubSpotAPI`.:meth:`~_get_owners_`
         ---
@@ -969,10 +1034,9 @@ class HubSpotAPI:
                 break
         self.owners = owners
         return owners
-    #endregion
 
 
-    #region _get_deal_pipelines_
+    #MARK: _get_deal_pipelines_
     def _get_deal_pipelines_(self) -> list[dict]:
         data = self._request_('GET', '/crm/v3/pipelines/deals')
         bp = 'here'
@@ -985,10 +1049,8 @@ class HubSpotAPI:
         self.inbound_pipeline = next((result for result in results if result['label'].lower() == 'inbound sales'), {})
         self.outbound_pipeline = next((result for result in results if result['label'].lower() == 'outbound sales'), {})
         return data.get('results', [])
-    #endregion
-
    
-    #region _set_snapshot_windows_ 
+    #MARK: _set_snapshot_windows_ 
     def _set_snapshot_windows_(self):
         ''':class:`~HubSpotAPI`.:meth:`~_set_snapshot_windows_`
         ---
@@ -1017,6 +1079,8 @@ class HubSpotAPI:
         self.month_start = datetime.now(ZoneInfo('America/New_York')).date() - timedelta(days=datetime.now(ZoneInfo('America/New_York')).date().day - 1)
         
         self.contact_searching = str(int((self.fiscal_year_start.timestamp() + 100000) * 1000))
-    #endregion
+
 
     #endregion
+
+

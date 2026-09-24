@@ -1,7 +1,8 @@
 from . import Pipeline
 from integration_platform.transform.notify_fulfillment_ops import Transform
 from integration_platform.connectors import HubSpotAPI
-
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 class HubSpotProperties(Pipeline):    
     '''`HubSpotProperties`(Pipeline)
@@ -36,7 +37,10 @@ class HubSpotProperties(Pipeline):
         tasks = self.hubapi.get_properties('tasks')
         # deals = self.hubapi._get_properties('deals')
         leads = self.hubapi.get_properties('leads')
-        data_extract = contacts + calls + emails + meetings + tasks +  leads
+        territories = self.hubapi.get_properties(object_type='2-67850902',object_type_name='territories') #territories
+        zip_codes = self.hubapi.get_properties(object_type='2-61043340',object_type_name='zip_codes') #zip_codes
+        data_extract = contacts + calls + emails + meetings + tasks +  leads + territories + zip_codes
+        self.ts_extract = datetime.now(ZoneInfo('America/New_York'))
         return data_extract
 
     def transform(self, data_extract):
@@ -44,6 +48,7 @@ class HubSpotProperties(Pipeline):
         for item in data_extract:
             data_transformed.append({
                 'ObjectType': item['ObjectType'],
+                'otName': item['otName'],
                 'Name': item['name'],
                 'Label': item['label'],
                 'GroupName': item['groupName'],
@@ -63,7 +68,9 @@ class HubSpotProperties(Pipeline):
         return data_transformed
     
     def load(self, data_transformed):
-        self.centralstore.checked_upsert_paginated('hs.Properties', data_transformed)
+        now = datetime.now(ZoneInfo('America/New_York'))
+        data_transformed = self.default_loader.add_to_list(ldata=data_transformed, additions={'InsertedDT': now, 'LastChecked': self.ts_extract})
+        self.centralstore.merge_table_paginated(table_name='hs.Properties', data=data_transformed)
         return data_transformed
     
     def log_results(self, data_loaded):

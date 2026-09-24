@@ -407,6 +407,7 @@ class SQLConnector(Generic[QT]):
 
            ### ***Optional***
         :param (*dict = None*) `params`: Parameters to pass to query if neccessary
+        
         :param (*dict = None*) `log_str`: String to pass to log output if neccessary. If something is passed as the log string, DO NOT log anything here
 
         <hr>
