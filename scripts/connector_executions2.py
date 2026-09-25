@@ -8,7 +8,7 @@ from integration_platform.connectors.fedex import Fedex
 # from integration_platform.pipelines.base import Pipeline
 
 fedex = Fedex('.debug')
-fedex.get_rate()
+fedex.get_rate(from_zip='23059', to_zip='33650')
 bp = 'here'
 
 

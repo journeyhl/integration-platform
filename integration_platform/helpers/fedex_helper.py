@@ -29,19 +29,19 @@ class FedexHelper:
         pass
 
     #MARK: format_rate_payload
-    def format_rate_payload(self, customer_zip: str, jhl_wh_zip: Literal['60089','37874','84116','23230',]):
+    def format_rate_payload(self, from_zip: str, to_zip: str):
         payload = {
             'accountNumber': {'value': self.fedex.account_id},
             'requestedShipment': {
                 'shipper': {
                     'address': {
-                        'postalCode': customer_zip,
+                        'postalCode': from_zip,
                         'countryCode': 'US'
                     }
                 },
                 'recipient': {
                     'address': {
-                        'postalCode': jhl_wh_zip,
+                        'postalCode': to_zip,
                         'countryCode': 'US',
                         'residential': True
                     }
@@ -60,15 +60,56 @@ class FedexHelper:
 
     #MARK: parse_rate_response
     def parse_rate_response(self, response: requests.Response):
+        ''':class:`~integration_platform.helpers.fedex_helper.FedexHelper`.:meth:`~integration_platform.helpers.fedex_helper.FedexHelper.parse_rate_response`
+        ---
+        
+        Given a response from Fedex's API @ the rates endpoint, parse it and return
+        
+        Parameters
+        ---
+        :param (*requests.Response*) `response`: response from Fedex API
+        
+        Returns
+        ---
+        :return `variablename` (_type_): _description_
+        
+        <hr>
+        
+        Sets
+        ---
+        - #### ____replace_with_class_level_variable_pls____
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### _______replace_me_______
+        
+          - Description
+        
+         ### _______replace_me_______
+           
+          - Description
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### _______replace_me_______
+        
+          - Description
+        
+         ### _______replace_me_______
+           
+          - Description
+        '''        
+        parsed_rates = []
         try:
             jresponse = response.json()
         except Exception as e:
             self.logger.warning(f"Couldn't parse response from Fedex to dict!")
-            return
+            return {}
         if self._check_rate_errors_(jresponse=jresponse):
-            return
+            return {}
         rates = jresponse['output']['rateReplyDetails']
-        parsed_rates = []
         for rate in rates:
             parsed_rate = self._parse_rate_details(rate=rate)
             parsed_rates.append(parsed_rate)
