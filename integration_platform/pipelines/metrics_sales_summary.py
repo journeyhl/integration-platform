@@ -39,7 +39,7 @@ class SalesSummaryMetrics(Pipeline):
                 item['InsertedDT'] = datetime.now(ZoneInfo('America/New_York'))
                 item['LastChecked'] = datetime.now(ZoneInfo('America/New_York'))
             self.logger.info(f'Beginning upsert to {table_name}')
-            data_loaded = self.centralstore.checked_upsert_paginated(table_name=table_name, data=data)
+            data_loaded = self.centralstore.merge_table_paginated(table_name=table_name, data=data)
 
 
         for table, data in data_transformed['delinsert'].items():
