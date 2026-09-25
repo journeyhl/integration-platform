@@ -14,3 +14,4 @@ from .aftership import AfterShip
 from .sharepoint import Sharepoint
 from .sftp import SFTP
 from .ryder_api import RyderAPI
+from fedex import Fedex

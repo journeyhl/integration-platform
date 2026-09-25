@@ -21,29 +21,28 @@ class RMIAPIHelper:
         pass
     
 
-
+    #MARK: parse_inventory
     def parse_inventory(self, response: Response, url: str = 'RMIAPI') -> list:
-        ''':class:`~RMIAPIHelper`.:meth:`~parse_inventory` (self, response: *Response*, url: *str = 'RMIAPI'*):
+        ''':class:`~integration_platform.helpers.rmi_api_helper.RMIAPIHelper`.:meth:`~integration_platform.helpers.rmi_api_helper.RMIAPIHelper.parse_inventory`
         ---
-        <hr>
         
         Given a response from the RMIAPI when hitting an inventory related endpoint, return the inventory data as a list
-        
-        ### Upstream Calls 
-         #### :class:`~integration_platform.connectors.rmi_api.RMIAPI`.:meth:`~integration_platform.connectors.rmi_api.RMIAPI.get_inventory_data`
-            
-        <hr>
         
         Parameters
         ---
         :param (*Response*) `response`: Response from RMI api
         :param (*str*) `url`: Full url request was sent to. *Not required*
-        
-        <hr>
-        
+                
         Returns
         ---
         :return `inventory_response` (list): inventory data from RMIAPI as a list
+        
+        <hr>
+        
+        ## Upstream Calls 
+
+         ### :class:`~integration_platform.connectors.rmi_api.RMIAPI`.:meth:`~integration_platform.connectors.rmi_api.RMIAPI.get_inventory_data`
+            
         '''        
         bp = 'here'
         try:
@@ -55,28 +54,28 @@ class RMIAPIHelper:
             return []
 
 
+    #MARK: parse_auth
     def parse_auth(self, response: Response, url: str):
-        ''':class:`~RMIAPIHelper`.:meth:`~parse_auth` (self, response: *Response*, url: *str*):
+        
+        ''':class:`~integration_platform.helpers.rmi_api_helper.RMIAPIHelper`.:meth:`~integration_platform.helpers.rmi_api_helper.RMIAPIHelper.parse_auth`
         ---
-        <hr>
         
         After sending an authorization request to RMIAPI, parse the response and return the token value to :class:`~integration_platform.connectors.rmi_api.RMIAPI`.:attr:`~integration_platform.connectors.rmi_api.RMIAPI.token`
-        
-        ### Upstream Calls 
-         #### :class:`~integration_platform.connectors.rmi_api.RMIAPI`.:meth:`~integration_platform.connectors.rmi_api.RMIAPI._auth_`
-            
-        <hr>
         
         Parameters
         ---
         :param (*Response*) `response`: response from RMIAPI after sending a request to authenticate
         :param (*str*) `url`: the full url of the endpoint we sent the request to
-        
-        <hr>
-        
+                
         Returns
         ---
         :return `token` (_str_): Token used in headers sent with each request to RMI API
+
+        <hr>
+        
+        ## Upstream Calls 
+         
+         ### :class:`~integration_platform.connectors.rmi_api.RMIAPI`.:meth:`~integration_platform.connectors.rmi_api.RMIAPI._auth_`
         '''        
         try:            
             jresponse = response.json()
@@ -90,26 +89,22 @@ class RMIAPIHelper:
 
         
 
+    #MARK: format_headers
     def format_headers(self):
-        ''':class:`~RMIAPIHelper`.:meth:`~format_headers` (self):
+        ''':class:`~integration_platform.helpers.rmi_api_helper.RMIAPIHelper`.:meth:`~integration_platform.helpers.rmi_api_helper.RMIAPIHelper.format_headers`
         ---
-        <hr>
         
         Formats headers to send with RMI API request
         
-        ### Upstream Calls 
-         #### :class:`~integration_platform.connectors.rmi_api.RMIAPI`.:meth:`~integration_platform.connectors.rmi_api.RMIAPI._auth_`
-            
-        <hr>
-        
-        Parameters
-        ---
-        
-        <hr>
-        
         Returns
         ---
-        :return `variablename` (_type_): _description_
+        :return `headers` (dict): headers dict
+
+        <hr>
+        
+        ## Upstream Calls 
+
+         ### :class:`~integration_platform.connectors.rmi_api.RMIAPI`.:meth:`~integration_platform.connectors.rmi_api.RMIAPI._auth_`
         '''        
         headers = {
             **self.rmi.headers, 

@@ -362,25 +362,24 @@ class AcumaticaAPIHelper:
     def format_put_on_hold(self, order: dict) -> dict:
         ''':class:`~AcumaticaAPIHelper`.:meth:`~format_put_on_hold` (self, order: *dict*):
         ---
-        <hr>
         
         Given a dict of order data, formats payload to be sent to Acumatica API in order to place the specified order on hold
-
-        ### Upstream Calls 
-         #### :class:`~integration_platform.load.acu_api_loader.AcuAPILoader`.:meth:`~integration_platform.load.acu_api_loader.AcuAPILoader.__update_ship_sep_or_wh__`
-            - If an order's status doesn't equal On Hold, then this method is called to format payload to send to Acu api so that we may put it on hold
-            
-        <hr>
         
         Parameters
         ---
         :param (*dict*) `order`: dict of order data. Must contain ***`OrderType`*** and ***`OrderNbr`***
         
-        <hr>
-        
         Returns
         ---
         :return `hold_payload` (dict): payload to be sent to Acumatica API
+
+        <hr>
+
+        ## Upstream Calls 
+        
+         ### :class:`~integration_platform.load.acu_api_loader.AcuAPILoader`.:meth:`~integration_platform.load.acu_api_loader.AcuAPILoader.__update_ship_sep_or_wh__`
+           
+          - If an order's status doesn't equal On Hold, then this method is called to format payload to send to Acu api so that we may put it on hold
         '''
         self.logger.info(f'Placing {order['OrderNbr']} On Hold!')
         hold_payload = self._format_sales_order_entity_payload_(order=order)
@@ -389,29 +388,28 @@ class AcumaticaAPIHelper:
     
     #MARK: format_order_remove_hold
     def format_order_remove_hold(self, order: dict) -> dict:
-        ''':class:`~AcumaticaAPIHelper`.:meth:`~format_order_remove_hold` (self, order: *dict*, ):
+        ''':class:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper`.:meth:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper.format_order_remove_hold`
         ---
-        <hr>
         
         Given a dict of order data, pass it to :class:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper`.:meth:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper._format_sales_order_entity_payload_` to format standard Sales Order entity payload
-        
-        ### Downstream Calls 
-         #### :class:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper`.:meth:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper._format_sales_order_entity_payload_`
-        
-        ### Upstream Calls 
-         #### :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.order_remove_hold`
-            
-        <hr>
         
         Parameters
         ---
         :param (*dict*) `order`: dict of order data. Must contain ***`OrderType`*** and ***`OrderNbr`***
-        
-        <hr>
-        
+                
         Returns
         ---
         :return `payload` (dict): payload to send to remove order from hold
+        
+        <hr>
+
+        ## Downstream Calls 
+
+         ### :class:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper`.:meth:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper._format_sales_order_entity_payload_`
+        
+        ## Upstream Calls
+
+         ### :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.order_remove_hold`
         '''
         payload = self._format_sales_order_entity_payload_(order)
         return payload
@@ -419,28 +417,28 @@ class AcumaticaAPIHelper:
 
     #MARK: format_soline_wh_update
     def format_soline_wh_update(self, order: dict):
-        ''':class:`~AcumaticaAPIHelper`.:meth:`~format_soline_wh_update` (self, order: *dict*):
+        ''':class:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper`.:meth:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper.format_soline_wh_update`
         ---
-        <hr>
         
         Given a dict of order data, formats payload to be sent to Acumatica API to update the warehouse on a given order line
-        
-        ### Upstream Calls 
-         #### :class:`~integration_platform.load.acu_api_loader.AcuAPILoader`.:meth:`~integration_platform.load.acu_api_loader.AcuAPILoader.__update_ship_sep_or_wh__`
-            - If the warehouse of the Sleepchair doesn't equal the warehouse of the Chair Removal, this method is called so that we can change the Chair Removal line's warehouse to that of the PSChair.
-            
-        <hr>
         
         Parameters
         ---
         :param (*dict*) `order`: dict of order data. Must contain ***`acu_details`***, ***`OrderType`*** and ***`OrderNbr`***
         
-        <hr>
         
         Returns
         ---
         :return `update_soline_wh_payload` (dict): payload to be sent to Acumatica api to update the warehouse on a given order line
         :return `dl_entry` (dict): data log entry. The "pre-response" data_log entry. Once we hit the api, we add the response details, then the dict is loaded to central store for logging
+        
+        <hr>
+
+        ## Upstream Calls 
+
+         ### :class:`~integration_platform.load.acu_api_loader.AcuAPILoader`.:meth:`~integration_platform.load.acu_api_loader.AcuAPILoader.__update_ship_sep_or_wh__`
+           
+          - If the warehouse of the Sleepchair doesn't equal the warehouse of the Chair Removal, this method is called so that we can change the Chair Removal line's warehouse to that of the PSChair.
         '''
         self.logger.info(f"Updating Chair Removal's warehouse to {order['OrderLineWH']}")
         lines = order['acu_soline_response']
@@ -471,17 +469,10 @@ class AcumaticaAPIHelper:
 
     #MARK: format_ship_separately
     def format_ship_separately(self, order: dict):
-        ''':class:`~AcumaticaAPIHelper`.:meth:`~format_ship_separately` (self, order: *dict*):
+        ''':class:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper`.:meth:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper.format_ship_separately`
         ---
-        <hr>
         
         Given a dict of order data, formats payload to be sent to Acumatica API to update the Ship Separately value to ***`False`*** on the given order
-        
-        ### Upstream Calls 
-         #### :class:`~integration_platform.load.acu_api_loader.AcuAPILoader`.:meth:`~integration_platform.load.acu_api_loader.AcuAPILoader.__update_ship_sep_or_wh__`
-            - If ShipSeparately equals True, then this method is called so we can change value to False
-            
-        <hr>
         
         Parameters
         ---
@@ -493,6 +484,13 @@ class AcumaticaAPIHelper:
         ---
         :return `ship_sep_payload` (dict): Formatted payload to send to ACumatica API
         :return `dl_entry` (dict): data log entry. The "pre-response" data_log entry. Once we hit the api, we add the response details, then the dict is loaded to central store for logging
+
+        <hr>
+        
+        ## Upstream Calls 
+
+         ### :class:`~integration_platform.load.acu_api_loader.AcuAPILoader`.:meth:`~integration_platform.load.acu_api_loader.AcuAPILoader.__update_ship_sep_or_wh__`
+            - If ShipSeparately equals True, then this method is called so we can change value to False
         '''
         self.logger.info(f"Updating ShipSeparately to False!")
         ship_sep_payload = {
@@ -528,26 +526,24 @@ class AcumaticaAPIHelper:
         return data_log_entry
     #MARK: format_order_create_receipt
     def format_order_create_receipt(self, order: dict) -> dict:
-        ''':class:`~AcumaticaAPIHelper`.:meth:`~format_order_create_receipt` (self, order: *dict*):
+        ''':class:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper`.:meth:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper.format_order_create_receipt`
         ---
-        <hr>
         
         Given a dict of order data, formats payload to be sent to Acumatica API to create a receipt for the given order
-        
-        ### Upstream Calls 
-         #### :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.order_create_receipt`
-            
-        <hr>
         
         Parameters
         ---
         :param (*dict*) `order`: dict of order data. Must contain `***OrderType***`, `***OrderNbr***`, and `***AcctCD***`
         
-        <hr>
-        
         Returns
         ---
         :return `create_receipt_payload` (dict): payload to send to acu api to create receipt for a given order
+
+        <hr>
+        
+        ## Upstream Calls 
+
+         ### :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.order_create_receipt`
         '''
         create_receipt_payload = {
             "entity":{
@@ -561,26 +557,24 @@ class AcumaticaAPIHelper:
 
     #MARK: format_order_create_shipment
     def format_order_create_shipment(self, order: dict) -> dict:
-        ''':class:`~AcumaticaAPIHelper`.:meth:`~format_order_create_shipment` (self, order: *dict*):
+        ''':class:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper`.:meth:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper.format_order_create_shipment`
         ---
-        <hr>
         
         Given a dict of order data, formats payload to be sent to Acumatica API to create a ***shipment*** for the given order
-        
-        ### Upstream Calls 
-         #### :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.order_create_receipt`
-            
-        <hr>
         
         Parameters
         ---
         :param (*dict*) `order`: dict of order data. Must contain `***OrderType***`, `***OrderNbr***`, and `***AcctCD***`
         
-        <hr>
-        
         Returns
         ---
         :return `create_shipment_payload` (dict): payload to send to acu api to create ***shipment*** for a given order
+
+        <hr>
+        
+        ## Upstream Calls 
+
+         ### :class:`~integration_platform.connectors.acu_api.AcumaticaAPI`.:meth:`~integration_platform.connectors.acu_api.AcumaticaAPI.order_create_receipt`
         '''
         create_shipment_payload = {
             "entity":{
@@ -599,25 +593,10 @@ class AcumaticaAPIHelper:
 
     #MARK: format_rc_send_to_wh
     def format_rc_send_to_wh(self, order: dict) -> dict:
-        ''':class:`~AcumaticaAPIHelper`.:meth:`~format_rc_send_to_wh` (self, order: *dict*):
+        ''':class:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper`.:meth:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper.format_rc_send_to_wh`
         ---
-        <hr>
         
         put_summary_here
-        
-        ### Downstream Calls 
-         #### :class:`~class`.:meth:`~method`
-            - Description
-         #### :class:`~folder.file.class`.:meth:`~folder.file.class.method`
-            - Description
-        
-        ### Upstream Calls 
-         #### :class:`~class`.:meth:`~method`
-            - Description
-         #### :class:`~folder.file.class`.:meth:`~folder.file.class.method`
-            - Description
-            
-        <hr>
         
         Parameters
         ---
@@ -628,6 +607,8 @@ class AcumaticaAPIHelper:
         Returns
         ---
         :return `create_shipment_payload` (dict): payload to send to acu api to mark an RC order as sent to Warehouse (toggle AttributeRCSHP2WH to True) ***shipment*** for a given order
+
+        <hr>
         '''
         mark_rc_as_sent_payload = {
             "CustomerID": { "value": order['CustomerID'] },
@@ -657,35 +638,28 @@ class AcumaticaAPIHelper:
 
     #MARK: format_sales_order_entity_payload
     def _format_sales_order_entity_payload_(self, order: dict) -> dict:
-        ''':class:`~`.:meth:`~_format_sales_order_entity_payload_` (self, order: *dict*, ):
+        ''':class:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper`.:meth:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper._format_sales_order_entity_payload_`
         ---
-        <hr>
         
         put_summary_here
         
-        ### Downstream Calls 
-         #### :class:`~class`.:meth:`~method`
-            - Description
-         #### :class:`~folder.file.class`.:meth:`~folder.file.class.method`
-            - Description
-        
-        ### Upstream Calls 
-         #### :class:`~class`.:meth:`~method`
-            - Description
-         #### :class:`~folder.file.class`.:meth:`~folder.file.class.method`
-            - Description
-            
-        <hr>
-        
         Parameters
         ---
-        :param (*dict*) `order`: _description_
-        
-        <hr>
+        :param (*dict*) `order`: dict of order data, must contain **`OrderType`** and **`OrderNbr`**
         
         Returns
         ---
         :return `payload` (dict): Standard Sales Order Entity type payload
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper`.:meth:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper.format_put_on_hold`
+        
+         ### :class:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper`.:meth:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper.format_order_remove_hold`
+        
+         ### :class:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper`.:meth:`~integration_platform.helpers.acu_api_helper.AcumaticaAPIHelper.format_validate_order_address`
         '''
         payload = {
             "entity": {
