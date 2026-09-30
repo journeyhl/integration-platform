@@ -9,7 +9,10 @@ from typing import Literal
 class DefaultTransformer:
     def __init__(self, pipeline):
         self.pipeline = pipeline
-        self.logger = logging.getLogger(f'{pipeline.pipeline_name}.DefaultTransformer')
+        if isinstance(pipeline, str):
+            self.logger = logging.getLogger(f'{pipeline}.DefaultTransformer')
+        else:
+            self.logger = logging.getLogger(f'{pipeline.pipeline_name}.DefaultTransformer')
         pass
 
 
