@@ -15,6 +15,7 @@ class HubSpotAPI:
         self.pipeline = pipeline
         if type(pipeline) == str:
             self.logger = logging.getLogger(f'{pipeline}.HubSpotAPI')
+            self.default_transformer = None
         else:
             self.logger = logging.getLogger(f'{pipeline.pipeline_name}.HubSpotAPI') #type: ignore
         self.base_url = 'https://api.hubapi.com'
@@ -362,10 +363,10 @@ class HubSpotAPI:
         for assoc_type, data in object_details['associations'].items():
             a_type = data['results'][0]['type']
             associations.extend([
-                {
-                    'type': r['type'],
-                    'parent': object_details['id'],
-                    'child': r['id']
+                { 
+                    'Type':  r['type'],
+                    'Parent': self.pipeline.default_transformer.string_to_int(object_details['id']), #type: ignore
+                    'Child': self.pipeline.default_transformer.string_to_int(object_details['id']), #type: ignore
                 } 
                 for r in data['results']
             ])

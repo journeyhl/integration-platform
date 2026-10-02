@@ -30,22 +30,35 @@ class B2BZipCodes(Pipeline):
     def transform(self, data_extract):
         db_transformed = self.transformer.landing(data_extract=data_extract['db'])
         hubspot_transformed = self.hubspot_transformer.landing(data_extract=data_extract['hubspot'])
-        for key, item in hubspot_transformed.items():
-            self.centralstore.sql_helper.dataframe_to_table_create_statement(df=pl.DataFrame(item, infer_schema_length=None))
-            bp = 'here'
-        data_transformed = {}
+        data_transformed = {
+            'db_transformed': db_transformed,
+            'hubspot_transformed': hubspot_transformed
+        }
         return data_transformed
     
     def load(self, data_transformed):
         data_loaded = {}
-        dt_dicts = data_transformed.to_dicts()
-        dt_dicts = self.default_loader.add_InsertedDT_to_list(dt_dicts)
-        self.centralstore.merge_table_paginated(table_name='_dev.B2BZipCodes', data=dt_dicts)
+        self._load_hubspot_to_db_(data_transformed['hubspot_transformed'])
+        db_dicts = data_transformed['db_transformed'].to_dicts()
+        db_dicts = self.default_loader.add_InsertedDT_to_list(db_dicts)
+        self.centralstore.merge_table_paginated(table_name='_dev.B2BZipCodes', data=db_dicts)
         return data_loaded
     
     def log_results(self, data_loaded):
         pass
 
+
+    def _load_hubspot_to_db_(self, hubspot: dict):
+        hs_territories = hubspot['territories']
+        hs_zipcodes = hubspot['zipcodes']
+        hs_associations = hubspot['associations']
+        for key, dataset in hubspot.items():
+            bp = 'here'
+            self.centralstore.sql_helper.dataframe_to_sql_table(df=pl.DataFrame(dataset['data'], infer_schema_length=None))
+            hubspot[key]['data'] = self.default_loader.add_InsertedDT_to_list(dataset['data'])
+            bp = 'here'
+            self.centralstore.merge_table_paginated(table_name=hubspot[key]['qualified_name'], data=hubspot[key]['data'])
+            bp = 'here'
 
 
 
