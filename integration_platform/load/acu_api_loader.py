@@ -22,18 +22,13 @@ class AcuAPILoader:
 
     def landing_ship_chair_removal_separate(self, data_transformed: dict):
         bp = 'here'
-        put_on_hold = []
-        on_hold = []
         orders = [order for status, data in data_transformed.items() for order in data['Orders']]
         self.logger.info(f'{len(orders)} total orders across {len(data_transformed.keys())} different statuses')
         for status, data in data_transformed.items():
             self.logger.info(f'{data['OrderCount']} order(s) in {status} status')
             if status in('Risk Hold', 'Open', 'Awaiting Payment', 'On Hold'):
                 data = self.__update_ship_sep_or_wh__(data=data, status=status)
-                put_on_hold.append(data)
-                
-                bp = 'here'
-            bp = 'here'
+
 
 
 

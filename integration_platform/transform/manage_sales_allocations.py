@@ -66,7 +66,7 @@ class Transform:
         ).collect()
 
         self.tables.register(name='ItemsOnOrders', frame=df_order_items_sync_history)
-        self.logger.info(f'ItemsOnOrders registered with {df_order_items_sync_history.height} rows.')
+        self.logger.info(f'ItemsOnOrders (sync history) registered with {df_order_items_sync_history.height} rows.')
         order_items_sync_history = df_order_items_sync_history.to_dicts()
         return order_items_sync_history
 

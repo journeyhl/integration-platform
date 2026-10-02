@@ -127,7 +127,7 @@ class DefaultTransformer:
 
     
     #MARK: parse_phone
-    def parse_phone(self, phone_str: str | None, string_descr: str = '',log_prefix: str = ''):
+    def parse_phone(self, phone_str: str | None, string_descr: str = '',log_prefix: str = '', return_option: Literal['none', 'str'] = 'none'):
         ''':class:`~DefaultTransformer`.:meth:`~parse_phone`
         ---
         
@@ -162,7 +162,7 @@ class DefaultTransformer:
                 country_code = copy_phone_fmt[:-10]
             else:
                 self.logger.error(f"{log_prefix}Phone doesn't begin with '+', returning None...")
-                return None
+                return None if return_option == 'none' else phone_fmt
         return phone_fmt
 
     #MARK: parse_date_str

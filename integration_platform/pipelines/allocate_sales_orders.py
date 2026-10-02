@@ -4,10 +4,10 @@ from integration_platform.transform.manage_sales_allocations import Transform
 
 from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 from integration_platform.load.allocate_sales_orders import Load
-
+from typing import Literal
 
 class AllocateSalesOrders(Pipeline):
-    def __init__(self, function: str, env: str='prod'):
+    def __init__(self, function: str, env: Literal['prod', 'dev'] = 'prod'):
         # function = 'allocate_sales_orders'
         super().__init__(pipeline_name='AllocateSalesOrders', function=function, env=env)
         self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
@@ -31,7 +31,7 @@ class AllocateSalesOrders(Pipeline):
         return data_transformed
     
     def load(self, data_transformed):
-        self.loader.landing(data_transformed=data_transformed)
+        successful_allocations = self.loader.landing(data_transformed=data_transformed)
         data_loaded = data_transformed
         return data_loaded
     

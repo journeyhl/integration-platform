@@ -24,23 +24,19 @@ inner join InventoryItem i on s.CompanyID = i.CompanyID and l.InventoryID = i.In
 inner join INSite si on s.CompanyID = si.CompanyID and l.SiteID = si.SiteID
 inner join JJStatusLookup j on s.Status = j.CStatus and j.Tbl = 'SOOrder'
 where s.CompanyID = 2
-and ((s.OrderType = 'WB'
-	and si.SiteCD = 'RMI'
-	and (i.descr like '%Certified pre%' or i.descr like '%CPO%' or i.Descr like '%preowned%' or i.Descr like '%pre-owned' or i.Descr like '%pre owned%')
-	and s.Status = 'H')
-or (s.OrderType = 'BF'
-	and s.status in ('H', 'A'))
+and s.OrderType = 'WB'
+and si.SiteCD = 'RMI'
 -- and s.Status not in ('L', 'C', 'S')
---and s.Status = 'H'
+and s.Status = 'H'
+and (i.descr like '%Certified pre%' or i.descr like '%CPO%' or i.Descr like '%preowned%' or i.Descr like '%pre-owned' or i.Descr like '%pre owned%')
 and l.POCreate = 0
-))
+)
 , InventoryLevels as(
 select rtrim(s.SiteCD) SiteCD
 	 , s.SiteID
 	 , l.LocationID
 	 , i.InventoryID
 	 , rtrim(l.LocationCD) LocationCD
-	 , concat(rtrim(s.SiteCD), '-', rtrim(l.LocationCD)) SiteKey
 	 , rtrim(i.InventoryCD) InventoryCD
 	 , i.Descr
 	 , cast(ls.QtyOnHand as int) QtyOnHand
@@ -69,7 +65,7 @@ inner join INLocation l on ls.CompanyID = l.CompanyID and ls.LocationID = l.Loca
 inner join INSite s on ls.CompanyID = s.CompanyID and ls.SiteID = s.SiteID and l.SiteID = s.SiteID
 inner join InventoryItem i on ls.CompanyID = i.CompanyID and ls.InventoryID = i.InventoryID
 where ls.CompanyID = 2
-and s.SiteCD in('RMI', 'REDSTAGSWT', 'REDSTAGSLC')
+and s.SiteCD = 'RMI'
 and LocationCD = 'DEFAULT'
 )
 , SecondLevel as(

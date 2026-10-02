@@ -35,7 +35,7 @@ class HubSpotAPI:
             self._set_snapshot_windows_()
 
     #MARK: _request_
-    def _request_(self, method: str, path: str, **kwargs) -> dict[str, Any]:
+    def _request_(self, method: str, path: str, path_as_url: bool = False, log_label: str = '', **kwargs) -> dict[str, Any]:
         ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI._request_`
         ---
 
@@ -88,18 +88,20 @@ class HubSpotAPI:
 
           - Get each different deal pipeline
         '''
-        url = f'{self.base_url}{path}'
+        url = f'{self.base_url}{path}' if not path_as_url else path
+        if log_label == '':
+            log_label = path
         backoff = [1, 2, 4, 8, 16]
         last_status: int | None = None
         for attempt in range(5):
-            self.logger.info(f'{self.prefix}Sending {method} request to {path}')
+            self.logger.info(f'{self.prefix}Sending {method} request to {log_label}')
             response = self.session.request(method, url, timeout=30, **kwargs)
             self.calls += 1
             last_status = response.status_code
             if response.status_code == 429:
                 retry_after = int(response.headers.get('Retry-After', 10))
                 self.logger.warning(
-                    f'{self.prefix}[RATE]  429 on {method} {path}; sleeping {retry_after}s '
+                    f'{self.prefix}[RATE]  429 on {method} {log_label}; sleeping {retry_after}s '
                     f'(attempt {attempt + 1}/5).'
                 )
                 time.sleep(retry_after)
@@ -107,16 +109,16 @@ class HubSpotAPI:
             if 500 <= response.status_code < 600:
                 delay = backoff[attempt]
                 self.logger.warning(
-                    f'{self.prefix}[5XX]   {response.status_code} on {method} {path}; '
+                    f'{self.prefix}[5XX]   {response.status_code} on {method} {log_label}; '
                     f'sleeping {delay}s (attempt {attempt + 1}/5).'
                 )
                 time.sleep(delay)
                 continue
             response.raise_for_status()
             jresponse = response.json()
-            self.logger.info(f'{self.prefix}Successfully parsed response from {path}')
+            self.logger.info(f'{self.prefix}Successfully parsed response from {log_label}')
             return jresponse
-        self.logger.error(f'{self.prefix}Error! {method} request to {path} failed after five retries...{last_status}')
+        self.logger.error(f'{self.prefix}Error! {method} request to {log_label} failed after five retries...{last_status}')
         return {}
 
 
@@ -125,7 +127,9 @@ class HubSpotAPI:
         ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_list_with_membership_details`
         ---
         
-        Once complete, should be used in place of :meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_list_with_membership_contact_details`
+        Once complete, should be used in place of :meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_list_with_membership_contact_details`.
+
+        Gets a hubspot list, all of its members and the details of those members
         
         Parameters
         ---
@@ -171,6 +175,8 @@ class HubSpotAPI:
         extracted_timestamp = datetime.now(ZoneInfo('America/New_York'))
         props = self.contact_property_str if props == '' else props
         for i, (id, data) in enumerate(list_members.items()):
+            if i > 30:
+                break
             self.prefix = f'{list_data['name']}, {i+1}/{rowlen}: '
             self.logger.info(f'{self.prefix}Retrieving details for {id}')
             member_details = self.get_object_by_id(object_id=id, object_type=object_type, props=props, associations=associations)
@@ -182,67 +188,6 @@ class HubSpotAPI:
         return list_data
 
 
-
-    #MARK: get_list_with_membership_contact_details
-    def get_list_with_membership_contact_details(self, list_id: int, limit: int=250, props: str = ''):
-        ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_list_with_membership_contact_details`
-        ---
-
-        Given a ListID, get list data, membership and contact details for each member
-
-        Parameters
-        ---
-        :param (*int*) `list_id`: HubSpotID of list
-
-           ### ***Optional***
-        :param (*int = 250*) `limit`: Number of membership records to retrieve per page
-        :param (*str = ''*) `props`: Contact properties to retrieve for each member; defaults to `self.contact_property_str` when empty
-
-        <hr>
-
-        Returns
-        ---
-        :return `list_data` (dict): List data with membership and contact details
-
-        <hr>
-
-        ## Upstream Calls (Methods/Functions Called by)
-
-         ### :class:`~integration_platform.pipelines.ucmi_hubspot.UCMI_HubspotCustomers`.:meth:`~integration_platform.pipelines.ucmi_hubspot.UCMI_HubspotCustomers.extract`
-
-          - Called during data extraction in UCMI_HubspotCustomers pipeline execution
-
-         ### :class:`~integration_platform.pipelines.hubspot_leads_to_dbc.HubspotLeadsToDbc`.:meth:`~integration_platform.pipelines.hubspot_leads_to_dbc.HubspotLeadsToDbc.extract`
-
-          - Called during data extraction in HubspotLeadsToDbc pipeline execution
-
-        ## Downstream Calls (Methods/Functions called)
-
-         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_list_with_membership`
-
-          - Gets List data and membership(rows)
-
-         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_contact_by_id`
-
-          - For each row in our list, we pass its ContactID and retrieve contact details from Hubspot
-        '''
-        list_data = self.get_list_with_membership(list_id, limit=limit)
-        list_members = list_data['rows']
-        rowlen = len(list_members)
-        detailed_rows = []
-        extracted_timestamp = datetime.now(ZoneInfo('America/New_York'))
-        props = self.contact_property_str if props == '' else props
-        for i, (contact, data) in enumerate(list_members.items()):
-            self.prefix = f'{list_data['name']}, {i+1}/{rowlen}: '
-            self.logger.info(f'{self.prefix}Retrieving contact details for {contact}')
-            contact_details = self.get_contact_by_id(contact_id=contact, properties=props)
-            data = {**contact_details, 'membershipTimestamp': data['membershipTimestamp']}
-            detailed_rows.append(data)
-        list_data['detailed_rows'] = detailed_rows
-        list_data['timestamp_extract'] = extracted_timestamp
-        self.logger.info(f'{list_data['name']} parsed successfully, {len(list_data['detailed_rows'])} rows returned')
-        return list_data
-    
     #MARK: get_list_with_membership
     def get_list_with_membership(self, list_id: int, limit: int = 250):
         ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_list_with_membership`
@@ -277,13 +222,14 @@ class HubSpotAPI:
 
           - Sends API call
         '''
-        self.logger.info(f"{self.prefix}Retrieving list {list_id}'s information and members")
+        self.logger.info(f"Retrieving list {list_id}'s information and members")
         list_information = self._request_('get', f'{self.lists}/{list_id}')
-        self.logger.info(f'{self.prefix}List {list_id} resolved to {list_information['list']['name']}')
+        self.logger.info(f'List {list_id} resolved to {list_information['list']['name']}')
         path_to_row_data = f'{self.lists}/{list_id}/memberships?limit={limit}'
         after: str | None = None
         rows = {}
         while True:
+            self.prefix = f'{list_information['list']['name']}, {len(rows)}/{list_information['list']['size']}: '
             params: dict[str, Any] = {'limit': limit}
             if after:
                 params['after'] = after
@@ -295,7 +241,7 @@ class HubSpotAPI:
             after = data.get('paging', {}).get('next', {}).get('after')
             if not after:
                 break
-            self.logger.info(f'{len(rows)} rows extracted')
+        self.logger.info(f'{self.prefix}{len(rows)} rows extracted')
         list_data = {
             **list_information['list'],
             'rows': rows 
@@ -344,6 +290,54 @@ class HubSpotAPI:
 
 
     def get_object_by_id(self, object_id: int, object_type: str, object_data: dict = {}, props: str = 'firstname,lastname,email,phone,name', associations: str = ''):
+        ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_object_by_id`
+        ---
+        
+        Given a hubspot's object_id, retrieve its details, including the properties passed.
+
+        Use in place of get_contact_by_id. Same functionality, but covers more object types 
+        
+        Parameters
+        ---
+        :param (*int*) `object_id`: Hubspot object id (contact_id, company_id, etc)
+        :param (*str*) `object_type`: Object type (contact, company, etc)
+        
+                
+           ### ***Optional***
+        :param (*str = ''*) `log_prefix`: String to prepend to any logger outputs. Usually used when iterating, like `'keyvalue1, 1/150: '`, `'keyvalue2, 2/150: '` and so on 
+        
+        Returns
+        ---
+        :return `variablename` (_type_): _description_
+        
+        <hr>
+        
+        Sets
+        ---
+        - #### ____replace_with_class_level_variable_pls____
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### _______replace_me_______
+        
+          - Description
+        
+         ### _______replace_me_______
+           
+          - Description
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### _______replace_me_______
+        
+          - Description
+        
+         ### _______replace_me_______
+           
+          - Description
+        '''        
         if props != 'firstname,lastname,email,phone,name' + object_type == 'contacts':
             props = 'firstname,lastname,email,phone,name,' + props
         path = f'/crm/v3/objects/{object_type}/{object_id}'
@@ -353,10 +347,49 @@ class HubSpotAPI:
         if associations != '':
             params['associations'] = associations
         object_details = self._request_(method='GET', path=path, params=params)
+        if associations != '':
+            object_details['associations'] = self._handle_object_associations_(object_details=object_details)
         return object_details
 
 
-
+    def _handle_object_associations_(self, object_details: dict):
+        bp = 'here'
+        associations = []
+        next_page: str | None = None
+        total = 0
+        if not object_details.get('associations'):
+            return []
+        for assoc_type, data in object_details['associations'].items():
+            a_type = data['results'][0]['type']
+            associations.extend([
+                {
+                    'type': r['type'],
+                    'parent': object_details['id'],
+                    'child': r['id']
+                } 
+                for r in data['results']
+            ])
+            while True:
+                next_page = data.get('paging', {}).get('next', {}).get('link')
+                if next_page:
+                    data = self._request_(method='get', path=data['paging']['next']['link'], path_as_url=True, log_label='associations endpoint')
+                else:
+                    bp = 'here'
+                for row in data.get('results', []):
+                    bp = 'here'
+                    associations.append(
+                        {
+                            'type': row['type'],
+                            'parent': object_details['id'],
+                            'child': row['id']
+                        } 
+                    )
+                    total += 1    
+                if not next_page:
+                    break
+                self.logger.info(f'{len(associations)} rows extracted')
+        bp = 'here'
+        return associations
 
 
 
@@ -1084,3 +1117,65 @@ class HubSpotAPI:
     #endregion
 
 
+
+
+    #MARK: get_list_with_membership_contact_details
+    def get_list_with_membership_contact_details(self, list_id: int, limit: int=250, props: str = ''):
+        ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_list_with_membership_contact_details`
+        ---
+
+        Given a ListID, get list data, membership and contact details for each member
+
+        Parameters
+        ---
+        :param (*int*) `list_id`: HubSpotID of list
+
+           ### ***Optional***
+        :param (*int = 250*) `limit`: Number of membership records to retrieve per page
+        :param (*str = ''*) `props`: Contact properties to retrieve for each member; defaults to `self.contact_property_str` when empty
+
+        <hr>
+
+        Returns
+        ---
+        :return `list_data` (dict): List data with membership and contact details
+
+        <hr>
+
+        ## Upstream Calls (Methods/Functions Called by)
+
+         ### :class:`~integration_platform.pipelines.ucmi_hubspot.UCMI_HubspotCustomers`.:meth:`~integration_platform.pipelines.ucmi_hubspot.UCMI_HubspotCustomers.extract`
+
+          - Called during data extraction in UCMI_HubspotCustomers pipeline execution
+
+         ### :class:`~integration_platform.pipelines.hubspot_leads_to_dbc.HubspotLeadsToDbc`.:meth:`~integration_platform.pipelines.hubspot_leads_to_dbc.HubspotLeadsToDbc.extract`
+
+          - Called during data extraction in HubspotLeadsToDbc pipeline execution
+
+        ## Downstream Calls (Methods/Functions called)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_list_with_membership`
+
+          - Gets List data and membership(rows)
+
+         ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_contact_by_id`
+
+          - For each row in our list, we pass its ContactID and retrieve contact details from Hubspot
+        '''
+        list_data = self.get_list_with_membership(list_id, limit=limit)
+        list_members = list_data['rows']
+        rowlen = len(list_members)
+        detailed_rows = []
+        extracted_timestamp = datetime.now(ZoneInfo('America/New_York'))
+        props = self.contact_property_str if props == '' else props
+        for i, (contact, data) in enumerate(list_members.items()):
+            self.prefix = f'{list_data['name']}, {i+1}/{rowlen}: '
+            self.logger.info(f'{self.prefix}Retrieving contact details for {contact}')
+            contact_details = self.get_contact_by_id(contact_id=contact, properties=props)
+            data = {**contact_details, 'membershipTimestamp': data['membershipTimestamp']}
+            detailed_rows.append(data)
+        list_data['detailed_rows'] = detailed_rows
+        list_data['timestamp_extract'] = extracted_timestamp
+        self.logger.info(f'{list_data['name']} parsed successfully, {len(list_data['detailed_rows'])} rows returned')
+        return list_data
+    

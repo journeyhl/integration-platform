@@ -1214,8 +1214,10 @@ class AcumaticaAPI:
     #MARK: manage_sales_allocations
     def manage_sales_allocations(self, order_data: dict):
         full_payload = self.helper.format_manage_sales_allocations(order_data=order_data)
-        self.target_api(endpoint='/ManageSalesAllocations/ProcessAllAllocations', payload_data=full_payload, operation='post', descr='Manage Sales Allocation')
+        self.logger.info(f'Attempting to allocate {order_data['OrderNbr']}')
+        success = self.target_api(endpoint='/ManageSalesAllocations/ProcessAllAllocations', payload_data=full_payload, operation='post', descr='Manage Sales Allocation')
         bp = 'here'
+        return success
 
 
 
