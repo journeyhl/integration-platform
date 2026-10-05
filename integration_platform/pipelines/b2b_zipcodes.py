@@ -16,7 +16,7 @@ class B2BZipCodes(Pipeline):
     def extract(self):
         properties = self.centralstore.query_db(query="select ObjectType, otName, Name, Label, Type, FieldType from hs.Properties where otName in('zip_codes', 'territories')")
         hubspot_extract = self._extract_shapeup_(properties=properties)
-
+        self.centralstore.reconnect()
         b2bs = self.sftp.get_file_as_dataframe(type='xlsx', path=r'/users/jj/ZIP_Code_by_Territory_Aug_2026.xlsx')
         zips = self.centralstore.query_db('select * from ZipCodes order by Zip')
         db_extract = zips.join(other=b2bs, on='Zip', how='inner')

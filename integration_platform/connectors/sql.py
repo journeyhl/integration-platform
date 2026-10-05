@@ -390,8 +390,26 @@ class SQLConnector(Generic[QT]):
             f"mssql+pymssql://{self.config['username']}:{password}"
             f"@{self.config['server']}/{self.config['database']}"
         )
-        return create_engine(connection_string, connect_args={"tds_version": "7.3", "login_timeout": 30})
+        return create_engine(
+            url=connection_string,
+            connect_args={"tds_version": "7.3", "login_timeout": 30},
+            pool_pre_ping=True,
+        )
 
+    #MARK: reconnect
+    def reconnect(self):
+        '''Drop the current DBAPI connection and check out a fresh one.
+
+        Call this when a long-running step has left the connection idle long
+        enough for the server to kill it. The engine (and its pool) is reused.
+        '''
+        try:
+            self.raw_connection.close()
+        except Exception:
+            pass
+        self.raw_connection = self.engine.raw_connection()
+        self.logger.info(f'Reconnected to {self.database_name}')
+        return self.raw_connection
 
 
     

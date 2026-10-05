@@ -7,6 +7,8 @@ from integration_platform.pipelines.klaviyo_newsletter import KlaviyoNewsletter
 
 
 klaviyo = KlaviyoNewsletter('.debug')
+
+klaviyo.klaviyo.get_profiles(filter='equals')
 klaviyo.run()
 
     

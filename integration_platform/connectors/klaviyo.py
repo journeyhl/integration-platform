@@ -46,7 +46,7 @@ class KlaviyoAPI:
 
 
     #MARK: get_profiles
-    def get_profiles(self, url: str = 'https://a.klaviyo.com/api/profiles', params: str = 'page[size]=100'):
+    def get_profiles(self, url: str = 'https://a.klaviyo.com/api/profiles', filter: str = '', params: str = 'page[size]=100'):
         ''':class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.get_profiles`
         ---
         
@@ -72,7 +72,7 @@ class KlaviyoAPI:
         paged = False
         bp = 'here'
         while True:
-            parsed_response = self._get_data_(url=url, params=params) if not paged else self._get_data_(url=url)
+            parsed_response = self._get_data_(url=url, params=params, filter=filter) if not paged else self._get_data_(url=url, filter=filter)
             profiles.extend(parsed_response['data'])
             self.logger.info(f'{len(profiles)} Profiles parsed successfully')
             keep_going, next_page = self.__page__(parsed_response=parsed_response)
@@ -159,7 +159,7 @@ class KlaviyoAPI:
 
 
     #MARK: _get_data_
-    def _get_data_(self, url: str, params: str = ''):
+    def _get_data_(self, url: str, params: str = '', filter: str = ''):
         ''':class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI._get_data_`
         ---
         
