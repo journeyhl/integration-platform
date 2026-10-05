@@ -36,7 +36,7 @@ class TransformHubspot:
 
 
     def _associations_(self, data_extract: dict) -> list[dict]:
-        associations = [
+        assoc = [
             {
                 **a,
                 'LastChecked': self.last_checked
@@ -45,6 +45,7 @@ class TransformHubspot:
             for m in data['detailed_rows'] 
                 for a in m['associations']
         ]
+        associations = pl.DataFrame(assoc).sql('select distinct Type, Parent, Child, LastChecked from self').to_dicts()
         return associations
 
     def _zipcodes_(self, data_extract: dict) -> list[dict]:
@@ -53,6 +54,7 @@ class TransformHubspot:
             props = zip['properties']
             properties = {                
                 'ZipCode': props['zip_code'],
+                'ObjectID': self.pipeline.default_transformer.string_to_int(int_str=props['hs_object_id']),
                 'CompanyAssociations': self.pipeline.default_transformer.string_to_int(props['company_associations']),
                 'Territory': props['territory'],
                 'Territory1': props['territory1'],
@@ -74,7 +76,6 @@ class TransformHubspot:
                 'CreateDate': self.pipeline.default_transformer.parse_date_str(props['hs_createdate'], 0),
                 'Lastmodifieddate': self.pipeline.default_transformer.parse_date_str(props['hs_lastmodifieddate'], 0),
                 'MergedObjectIDs': props['hs_merged_object_ids'],
-                'ObjectID': props['hs_object_id'],
                 'ObjectSource': props['hs_object_source'],
                 'ObjectSourceDetail1': props['hs_object_source_detail_1'],
                 'ObjectSourceDetail2': props['hs_object_source_detail_2'],
@@ -148,7 +149,7 @@ class TransformHubspot:
                 'UserIDsOfAllNotificationUnfollowers': props['hs_user_ids_of_all_notification_unfollowers'],
                 'UserIDsOfAllOwners': props['hs_user_ids_of_all_owners'],
                 'WasImported': False if not props['hs_was_imported'] or props['hs_was_imported'].lower() != 'true' else True,
-                'OwnerAssigneddate': self.pipeline.default_transformer.parse_date_str(props['hubspot_owner_assigneddate'], 0),
+                'OwnerAssignedDate': self.pipeline.default_transformer.parse_date_str(props['hubspot_owner_assigneddate'], 0),
                 'LastChecked': self.last_checked
             }
             territories.append(properties)

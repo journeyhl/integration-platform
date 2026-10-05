@@ -18,7 +18,7 @@ class DefaultTransformer:
 
     #MARK: clean_string
     def clean_string(self, string: str | None, string_descr: str = '', log_prefix: str = ''):
-        ''':class:`~DefaultTransformer`.:meth:`~clean_string` 
+        ''':class:`~integration_platform.transform.default_transformer.DefaultTransformer`.:meth:`~integration_platform.transform.default_transformer.DefaultTransformer.clean_string`
         ---
         
         Strips a string of any whitespace and returns None if the string is None or ''
@@ -95,7 +95,7 @@ class DefaultTransformer:
     
     #MARK: string_to_int
     def string_to_int(self, int_str: str | None, str_descr: str = '', log_prefix: str = ''):
-        ''':class:`~DefaultTransformer`.:meth:`~string_to_int`
+        ''':class:`~integration_platform.transform.default_transformer.DefaultTransformer`.:meth:`~integration_platform.transform.default_transformer.DefaultTransformer.string_to_int`
         ---
         
         Given a string, attempt to convert it to an integer.
@@ -128,7 +128,7 @@ class DefaultTransformer:
     
     #MARK: parse_phone
     def parse_phone(self, phone_str: str | None, string_descr: str = '',log_prefix: str = '', return_option: Literal['none', 'str'] = 'none'):
-        ''':class:`~DefaultTransformer`.:meth:`~parse_phone`
+        ''':class:`~integration_platform.transform.default_transformer.DefaultTransformer`.:meth:`~integration_platform.transform.default_transformer.DefaultTransformer.parse_phone`
         ---
         
         Given an unformatted Phone Number string (or None value), remove non numeric characters.
@@ -195,7 +195,7 @@ class DefaultTransformer:
 
     #MARK: _handle_none_and_empty_strings_
     def _handle_none_and_empty_strings_(self, string: str | None, string_descr: str, additional_conditions: bool = True, log_prefix: str = '', additional_log_str: str = ''):
-        ''':class:`~DefaultTransformer`.:meth:`~_handle_none_and_empty_strings_`
+        ''':class:`~integration_platform.transform.default_transformer.DefaultTransformer`.:meth:`~integration_platform.transform.default_transformer.DefaultTransformer._handle_none_and_empty_strings_`
         ---
         
         Instead of duplicating  lines to handle None/empty strings in each method, do so here

@@ -380,9 +380,9 @@ class HubSpotAPI:
                     bp = 'here'
                     associations.append(
                         {
-                            'type': row['type'],
-                            'parent': object_details['id'],
-                            'child': row['id']
+                            'Type': row['type'],
+                            'Parent': self.pipeline.default_transformer.string_to_int(object_details['id']), #type: ignore
+                            'Child': self.pipeline.default_transformer.string_to_int(row['id']), #type: ignore
                         } 
                     )
                     total += 1    

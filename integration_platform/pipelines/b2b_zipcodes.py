@@ -54,7 +54,6 @@ class B2BZipCodes(Pipeline):
         hs_associations = hubspot['associations']
         for key, dataset in hubspot.items():
             bp = 'here'
-            self.centralstore.sql_helper.dataframe_to_sql_table(df=pl.DataFrame(dataset['data'], infer_schema_length=None))
             hubspot[key]['data'] = self.default_loader.add_InsertedDT_to_list(dataset['data'])
             bp = 'here'
             self.centralstore.merge_table_paginated(table_name=hubspot[key]['qualified_name'], data=hubspot[key]['data'])

@@ -16,8 +16,8 @@ if not exists(
 begin
     create table hs.Associations(
     Type varchar(35) not null,
-    Parent int not null,
-    Child int not null,
+    Parent bigint not null,
+    Child bigint not null,
     InsertedDT datetime,
     LastChecked datetime,
     primary key (Type, Parent, Child))
