@@ -29,6 +29,7 @@ class Queries:
     def __getattr__(self, name: str) -> Query:
         raise AttributeError(f"No query named '{name}'")
 
+#region CentralStoreQueries
 class CentralStoreQueries(Queries):
     '''Queries to be executed within db_CentralStore'''
 
@@ -103,7 +104,11 @@ class CentralStoreQueries(Queries):
     D2CCohorts_OrderHistory: Query
     Cohorts_OrderHistory: Query
     B2BCohorts_GenerateAttributeIDs: Query
+    Klaviyo_GroHaus_DataPush: Query
+    '''Customers from Klavio tables, HubspotCustomers, and ucmi Golden Customers'''
+#endregion
 
+#region AcumaticaDbQueries
 class AcumaticaDbQueries(Queries):
     '''Queries to be executed within AcumaticaDb'''
     
@@ -303,6 +308,7 @@ class AcumaticaDbQueries(Queries):
     '''Extraction query for CATran table in acumatica'''
     AcuToDbc_Sub: Query
     '''Extraction query for Sub table in acumatica'''
+#endregion
 
 _QUERY_CLASSES: dict[str, type[Queries]] = {
     'db_CentralStore': CentralStoreQueries,

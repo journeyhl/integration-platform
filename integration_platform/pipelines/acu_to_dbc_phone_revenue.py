@@ -47,7 +47,7 @@ class AcuToDbcPhoneRevenue(Pipeline):
     def load(self, data_transformed):
         total = len(data_transformed)
         self.logger.info(f'{total} rows to upsert')
-        self.centralstore.checked_upsert_paginated('acu.PhoneRevByMonth', data_transformed, page_size= 100)
+        self.centralstore.merge_table_paginated('acu.PhoneRevByMonth', data_transformed, page_size= 100)
         return data_transformed
     
     def log_results(self, data_loaded):
