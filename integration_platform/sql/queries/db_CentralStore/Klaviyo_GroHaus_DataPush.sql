@@ -220,9 +220,9 @@ with TopLevel as(
 	left join klaviyo.ProfileProperties pep on pe.ID = pep.ID
 	left join klaviyo.ProfileHeader pp on c.PhoneNumberFmt = pp.PhoneNumber or c.PhoneNumber = pp.RawPhoneNumber
 	left join klaviyo.ProfileProperties ppp on pp.ID = ppp.ID
-	where (pe.Email is null and pp.Email is null)
+	where (pe.Email is null and pp.PhoneNumber is null and pp.RawPhoneNumber is null)
 	and c.Marketingcontactstatus = 'Marketing Contact'
-	and c.Email is not null
+	and c.Email is not null and right(c.Email, 8) != '@zap.com'
 	union
 	select top 10 'Update' Action
 		, c.*
@@ -446,7 +446,7 @@ with TopLevel as(
 	left join klaviyo.ProfileProperties ppp on pp.ID = ppp.ID
 	where (pe.Email is not null or pp.Email is not null)
 	and c.Marketingcontactstatus = 'Marketing Contact'
-	and c.Email is not null
+	and c.Email is not null and right(c.Email, 8) != '@zap.com'
 )
 select distinct t.*
 	 , d2c_last.DatePlaced LastPurchaseDate

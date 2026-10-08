@@ -80,7 +80,7 @@ class KlaviyoAPI:
             profiles.extend(parsed_response['data'])
             self.logger.info(f'{len(profiles)} Profiles parsed successfully')
             keep_going, next_page = self.__page__(parsed_response=parsed_response)
-            if not keep_going:
+            if not keep_going:# or len(profiles) > 1000:
                 break
             url = next_page
             paged = True

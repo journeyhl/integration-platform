@@ -20,9 +20,11 @@ class Transform:
     def landing(self, data_extract):
         data_transformed = self.profiles_landing(data_extract['profiles'])
         now = datetime.now(tz=ZoneInfo('America/New_York'))
-        self.pipeline.default_loader.add_to_list(ldata=data_transformed['klaviyo.ProfileHeader'], additions={'InsertedDT': now, 'LastChecked': data_extract['LastChecked']})
-        self.pipeline.default_loader.add_to_list(ldata=data_transformed['klaviyo.ProfileProperties'], additions={'InsertedDT': now, 'LastChecked': data_extract['LastChecked']})
-        self.pipeline.default_loader.add_to_list(ldata=data_transformed['klaviyo.ProfileSubscriptions'], additions={'InsertedDT': now, 'LastChecked': data_extract['LastChecked']})
+        
+        add_to_list = {'InsertedDT': now, 'LastChecked': data_extract['LastChecked'], 'IsNewsletter': data_extract['is_newsletter']}
+        self.pipeline.default_loader.add_to_list(ldata=data_transformed['klaviyo.ProfileHeader'], additions=add_to_list)
+        self.pipeline.default_loader.add_to_list(ldata=data_transformed['klaviyo.ProfileProperties'], additions=add_to_list)
+        self.pipeline.default_loader.add_to_list(ldata=data_transformed['klaviyo.ProfileSubscriptions'], additions=add_to_list)
         for row in data_transformed['klaviyo.ProfileProperties']:
             for k, v in row.items():
                 if  isinstance(v, str) and '%' in v:
@@ -61,12 +63,16 @@ class Transform:
           - Parses a given profile's subscription data
         '''        
         bp = 'here'
-        self._distinct_properties_(profiles=profiles)
+        # self._distinct_properties_(profiles=profiles)
         total = len(profiles)
         headers = []
         parsed_properties = []
         parsed_subscriptions = []
         for i, p in enumerate(profiles):
+            p = {
+                'id': p['id'],
+                **p['attributes']
+            }
             self.log_prefix = f'{i+1}/{total}: ' 
             bp = 'here'
             profile_header = self._profile_header_(profile=p)
@@ -104,7 +110,7 @@ class Transform:
             'RawPhoneNumber': p['phone_number'],
             'Created': self.default_transformer.parse_date_str(date_str=p['created'], tries=0, format='%Y-%m-%dT%H:%M:%S', offset=True),
             'Updated': self.default_transformer.parse_date_str(date_str=p['updated'], tries=0, format='%Y-%m-%dT%H:%M:%S', offset=True),
-            'JoinedGroupAt': self.default_transformer.parse_date_str(date_str=p['joined_group_at'], tries=0, format='%Y-%m-%dT%H:%M:%S', offset=True),
+            'JoinedGroupAt': self.default_transformer.parse_date_str(date_str=p.get('joined_group_at'), tries=0, format='%Y-%m-%dT%H:%M:%S', offset=True),
             'LastEventDate': self.default_transformer.parse_date_str(date_str=p['last_event_date'], tries=0, format='%Y-%m-%dT%H:%M:%S', offset=True),
         }
         return header
@@ -558,7 +564,7 @@ class Transform:
 
         '''        
         props = {}
-        prop_list = [p['properties'] for p in profiles]
+        prop_list = [p.get('properties') or p['attributes'].get('properties') for p in profiles]
         for profiles_props in prop_list:
             for k, v in profiles_props.items():
                 if props.get(k) == None:

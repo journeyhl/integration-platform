@@ -113,7 +113,7 @@ class KlaviyoAPIHelper:
                 'email': p['attributes']['email'],
                 'first_name': p['attributes']['first_name'],
                 'last_name': p['attributes']['last_name'],
-                'joined_group_at': p['attributes']['joined_group_at'],
+                'joined_group_at': p['attributes'].get('joined_group_at'),
                 'last_event_date': p['attributes']['last_event_date'],
                 'organization': p['attributes']['organization'],
                 'created': p['attributes']['created'],

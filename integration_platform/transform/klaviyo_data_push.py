@@ -59,6 +59,7 @@ class Transform:
                 if payload != {}:
                     payloads.append(payload)
                 bp = 'here'
+        return payloads
 
 
     #MARK: __format_payload__
@@ -67,23 +68,66 @@ class Transform:
         payload['data']['attributes']['email'] = customer['Email']
         payload['data']['attributes']['phone_number'] = phone
         if action == 'update':
-            payload = self.__format_update_payload__(payload=payload, customer=customer)
+            payload = self._format_update_payload_(customer=customer, payload=payload)
         else:
-            payload = self.__format_create_payload__(payload=payload, customer=customer)
+            payload = self._format_create_payload_(customer=customer, payload=payload)
 
         return payload
 
     #MARK: __format_update_payload__
-    def __format_update_payload__(self, payload: dict, customer: dict):
+    def _format_update_payload_(self, customer: dict, payload: dict):
         k_attr = {k: v for k, v in payload['data']['attributes'].items() if not isinstance(v, dict)}
         k_location = payload['data']['attributes'].get('location')
         k_properties = payload['data']['attributes'].get('properties')
-        self.__compare_values__(klaviyo_dict=k_attr, kd_name='attributes', map=self.pipeline.klaviyo.map_attributes_update, customer=customer, payload=payload)
-        bp = 'here'
-        self.__compare_values__(klaviyo_dict=k_properties, kd_name='properties', map=self.pipeline.klaviyo.map_properties_update, customer=customer, payload=payload)
-        bp = 'here'
+
+        payload, present_prop_keys = self._compare_properties_(customer=customer, payload=payload)
+        payload, present_attr_keys = self._compare_attributes_(customer=customer, payload=payload)
         return payload
 
+
+
+    def _compare_attributes_(self, customer: dict, payload: dict):
+        k_attr = {k: v for k, v in payload['data']['attributes'].items() if not isinstance(v, dict)}
+        present_attr_keys = [k for k, v in k_attr.items()]
+        for key, value in k_attr.items():
+            was_list = False
+            if isinstance(value, list):
+                value = ','.join(value)
+                was_list = True
+            db_column_name = self.pipeline.klaviyo.map_attributes_update.get(key) or self.pipeline.klaviyo.map_attributes_update.get(key) or self.pipeline.klaviyo.map_attributes_update.get(key)
+            db_value = customer.get(db_column_name) or customer.get(f'{db_column_name}_phone') or customer.get(f'{db_column_name}_email')
+            if not db_value:
+                # self.logger.info(f'{key}: Corresponding db value is blank{f', column not found' if not db_column_name else ''}')
+                continue
+            elif db_value != value:
+                if value == '' or not value:                        
+                    payload['data']['attributes'][key] = [db_value] if was_list else db_value
+            elif db_value == value:
+                self.logger.info(f'{key}: Klaviyo and db values match!')
+            bp = 'here'
+        return payload, present_attr_keys
+
+    def _compare_properties_(self, customer: dict, payload: dict):
+        k_properties = payload['data']['attributes'].get('properties')
+        present_prop_keys = [k for k, v in k_properties.items()]
+        for key, value in k_properties.items():
+            was_list = False
+            if isinstance(value, list):
+                value = ','.join(value)
+                was_list = True
+            db_column_name = self.pipeline.klaviyo.map_properties_update.get(key) or self.pipeline.klaviyo.map_properties_update.get(key) or self.pipeline.klaviyo.map_properties_update.get(key)
+            db_value = customer.get(db_column_name) or customer.get(f'{db_column_name}_phone') or customer.get(f'{db_column_name}_email')
+            if not db_value:
+                # self.logger.info(f'{key}: Corresponding db value is blank{f', column not found' if not db_column_name else ''}')
+                continue
+            elif db_value != value:
+                if value == '' or not value:
+                    self.logger.info(f'{key}: Updating klavio value from {value if value != '' else 'blank'} to {db_value}')
+                    payload['data']['attributes']['properties'][key] = [db_value] if was_list else db_value
+            elif db_value == value:
+                self.logger.info(f'{key}: Klaviyo and db values match!')
+            bp = 'here'
+        return payload, present_prop_keys
 
     #MARK: __compare_values__
     def __compare_values__(self, klaviyo_dict: dict, kd_name: str, map: dict, customer: dict, payload: dict):
@@ -102,7 +146,7 @@ class Transform:
             db_value =  customer.get(f'{map_key}_email') or customer.get(f'{map_key}_phone') or customer.get(map_key)
             if is_value_date:
                 try:
-                    date_value = self.default_transformer.parse_date_str(date_str=value, tries=0, format='%Y-%m-%dT%H:%M:%S', offset=True if '+' in str(value) else False) 
+                    date_value = self.default_transformer.parse_date_str(date_str=value, tries=0, format='%Y-%m-%dT%H:%M:%S', offset=True if '+' in str(value) else False) #type: ignore
                 except Exception as e:
                     bp = 'here'
 
@@ -128,7 +172,7 @@ class Transform:
 
 
     #MARK: __format_create_payload__
-    def __format_create_payload__(self, payload: dict, customer: dict):
+    def _format_create_payload_(self, payload: dict, customer: dict):
         bp = 'do a compare or something here'
         for key, value in customer.items():
             if not value:

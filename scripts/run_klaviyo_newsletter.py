@@ -6,7 +6,7 @@ from integration_platform.pipelines.klaviyo_newsletter import KlaviyoNewsletter
 
 
 
-klaviyo = KlaviyoNewsletter('.debug')
+klaviyo = KlaviyoNewsletter('.debug', is_newsletter=False)
 
 klaviyo.run()
 pass
