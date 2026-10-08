@@ -1,64 +1,459 @@
-
 with TopLevel as(
-select distinct g.GoldenID
-	 , coalesce(g.Email, hc.Email, kph_e.Email, kph_p.Email, kph_hs.Email) Email
-	 , coalesce(kpp_e.Consent, kpp_p.Consent, kpp_hs.Consent) Consent
-	 , coalesce(kps_e.Mkt_Email_Consent, kps_p.Mkt_Email_Consent, kps_hs.Mkt_Email_Consent) Mkt_Email_Consent
-	 , coalesce(kpp_e.SMSAttentiveSignup, kpp_p.SMSAttentiveSignup, kpp_hs.SMSAttentiveSignup) SecondaryConsent
-	 , coalesce(hc.FirstName, g.FirstName, kph_e.FirstName, kph_p.FirstName, kph_hs.FirstName) FirstName
-	 , coalesce(hc.LastName, g.LastName, kph_e.LastName, kph_p.LastName, kph_hs.LastName) LastName
-	 , coalesce(hc.PhoneNumber, g.Phone, kph_e.RawPhoneNumber, kph_p.RawPhoneNumber, kph_hs.RawPhoneNumber) PhoneNumber
-	 , coalesce(hc.PhoneNumberFmt, g.Phone, kph_e.PhoneNumber, kph_p.PhoneNumber, kph_hs.PhoneNumber) PhoneNumberFmt
-	 , coalesce(g.City, hc.ShippingCity, hc.BillingCity) City
-	 , coalesce(g.State, hc.ShippingState, hc.BillingState) State
-	 , (select min(value) from (values(d2c_1st_e.DatePlaced), (d2c_1st_p.DatePlaced))  as t(value)) as FirstPurchaseDate
-	 , (select max(value) from (values(d2c_rcnt_e.DatePlaced), (d2c_rcnt_p.DatePlaced)) as t(value)) as LastPurchaseDate
-	 , coalesce(d2c_1st_p.ItemClassDesc, d2c_1st_e.ItemClassDesc) FirstPurchaseItem
-	 , coalesce(d2c_rcnt_p.ItemClassDesc, d2c_rcnt_e.ItemClassDesc) LastPurchaseItem
-	 , case when d2c_rcnt_e.PartProdAccFee != 'No Orders' or d2c_rcnt_p.PartProdAccFee != 'No Orders' then 
-	   (select max(value) from(values(d2c_rcnt_e.OrdersAsc), (d2c_rcnt_p.OrdersAsc)) as t(value)) else 0 end Orders
-	 , coalesce(hc.ShippingZip, kpp_e.ShippingZip, kpp_p.ShippingZip, kpp_hs.ShippingZip) ShippingZipCode
-	 , coalesce(kpp_e.AcceptsMarketing, kpp_p.AcceptsMarketing, kpp_hs.AcceptsMarketing) AcceptsMarketing
-from ucmi.tbl_Customers_Golden g
-inner join ucmi.tbl_CustomerLinks_HubSpot h on g.GoldenID = h.GoldenID
-inner join ucmiraw.HubspotCustomers hc on h.HsRecordID = hc.RecordID
-left join klaviyo.ProfileProperties kpp_hs on replace(hc.HubspotLink, 'https://app.hubspot.com/contacts/5053729/contact/', '') = kpp_hs.HubspotRecordID
-left join klaviyo.ProfileHeader kph_hs on kpp_hs.ID = kph_hs.ID
-left join klaviyo.ProfileSubscriptions kps_hs on kpp_hs.ID = kps_hs.ID
-left join klaviyo.ProfileHeader kph_p on hc.PhoneNumberFmt = kph_p.PhoneNumber
-left join klaviyo.ProfileProperties kpp_p on kph_p.ID = kpp_p.ID
-left join klaviyo.ProfileSubscriptions kps_p on kpp_p.ID = kps_p.ID
-left join klaviyo.ProfileHeader kph_e on hc.Email = kph_e.Email
-left join klaviyo.ProfileProperties kpp_e on kph_e.ID = kpp_e.ID
-left join klaviyo.ProfileSubscriptions kps_e on kpp_e.ID = kps_e.ID
-left join analytics.JHL_D2CCustomerOrderHistory d2c_rcnt_p on g.Phone = d2c_rcnt_p.Phone and d2c_rcnt_p.OrdersDesc_Phone = 1 and d2c_rcnt_p.PartProdAccFee != 'No Orders'
-left join analytics.JHL_D2CCustomerOrderHistory d2c_rcnt_e on g.Email = d2c_rcnt_e.Email and d2c_rcnt_e.OrdersDesc_Email = 1 and d2c_rcnt_e.PartProdAccFee != 'No Orders'
-left join analytics.JHL_D2CCustomerOrderHistory d2c_1st_p on g.Phone = d2c_1st_p.Phone and d2c_1st_p.OrdersAsc_Phone = 1 and d2c_1st_p.PartProdAccFee != 'No Orders'
-left join analytics.JHL_D2CCustomerOrderHistory d2c_1st_e on g.Email = d2c_1st_e.Email and d2c_1st_e.OrdersAsc_Email = 1 and d2c_1st_e.PartProdAccFee != 'No Orders'
+	select top 10 'Create' Action
+		, c.*	 
+		, pe.PhoneNumber PhoneNumber_email
+		, pe.Email Email_email
+		, pe.FirstName FirstName_email
+		, pe.LastName LastName_email
+		, pe.Name Name_email
+		, pe.Organization Organization_email
+		, pe.Locale Locale_email
+		, pe.RawPhoneNumber RawPhoneNumber_email
+		, pe.Title Title_email
+		, pe.ExternalID ExternalID_email
+		, pe.Created Created_email
+		, pe.Updated Updated_email
+		, pe.JoinedGroupAt JoinedGroupAt_email
+		, pe.LastEventDate LastEventDate_email
+		, pep.AcceptsMarketing AcceptsMarketing_email
+		, pep.ShopifyTags ShopifyTags_email
+		, pep.DateCreated DateCreated_email
+		, pep.LastMailedDate LastMailedDate_email
+		, pep.LastOpenedDate LastOpenedDate_email
+		, pep.Consent Consent_email
+		, pep.ConsentTimestamp ConsentTimestamp_email
+		, pep.Source Source_email
+		, pep.PhoneNumberRegion PhoneNumberRegion_email
+		, pep.HubspotRecordID HubspotRecordID_email
+		, pep.LeadStatusPhone LeadStatusPhone_email
+		, pep.ContactOwnerPhone ContactOwnerPhone_email
+		, pep.Timestamp Timestamp_email
+		, pep.CreativeID CreativeID_email
+		, pep.SMSAttentiveSignup SMSAttentiveSignup_email
+		, pep.SMSConsentMethod SMSConsentMethod_email
+		, pep.ConsentMethod ConsentMethod_email
+		, pep.ConsentFormID ConsentFormID_email
+		, pep.ConsentFormVersion ConsentFormVersion_email
+		, pep.ExpectedDateOfNextOrder ExpectedDateOfNextOrder_email
+		, pep.UTMSource UTMSource_email
+		, pep.UTMMedium UTMMedium_email
+		, pep.UTMCampaign UTMCampaign_email
+		, pep.ShoppingFor ShoppingFor_email
+		, pep.MobilityIssues MobilityIssues_email
+		, pep.Features Features_email
+		, pep.Brand Brand_email
+		, pep.VeteranStatus VeteranStatus_email
+		, pep.Birthday Birthday_email
+		, pep.Clicks Clicks_email
+		, pep.Opens Opens_email
+		, pep.FullName FullName_email
+		, pep.CustomerID CustomerID_email
+		, pep.MothersDayOptOut MothersDayOptOut_email
+		, pep.NumberOfOrders NumberOfOrders_email
+		, pep.Latitude Latitude_email
+		, pep.Longitude Longitude_email
+		, pep.InitialSource InitialSource_email
+		, pep.LastSource LastSource_email
+		, pep.StoreInterest StoreInterest_email
+		, pep.Coupon Coupon_email
+		, pep.OkendoFamilyName OkendoFamilyName_email
+		, pep.OkendoGivenName OkendoGivenName_email
+		, pep.Product Product_email
+		, pep.UTMContent UTMContent_email
+		, pep.UtmTerm UtmTerm_email
+		, pep.Company Company_email
+		, pep.HubspotOriginalSource HubspotOriginalSource_email
+		, pep.HubspotOriginalSourceDrillDown1 HubspotOriginalSourceDrillDown1_email
+		, pep.HubspotOriginalSourceDrillDown2 HubspotOriginalSourceDrillDown2_email
+		, pep.ProductForYouOrSomeoneElse ProductForYouOrSomeoneElse_email
+		, pep.PrimaryProductUser PrimaryProductUser_email
+		, pep.TypeOfFirstEngagement TypeOfFirstEngagement_email
+		, pep.LeadSource LeadSource_email
+		, pep.BreadFinanceOutcome BreadFinanceOutcome_email
+		, pep.ShippingState ShippingState_email
+		, pep.ShippingZip ShippingZip_email
+		, pep.TextOptIn TextOptIn_email
+		, pep.EmailOption EmailOption_email
+		, pep.MemberHasAccessedPrivateContent MemberHasAccessedPrivateContent_email
+		, pep.LegalBasis LegalBasis_email
+		, pep.OkendoNumberOfSurveyResponses OkendoNumberOfSurveyResponses_email
+		, pep.AmazonInterest AmazonInterest_email
+		, pep.LastReferringDomain LastReferringDomain_email
+		, pep.InterestedInCategory InterestedInCategory_email
+		, pep.HasReceivedDigitalCatalog HasReceivedDigitalCatalog_email
+		, pep.AmazonOrStore AmazonOrStore_email
+		, pep.FathersDayOptOut FathersDayOptOut_email
+		, pep.InitialReferringDomain InitialReferringDomain_email
+		, pep.LastContactedOnPhone LastContactedOnPhone_email
+		, pep.OkendoAverageReviewRating OkendoAverageReviewRating_email
+		, pep.OkendoHasSubmittedMedia OkendoHasSubmittedMedia_email
+		, pep.OkendoLatestReviewRating OkendoLatestReviewRating_email
+		, pep.OkendoNumberOfReviews OkendoNumberOfReviews_email
+		, pep.OkendoAverageReviewSentiment OkendoAverageReviewSentiment_email
+		, pep.OkendoLatestReviewSentiment OkendoLatestReviewSentiment_email
+		, pep.UserStatus UserStatus_email
+		, pep.AdditionalEmail AdditionalEmail_email
+		, pep.CallDisposition CallDisposition_email
+		, pep.DateOrderPlaced DateOrderPlaced_email
+		, pep.RepEmail RepEmail_email
+		, pep.Unengaged Unengaged_email
+		, pep.OkendoLatestNPSCategory OkendoLatestNPSCategory_email
+		, pep.OkendoLatestNPS OkendoLatestNPS_email
+		, pep.OkendoLatestNPSDate OkendoLatestNPSDate_email
+		, pep.TypeOfFirstEngagementHubspot TypeOfFirstEngagementHubspot_email
+		, pep.ItemDescription ItemDescription_email
+		, pep.Undefined Undefined_email
+		, pep.UgcFreeItem UgcFreeItem_email
+		, pep.CompanyID CompanyID_email
+		, pep.EmailContentPreference EmailContentPreference_email
 
+
+
+		, pp.PhoneNumber PhoneNumber_phone
+		, pp.Email Email_phone
+		, pp.FirstName FirstName_phone
+		, pp.LastName LastName_phone
+		, pp.Name Name_phone
+		, pp.Organization Organization_phone
+		, pp.Locale Locale_phone
+		, pp.RawPhoneNumber RawPhoneNumber_phone
+		, pp.Title Title_phone
+		, pp.ExternalID ExternalID_phone
+		, pp.Created Created_phone
+		, pp.Updated Updated_phone
+		, pp.JoinedGroupAt JoinedGroupAt_phone
+		, pp.LastEventDate LastEventDate_phone
+     , ppp.AcceptsMarketing AcceptsMarketing_phone
+     , ppp.ShopifyTags ShopifyTags_phone
+     , ppp.DateCreated DateCreated_phone
+     , ppp.LastMailedDate LastMailedDate_phone
+     , ppp.LastOpenedDate LastOpenedDate_phone
+     , ppp.Consent Consent_phone
+     , ppp.ConsentTimestamp ConsentTimestamp_phone
+     , ppp.Source Source_phone
+     , ppp.PhoneNumberRegion PhoneNumberRegion_phone
+     , ppp.HubspotRecordID HubspotRecordID_phone
+     , ppp.LeadStatusPhone LeadStatusPhone_phone
+     , ppp.ContactOwnerPhone ContactOwnerPhone_phone
+     , ppp.Timestamp Timestamp_phone
+     , ppp.CreativeID CreativeID_phone
+     , ppp.SMSAttentiveSignup SMSAttentiveSignup_phone
+     , ppp.SMSConsentMethod SMSConsentMethod_phone
+     , ppp.ConsentMethod ConsentMethod_phone
+     , ppp.ConsentFormID ConsentFormID_phone
+     , ppp.ConsentFormVersion ConsentFormVersion_phone
+     , ppp.ExpectedDateOfNextOrder ExpectedDateOfNextOrder_phone
+     , ppp.UTMSource UTMSource_phone
+     , ppp.UTMMedium UTMMedium_phone
+     , ppp.UTMCampaign UTMCampaign_phone
+     , ppp.ShoppingFor ShoppingFor_phone
+     , ppp.MobilityIssues MobilityIssues_phone
+     , ppp.Features Features_phone
+     , ppp.Brand Brand_phone
+     , ppp.VeteranStatus VeteranStatus_phone
+     , ppp.Birthday Birthday_phone
+     , ppp.Clicks Clicks_phone
+     , ppp.Opens Opens_phone
+     , ppp.FullName FullName_phone
+     , ppp.CustomerID CustomerID_phone
+     , ppp.MothersDayOptOut MothersDayOptOut_phone
+     , ppp.NumberOfOrders NumberOfOrders_phone
+     , ppp.Latitude Latitude_phone
+     , ppp.Longitude Longitude_phone
+     , ppp.InitialSource InitialSource_phone
+     , ppp.LastSource LastSource_phone
+     , ppp.StoreInterest StoreInterest_phone
+     , ppp.Coupon Coupon_phone
+     , ppp.OkendoFamilyName OkendoFamilyName_phone
+     , ppp.OkendoGivenName OkendoGivenName_phone
+     , ppp.Product Product_phone
+     , ppp.UTMContent UTMContent_phone
+     , ppp.UtmTerm UtmTerm_phone
+     , ppp.Company Company_phone
+     , ppp.HubspotOriginalSource HubspotOriginalSource_phone
+     , ppp.HubspotOriginalSourceDrillDown1 HubspotOriginalSourceDrillDown1_phone
+     , ppp.HubspotOriginalSourceDrillDown2 HubspotOriginalSourceDrillDown2_phone
+     , ppp.ProductForYouOrSomeoneElse ProductForYouOrSomeoneElse_phone
+     , ppp.PrimaryProductUser PrimaryProductUser_phone
+     , ppp.TypeOfFirstEngagement TypeOfFirstEngagement_phone
+     , ppp.LeadSource LeadSource_phone
+     , ppp.BreadFinanceOutcome BreadFinanceOutcome_phone
+     , ppp.ShippingState ShippingState_phone
+     , ppp.ShippingZip ShippingZip_phone
+     , ppp.TextOptIn TextOptIn_phone
+     , ppp.EmailOption EmailOption_phone
+     , ppp.MemberHasAccessedPrivateContent MemberHasAccessedPrivateContent_phone
+     , ppp.LegalBasis LegalBasis_phone
+     , ppp.OkendoNumberOfSurveyResponses OkendoNumberOfSurveyResponses_phone
+     , ppp.AmazonInterest AmazonInterest_phone
+     , ppp.LastReferringDomain LastReferringDomain_phone
+     , ppp.InterestedInCategory InterestedInCategory_phone
+     , ppp.HasReceivedDigitalCatalog HasReceivedDigitalCatalog_phone
+     , ppp.AmazonOrStore AmazonOrStore_phone
+     , ppp.FathersDayOptOut FathersDayOptOut_phone
+     , ppp.InitialReferringDomain InitialReferringDomain_phone
+     , ppp.LastContactedOnPhone LastContactedOnPhone_phone
+
+     , ppp.OkendoAverageReviewRating OkendoAverageReviewRating_phone
+     , ppp.OkendoHasSubmittedMedia OkendoHasSubmittedMedia_phone
+     , ppp.OkendoLatestReviewRating OkendoLatestReviewRating_phone
+     , ppp.OkendoNumberOfReviews OkendoNumberOfReviews_phone
+     , ppp.OkendoAverageReviewSentiment OkendoAverageReviewSentiment_phone
+     , ppp.OkendoLatestReviewSentiment OkendoLatestReviewSentiment_phone
+     , ppp.UserStatus UserStatus_phone
+     , ppp.AdditionalEmail AdditionalEmail_phone
+     , ppp.CallDisposition CallDisposition_phone
+     , ppp.DateOrderPlaced DateOrderPlaced_phone
+     , ppp.RepEmail RepEmail_phone
+     , ppp.Unengaged Unengaged_phone
+     , ppp.OkendoLatestNPSCategory OkendoLatestNPSCategory_phone
+     , ppp.OkendoLatestNPS OkendoLatestNPS_phone
+     , ppp.OkendoLatestNPSDate OkendoLatestNPSDate_phone
+     , ppp.TypeOfFirstEngagementHubspot TypeOfFirstEngagementHubspot_phone
+     , ppp.ItemDescription ItemDescription_phone
+     , ppp.Undefined Undefined_phone
+     , ppp.UgcFreeItem UgcFreeItem_phone
+     , ppp.CompanyID CompanyID_phone
+     , ppp.EmailContentPreference EmailContentPreference_phone
+	from ucmiraw.HubspotCustomers c
+	left join klaviyo.ProfileHeader pe on c.Email = pe.Email
+	left join klaviyo.ProfileProperties pep on pe.ID = pep.ID
+	left join klaviyo.ProfileHeader pp on c.PhoneNumberFmt = pp.PhoneNumber or c.PhoneNumber = pp.RawPhoneNumber
+	left join klaviyo.ProfileProperties ppp on pp.ID = ppp.ID
+	where (pe.Email is null and pp.Email is null)
+	and c.Marketingcontactstatus = 'Marketing Contact'
+	and c.Email is not null
+	union
+	select top 10 'Update' Action
+		, c.*
+		, pe.PhoneNumber PhoneNumber_email
+		, pe.Email Email_email
+		, pe.FirstName FirstName_email
+		, pe.LastName LastName_email
+		, pe.Name Name_email
+		, pe.Organization Organization_email
+		, pe.Locale Locale_email
+		, pe.RawPhoneNumber RawPhoneNumber_email
+		, pe.Title Title_email
+		, pe.ExternalID ExternalID_email
+		, pe.Created Created_email
+		, pe.Updated Updated_email
+		, pe.JoinedGroupAt JoinedGroupAt_email
+		, pe.LastEventDate LastEventDate_email
+		, pep.AcceptsMarketing AcceptsMarketing_email
+		, pep.ShopifyTags ShopifyTags_email
+		, pep.DateCreated DateCreated_email
+		, pep.LastMailedDate LastMailedDate_email
+		, pep.LastOpenedDate LastOpenedDate_email
+		, pep.Consent Consent_email
+		, pep.ConsentTimestamp ConsentTimestamp_email
+		, pep.Source Source_email
+		, pep.PhoneNumberRegion PhoneNumberRegion_email
+		, pep.HubspotRecordID HubspotRecordID_email
+		, pep.LeadStatusPhone LeadStatusPhone_email
+		, pep.ContactOwnerPhone ContactOwnerPhone_email
+		, pep.Timestamp Timestamp_email
+		, pep.CreativeID CreativeID_email
+		, pep.SMSAttentiveSignup SMSAttentiveSignup_email
+		, pep.SMSConsentMethod SMSConsentMethod_email
+		, pep.ConsentMethod ConsentMethod_email
+		, pep.ConsentFormID ConsentFormID_email
+		, pep.ConsentFormVersion ConsentFormVersion_email
+		, pep.ExpectedDateOfNextOrder ExpectedDateOfNextOrder_email
+		, pep.UTMSource UTMSource_email
+		, pep.UTMMedium UTMMedium_email
+		, pep.UTMCampaign UTMCampaign_email
+		, pep.ShoppingFor ShoppingFor_email
+		, pep.MobilityIssues MobilityIssues_email
+		, pep.Features Features_email
+		, pep.Brand Brand_email
+		, pep.VeteranStatus VeteranStatus_email
+		, pep.Birthday Birthday_email
+		, pep.Clicks Clicks_email
+		, pep.Opens Opens_email
+		, pep.FullName FullName_email
+		, pep.CustomerID CustomerID_email
+		, pep.MothersDayOptOut MothersDayOptOut_email
+		, pep.NumberOfOrders NumberOfOrders_email
+		, pep.Latitude Latitude_email
+		, pep.Longitude Longitude_email
+		, pep.InitialSource InitialSource_email
+		, pep.LastSource LastSource_email
+		, pep.StoreInterest StoreInterest_email
+		, pep.Coupon Coupon_email
+		, pep.OkendoFamilyName OkendoFamilyName_email
+		, pep.OkendoGivenName OkendoGivenName_email
+		, pep.Product Product_email
+		, pep.UTMContent UTMContent_email
+		, pep.UtmTerm UtmTerm_email
+		, pep.Company Company_email
+		, pep.HubspotOriginalSource HubspotOriginalSource_email
+		, pep.HubspotOriginalSourceDrillDown1 HubspotOriginalSourceDrillDown1_email
+		, pep.HubspotOriginalSourceDrillDown2 HubspotOriginalSourceDrillDown2_email
+		, pep.ProductForYouOrSomeoneElse ProductForYouOrSomeoneElse_email
+		, pep.PrimaryProductUser PrimaryProductUser_email
+		, pep.TypeOfFirstEngagement TypeOfFirstEngagement_email
+		, pep.LeadSource LeadSource_email
+		, pep.BreadFinanceOutcome BreadFinanceOutcome_email
+		, pep.ShippingState ShippingState_email
+		, pep.ShippingZip ShippingZip_email
+		, pep.TextOptIn TextOptIn_email
+		, pep.EmailOption EmailOption_email
+		, pep.MemberHasAccessedPrivateContent MemberHasAccessedPrivateContent_email
+		, pep.LegalBasis LegalBasis_email
+		, pep.OkendoNumberOfSurveyResponses OkendoNumberOfSurveyResponses_email
+		, pep.AmazonInterest AmazonInterest_email
+		, pep.LastReferringDomain LastReferringDomain_email
+		, pep.InterestedInCategory InterestedInCategory_email
+		, pep.HasReceivedDigitalCatalog HasReceivedDigitalCatalog_email
+		, pep.AmazonOrStore AmazonOrStore_email
+		, pep.FathersDayOptOut FathersDayOptOut_email
+		, pep.InitialReferringDomain InitialReferringDomain_email
+		, pep.LastContactedOnPhone LastContactedOnPhone_email
+		, pep.OkendoAverageReviewRating OkendoAverageReviewRating_email
+		, pep.OkendoHasSubmittedMedia OkendoHasSubmittedMedia_email
+		, pep.OkendoLatestReviewRating OkendoLatestReviewRating_email
+		, pep.OkendoNumberOfReviews OkendoNumberOfReviews_email
+		, pep.OkendoAverageReviewSentiment OkendoAverageReviewSentiment_email
+		, pep.OkendoLatestReviewSentiment OkendoLatestReviewSentiment_email
+		, pep.UserStatus UserStatus_email
+		, pep.AdditionalEmail AdditionalEmail_email
+		, pep.CallDisposition CallDisposition_email
+		, pep.DateOrderPlaced DateOrderPlaced_email
+		, pep.RepEmail RepEmail_email
+		, pep.Unengaged Unengaged_email
+		, pep.OkendoLatestNPSCategory OkendoLatestNPSCategory_email
+		, pep.OkendoLatestNPS OkendoLatestNPS_email
+		, pep.OkendoLatestNPSDate OkendoLatestNPSDate_email
+		, pep.TypeOfFirstEngagementHubspot TypeOfFirstEngagementHubspot_email
+		, pep.ItemDescription ItemDescription_email
+		, pep.Undefined Undefined_email
+		, pep.UgcFreeItem UgcFreeItem_email
+		, pep.CompanyID CompanyID_email
+		, pep.EmailContentPreference EmailContentPreference_email
+
+
+
+		, pp.PhoneNumber PhoneNumber_phone
+		, pp.Email Email_phone
+		, pp.FirstName FirstName_phone
+		, pp.LastName LastName_phone
+		, pp.Name Name_phone
+		, pp.Organization Organization_phone
+		, pp.Locale Locale_phone
+		, pp.RawPhoneNumber RawPhoneNumber_phone
+		, pp.Title Title_phone
+		, pp.ExternalID ExternalID_phone
+		, pp.Created Created_phone
+		, pp.Updated Updated_phone
+		, pp.JoinedGroupAt JoinedGroupAt_phone
+		, pp.LastEventDate LastEventDate_phone
+     , ppp.AcceptsMarketing AcceptsMarketing_phone
+     , ppp.ShopifyTags ShopifyTags_phone
+     , ppp.DateCreated DateCreated_phone
+     , ppp.LastMailedDate LastMailedDate_phone
+     , ppp.LastOpenedDate LastOpenedDate_phone
+     , ppp.Consent Consent_phone
+     , ppp.ConsentTimestamp ConsentTimestamp_phone
+     , ppp.Source Source_phone
+     , ppp.PhoneNumberRegion PhoneNumberRegion_phone
+     , ppp.HubspotRecordID HubspotRecordID_phone
+     , ppp.LeadStatusPhone LeadStatusPhone_phone
+     , ppp.ContactOwnerPhone ContactOwnerPhone_phone
+     , ppp.Timestamp Timestamp_phone
+     , ppp.CreativeID CreativeID_phone
+     , ppp.SMSAttentiveSignup SMSAttentiveSignup_phone
+     , ppp.SMSConsentMethod SMSConsentMethod_phone
+     , ppp.ConsentMethod ConsentMethod_phone
+     , ppp.ConsentFormID ConsentFormID_phone
+     , ppp.ConsentFormVersion ConsentFormVersion_phone
+     , ppp.ExpectedDateOfNextOrder ExpectedDateOfNextOrder_phone
+     , ppp.UTMSource UTMSource_phone
+     , ppp.UTMMedium UTMMedium_phone
+     , ppp.UTMCampaign UTMCampaign_phone
+     , ppp.ShoppingFor ShoppingFor_phone
+     , ppp.MobilityIssues MobilityIssues_phone
+     , ppp.Features Features_phone
+     , ppp.Brand Brand_phone
+     , ppp.VeteranStatus VeteranStatus_phone
+     , ppp.Birthday Birthday_phone
+     , ppp.Clicks Clicks_phone
+     , ppp.Opens Opens_phone
+     , ppp.FullName FullName_phone
+     , ppp.CustomerID CustomerID_phone
+     , ppp.MothersDayOptOut MothersDayOptOut_phone
+     , ppp.NumberOfOrders NumberOfOrders_phone
+     , ppp.Latitude Latitude_phone
+     , ppp.Longitude Longitude_phone
+     , ppp.InitialSource InitialSource_phone
+     , ppp.LastSource LastSource_phone
+     , ppp.StoreInterest StoreInterest_phone
+     , ppp.Coupon Coupon_phone
+     , ppp.OkendoFamilyName OkendoFamilyName_phone
+     , ppp.OkendoGivenName OkendoGivenName_phone
+     , ppp.Product Product_phone
+     , ppp.UTMContent UTMContent_phone
+     , ppp.UtmTerm UtmTerm_phone
+     , ppp.Company Company_phone
+     , ppp.HubspotOriginalSource HubspotOriginalSource_phone
+     , ppp.HubspotOriginalSourceDrillDown1 HubspotOriginalSourceDrillDown1_phone
+     , ppp.HubspotOriginalSourceDrillDown2 HubspotOriginalSourceDrillDown2_phone
+     , ppp.ProductForYouOrSomeoneElse ProductForYouOrSomeoneElse_phone
+     , ppp.PrimaryProductUser PrimaryProductUser_phone
+     , ppp.TypeOfFirstEngagement TypeOfFirstEngagement_phone
+     , ppp.LeadSource LeadSource_phone
+     , ppp.BreadFinanceOutcome BreadFinanceOutcome_phone
+     , ppp.ShippingState ShippingState_phone
+     , ppp.ShippingZip ShippingZip_phone
+     , ppp.TextOptIn TextOptIn_phone
+     , ppp.EmailOption EmailOption_phone
+     , ppp.MemberHasAccessedPrivateContent MemberHasAccessedPrivateContent_phone
+     , ppp.LegalBasis LegalBasis_phone
+     , ppp.OkendoNumberOfSurveyResponses OkendoNumberOfSurveyResponses_phone
+     , ppp.AmazonInterest AmazonInterest_phone
+     , ppp.LastReferringDomain LastReferringDomain_phone
+     , ppp.InterestedInCategory InterestedInCategory_phone
+     , ppp.HasReceivedDigitalCatalog HasReceivedDigitalCatalog_phone
+     , ppp.AmazonOrStore AmazonOrStore_phone
+     , ppp.FathersDayOptOut FathersDayOptOut_phone
+     , ppp.InitialReferringDomain InitialReferringDomain_phone
+     , ppp.LastContactedOnPhone LastContactedOnPhone_phone
+     , ppp.OkendoAverageReviewRating OkendoAverageReviewRating_phone
+     , ppp.OkendoHasSubmittedMedia OkendoHasSubmittedMedia_phone
+     , ppp.OkendoLatestReviewRating OkendoLatestReviewRating_phone
+     , ppp.OkendoNumberOfReviews OkendoNumberOfReviews_phone
+     , ppp.OkendoAverageReviewSentiment OkendoAverageReviewSentiment_phone
+     , ppp.OkendoLatestReviewSentiment OkendoLatestReviewSentiment_phone
+     , ppp.UserStatus UserStatus_phone
+     , ppp.AdditionalEmail AdditionalEmail_phone
+     , ppp.CallDisposition CallDisposition_phone
+     , ppp.DateOrderPlaced DateOrderPlaced_phone
+     , ppp.RepEmail RepEmail_phone
+     , ppp.Unengaged Unengaged_phone
+     , ppp.OkendoLatestNPSCategory OkendoLatestNPSCategory_phone
+     , ppp.OkendoLatestNPS OkendoLatestNPS_phone
+     , ppp.OkendoLatestNPSDate OkendoLatestNPSDate_phone
+     , ppp.TypeOfFirstEngagementHubspot TypeOfFirstEngagementHubspot_phone
+     , ppp.ItemDescription ItemDescription_phone
+     , ppp.Undefined Undefined_phone
+     , ppp.UgcFreeItem UgcFreeItem_phone
+     , ppp.CompanyID CompanyID_phone
+     , ppp.EmailContentPreference EmailContentPreference_phone
+	from ucmiraw.HubspotCustomers c
+	left join klaviyo.ProfileHeader pe on c.Email = pe.Email
+	left join klaviyo.ProfileProperties pep on pe.ID = pep.ID
+	left join klaviyo.ProfileHeader pp on c.PhoneNumberFmt = pp.PhoneNumber
+	left join klaviyo.ProfileProperties ppp on pp.ID = ppp.ID
+	where (pe.Email is not null or pp.Email is not null)
+	and c.Marketingcontactstatus = 'Marketing Contact'
+	and c.Email is not null
 )
-select top 30 t.Email
-	 , t.Consent
-	 , t.Mkt_Email_Consent
-	 , t.SecondaryConsent
-	 , t.FirstName
-	 , t.LastName
-	 , t.PhoneNumber
-	 , t.City
-	 , t.State
-	 , case when Orders > 0 then 1 else 0 end HasPurchased
-	 , t.FirstPurchaseDate
-	 , t.FirstPurchaseItem
-	 , t.LastPurchaseDate
-	 , t.LastPurchaseItem
-	 , null PurchaseChannel
-	 , Orders NumberOfPurchases
-	 , null CustomerType
-	 , ShippingZipCode
-	 , PhoneNumberFmt
-	, d.*
+select distinct t.*
+	 , d2c_last.DatePlaced LastPurchaseDate
+	 , d2c_last.ItemClassDesc LastPurchaseItem
+	 , d2c_first.DatePlaced FirstPurchaseDate
+	 , d2c_first.ItemClassDesc FirstPurchaseItem
+	 , case when d2c_last.PartProdAccFee != 'No Orders' then d2c_last.OrdersAsc else 0 end Orders
 from TopLevel t
-inner join klaviyo.Profile_AllDetails d on t.PhoneNumberFmt = d.FmtPhoneNumber
-where t.email is not null and right(t.email, 8) != '@zap.com'
--- and Mkt_Email_Consent is not null and Consent is not null and SecondaryConsent is not null
---where Mkt_Email_Consent is not null and Consent is not null and SecondaryConsent is not null
+left join analytics.JHL_D2CCustomerOrderHistory d2c_last on t.PhoneNumberFmt = d2c_last.Phone and d2c_last.OrdersDesc_Phone = 1 and d2c_last.PartProdAccFee != 'No Orders'
+left join analytics.JHL_D2CCustomerOrderHistory d2c_first on t.PhoneNumberFmt = d2c_first.Phone and d2c_first.OrdersAsc_Phone = 1 and d2c_first.PartProdAccFee != 'No Orders'

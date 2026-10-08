@@ -196,7 +196,6 @@ class Transform:
             'OkendoFamilyName': props.get('Okendo Family Name'),
             'OkendoGivenName': props.get('Okendo Given Name'),
             'Product': props.get('Product'),
-
             'Source': props.get('source'),
             'Company': props.get('company'),
             'HubspotOriginalSource': props.get('hubspot_original_source'),
@@ -367,7 +366,7 @@ class Transform:
             'OpenTrk_Email_CanReceive': emails['open_tracking']['can_receive'],
             'OpenTrk_Email_ValidUntil': self.default_transformer.parse_date_str(date_str=emails['open_tracking']['valid_until'], tries=0, format='%Y-%m-%dT%H:%M:%S.%f', offset=True),
             'ClickTrk_Email_Consent': emails['click_tracking']['consent'],
-            'ClickTrk_Email_ConsentTimestamp': self.default_transformer.parse_date_str(date_str=emails['click_tracking']['created_timestamp'], tries=0, format='%Y-%m-%dT%H:%M:%S.%f', offset=True),
+            'ClickTrk_Email_ConsentTimestamp': self.default_transformer.parse_date_str(date_str=emails['click_tracking']['consent_timestamp'], tries=0, format='%Y-%m-%dT%H:%M:%S.%f', offset=True),
             'ClickTrk_Email_LastUpdated': self.default_transformer.parse_date_str(date_str=emails['click_tracking']['last_updated'], tries=0, format='%Y-%m-%dT%H:%M:%S.%f', offset=True),
             'ClickTrk_Email_CreatedTimestamp': self.default_transformer.parse_date_str(date_str=emails['click_tracking']['created_timestamp'], tries=0, format='%Y-%m-%dT%H:%M:%S.%f', offset=True),
             'ClickTrk_Email_Metadata': emails['click_tracking']['metadata'],

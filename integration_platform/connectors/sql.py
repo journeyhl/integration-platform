@@ -324,7 +324,7 @@ class SQLConnector(Generic[QT]):
     queries: QT
 
 
-    def __init__(self, pipeline, database_name: str):
+    def __init__(self, pipeline, database_name: str, config: dict = {}):
         ''':class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector.__init__`
         ---
 
@@ -377,17 +377,22 @@ class SQLConnector(Generic[QT]):
             self.logger = logging.getLogger(f'{pipeline}.{database_name}')
         else:
             self.logger = logging.getLogger(f'{pipeline.pipeline_name}.{database_name}')
-        if database_name not in DATABASES:
-            raise ValueError(f'Unknown db!')
+        # if database_name not in DATABASES:
+        #     raise ValueError(f'Unknown db!')
         self.tables = TABLES
         self.database_name = database_name
-        self.config = DATABASES[database_name]
+        self.config = self._set_config_(config=config)
         self.engine = self._create_engine_()
         self.raw_connection = self.engine.raw_connection()
         self.queries = _QUERY_CLASSES.get(database_name, Queries)(database_name)  # type: ignore[assignment]
         self.sql_helper = SQLHelper(sqldb=self)
         self.logger.info(f'Connection to {database_name} successful')
         pass
+
+    def _set_config_(self, config: dict) -> dict:
+        if config == {}:
+            return DATABASES[self.database_name]
+        return config
 
     #MARK: _create_engine_
     def _create_engine_(self):
