@@ -454,6 +454,10 @@ select distinct t.*
 	 , d2c_first.DatePlaced FirstPurchaseDate
 	 , d2c_first.ItemClassDesc FirstPurchaseItem
 	 , case when d2c_last.PartProdAccFee != 'No Orders' then d2c_last.OrdersAsc else 0 end Orders
+	 , coalesce(t.BillingAddress, t.ShippingAddress) AddressLine1
+	 , coalesce(t.BillingCity, t.ShippingCity) City
+	 , coalesce(t.BillingState, t.ShippingState) City
+	 
 from TopLevel t
 left join analytics.JHL_D2CCustomerOrderHistory d2c_last on t.PhoneNumberFmt = d2c_last.Phone and d2c_last.OrdersDesc_Phone = 1 and d2c_last.PartProdAccFee != 'No Orders'
 left join analytics.JHL_D2CCustomerOrderHistory d2c_first on t.PhoneNumberFmt = d2c_first.Phone and d2c_first.OrdersAsc_Phone = 1 and d2c_first.PartProdAccFee != 'No Orders'

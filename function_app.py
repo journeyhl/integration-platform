@@ -654,9 +654,9 @@ def sales_order_cleaner(timer: af.TimerRequest):
 
 #region          acu_to_dbc_phone_revenue
 #           Upsert to acu.PhoneRevByMonth
-#         3x/day (1:40am, 9:40am, 5:40pm)
+# 4x/day (1:40am, 5:40am, 9:40am, 5:40pm)
 @app.timer_trigger(
-    schedule = '40 1/8 * * *',
+    schedule = '40 1,9,17,21 * * *',
     arg_name = 'timer',
     run_on_startup = False
 )

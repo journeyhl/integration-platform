@@ -431,7 +431,9 @@ class KlaviyoAPI:
             'Source': '$source',               # update also maps 'source' -> 'Source'
             'PhoneNumberRegion': '$phone_number_region',
             'HubspotRecordID': 'Hubspot Record ID',
+            'RecordID': 'Hubspot Record ID',
             'LeadStatusPhone': 'Lead Status - Phone',
+            'LeadStatus': 'Lead Status - Phone',
             'ContactOwnerPhone': 'Contact Owner - Phone',
             'Timestamp': 'timeStamp',
             'CreativeID': 'creative_id',
