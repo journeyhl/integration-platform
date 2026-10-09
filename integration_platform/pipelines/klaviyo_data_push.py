@@ -21,13 +21,18 @@ class KlaviyoDataPush(Pipeline):
         return data_transformed
 
     def load(self, data_transformed):
-        creates = data_transformed['create']
-        for i, payload in enumerate(creates):
+        # creates = data_transformed['create']
+        # for i, payload in enumerate(creates):
+        #     response = self.klaviyo.create_or_update_profile(payload=payload)
+        #     bp = 'here'
+
+        bp = 'here'
+        updates = [customer_record['payload'] for action, customer_records in data_transformed.items() for customer_record in customer_records if customer_record['updated'] != []]
+        for i, payload in enumerate(updates):
             response = self.klaviyo.create_or_update_profile(payload=payload)
+            #TODO: left off here 10/9 5pm
             bp = 'here'
-        for i, (table, rows) in enumerate(data_transformed.items()):
-            bp = 'here'
-            self.centralstore.merge_table_paginated(table_name=table, data=rows, page_size=500)
+            
         return data_transformed
 
     def log_results(self, data_loaded):

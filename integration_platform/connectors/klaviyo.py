@@ -248,7 +248,7 @@ class KlaviyoAPI:
             'external_id': 'ExternalID',
             'locale': 'Locale',
             # 'phone_number': 'RawPhoneNumber',  # same source as PhoneNumber, unparsed
-            'phone_number': 'PhoneNumberFmt',  # same source as PhoneNumber, unparsed
+            # 'phone_number': 'PhoneNumberFmt',  # same source as PhoneNumber, unparsed
             'created': 'Created',
             'updated': 'Updated',
             'joined_group_at': 'JoinedGroupAt',

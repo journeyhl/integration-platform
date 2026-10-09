@@ -1,5 +1,5 @@
 with TopLevel as(
-	select top 10 'Create' Action
+	select top 0 'Create' Action
 		, c.*	 
 		, pe.PhoneNumber PhoneNumber_email
 		, pe.Email Email_email
@@ -224,7 +224,7 @@ with TopLevel as(
 	and c.Marketingcontactstatus = 'Marketing Contact'
 	and c.Email is not null and right(c.Email, 8) != '@zap.com'
 	union
-	select top 10 'Update' Action
+	select top 5 'Update' Action
 		, c.*
 		, pe.PhoneNumber PhoneNumber_email
 		, pe.Email Email_email
