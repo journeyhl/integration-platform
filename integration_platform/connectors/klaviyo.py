@@ -78,7 +78,7 @@ class KlaviyoAPI:
         params = f'{filter}additional-fields[profile]={','.join([s for s in self.fields_add_profile])}&fields[profile]={','.join([s for s in self.fields_profile])}&page[size]=100'
         while True:
             parsed_response = self._get_data_(url=url, params=params) if not paged else self._get_data_(url=url)
-            profiles.extend(parsed_response['data'])
+            profiles.extend(parsed_response.get('data') or [])
             self.logger.info(f'{len(profiles)} Profiles parsed successfully')
             keep_going, next_page = self.__page__(parsed_response=parsed_response)
             if not keep_going:# or len(profiles) > 1000:
