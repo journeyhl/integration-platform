@@ -7,6 +7,7 @@ import logging
 from integration_platform.config.settings import KLAYVIO
 from integration_platform.helpers.klaviyo_api_helper import KlaviyoAPIHelper
 import requests
+import json
 
 class KlaviyoAPI:
     ''':class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`
@@ -160,7 +161,10 @@ class KlaviyoAPI:
         bp = 'here'
         return parsed_profiles
 
-
+    def create_or_update_profile(self, payload: dict):
+        url = 'https://a.klaviyo.com/api/profile-import'
+        response = self._post_data_(url=url, payload=payload)
+        return response
 
     #MARK: _get_data_
     def _get_data_(self, url: str, params: str = ''):
@@ -194,6 +198,11 @@ class KlaviyoAPI:
         parsed_response = self.helper.parse_response(response=response, url=url)
         return parsed_response
 
+    def _post_data_(self, url: str, payload: dict):
+        pl = json.dumps(payload)
+        response = requests.post(url=url, headers=self.headers, data=pl)
+        t_response = response.text
+        return response
 
 
     #MARK: __page__
@@ -225,6 +234,7 @@ class KlaviyoAPI:
         }
 
 
+    #MARK: _set_mappings_
     def _set_mappings_(self):
         self.map_attributes_update = {
             'id': 'ID',
@@ -321,6 +331,23 @@ class KlaviyoAPI:
             },
         }
 
+        self.map_location_create = {
+            'Address1': 'address1',
+            'Address2': 'address2',
+            'City': 'city',
+            'Country': 'country',
+            'State': 'region',
+            'Zip': 'zip',
+            
+        }
+        self.map_location_update = {
+            'address1': 'Address1',
+            'address2': 'Address2',
+            'city': 'City',
+            'country': 'Country',
+            'region': 'State',
+            'zip': 'Zip',
+        }
         
         self.map_properties_update = {
             'Accepts Marketing': 'AcceptsMarketing',

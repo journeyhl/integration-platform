@@ -29,6 +29,7 @@ class Transform:
         ]
         extract_w_profiles = self._get_klaviyo_profiles_(data_extract=data_extract_dicts)
         formatted_extract = self._format_payloads_(extract_w_profiles=extract_w_profiles)
+        return formatted_extract
         bp = 'here'
 
     #MARK: _get_klaviyo_profiles_
@@ -50,14 +51,14 @@ class Transform:
     #MARK: _format_payloads_
     def _format_payloads_(self, extract_w_profiles):
         bp = 'here'
-        payloads = []
+        payloads = {'create': [], 'update': []}
         for action, group in extract_w_profiles.items():
             for customer in group:
                 bp = 'here'
                 payload = self.pipeline.klaviyo.payload_profile if action == 'create' else {'data': customer['klaviyo_profile']}
                 payload = self.__format_payload__(action=action, customer=customer, payload=payload)
                 if payload != {}:
-                    payloads.append(payload)
+                    payloads[action].append(payload)
                 bp = 'here'
         return payloads
 
@@ -180,6 +181,7 @@ class Transform:
             k = key.replace('_phone', '').replace('_email', '')
             prop_match = self.pipeline.klaviyo.map_properties_create.get(key)
             attr_match = self.pipeline.klaviyo.map_attributes_create.get(key)
+            loc_match = self.pipeline.klaviyo.map_location_create.get(key)
             if prop_match:
                 bp = 'here'
                 payload['data']['attributes']['properties'][prop_match] = value
@@ -187,6 +189,10 @@ class Transform:
             if attr_match:
                 bp = 'here'
                 payload['data']['attributes'][attr_match] = value
+                bp = 'here'
+            if loc_match:
+                bp = 'here'
+                payload['data']['attributes']['location'][loc_match] = value
                 bp = 'here'
             bp = 'here'
         return payload

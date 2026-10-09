@@ -964,5 +964,5 @@ values ({', '.join(f'source.{column}' for column in sql_table['columns'])});
         batches = int(total/page_size)
         counter = 0
         self.logger.info(f'{total} rows to {operation}')
-        self.logger.info(f'Beginning {operation} sequence of {total} rows in {batches + 1} batches to {table_name}...')
+        self.logger.info(f'Beginning {operation} sequence of {total} rows in {batches} batches to {table_name}...')
         return (total, page_size, batches, counter)

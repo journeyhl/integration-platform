@@ -456,7 +456,7 @@ select distinct t.*
 	 , case when d2c_last.PartProdAccFee != 'No Orders' then d2c_last.OrdersAsc else 0 end Orders
 	 , coalesce(t.BillingAddress, t.ShippingAddress) AddressLine1
 	 , coalesce(t.BillingCity, t.ShippingCity) City
-	 , coalesce(t.BillingState, t.ShippingState) City
+	 , coalesce(t.BillingState, t.ShippingState) State
 	 
 from TopLevel t
 left join analytics.JHL_D2CCustomerOrderHistory d2c_last on t.PhoneNumberFmt = d2c_last.Phone and d2c_last.OrdersDesc_Phone = 1 and d2c_last.PartProdAccFee != 'No Orders'

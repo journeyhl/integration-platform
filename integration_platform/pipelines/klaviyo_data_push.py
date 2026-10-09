@@ -21,6 +21,10 @@ class KlaviyoDataPush(Pipeline):
         return data_transformed
 
     def load(self, data_transformed):
+        creates = data_transformed['create']
+        for i, payload in enumerate(creates):
+            response = self.klaviyo.create_or_update_profile(payload=payload)
+            bp = 'here'
         for i, (table, rows) in enumerate(data_transformed.items()):
             bp = 'here'
             self.centralstore.merge_table_paginated(table_name=table, data=rows, page_size=500)
