@@ -32,6 +32,7 @@ class KlaviyoNewsletter(Pipeline):
         return data_transformed
 
     def load(self, data_transformed):
+        self.centralstore.reconnect()
         for i, (table, rows) in enumerate(data_transformed.items()):
             bp = 'here'
             self.centralstore.merge_table_paginated(table_name=table, data=rows, page_size=500)
