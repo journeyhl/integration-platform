@@ -36,42 +36,69 @@ class Transform:
     def _get_klaviyo_profiles_(self, data_extract):
         bp = 'here'
         records = len(data_extract)
-        extract_w_profiles = {'update': [], 'create': []}
+        #region ood
+        # extract_w_profiles = {'update': [], 'create': []}
+        # for i, customer in enumerate(data_extract):
+        #     profiles = self.pipeline.klaviyo.get_profiles(filter=f'filter={customer['filter']}')
+        #     if profiles == []:
+        #         customer['Action'] = 'Create'
+        #         customer['klaviyo_profile'] = {}
+        #         extract_w_profiles['create'].append(customer)
+        #         continue
+        #     customer['Action'] = 'Update'
+        #     customer['klaviyo_profile'] = profiles[0] 
+        #     extract_w_profiles['update'].append(customer)
+        #endregion
+        profile_extract = []
         for i, customer in enumerate(data_extract):
-            profiles = self.pipeline.klaviyo.get_profiles(filter=customer['filter'])
+            profiles = self.pipeline.klaviyo.get_profiles(filter=f'filter={customer['filter']}')
             if profiles == []:
+                customer['Action'] = 'Create'
                 customer['klaviyo_profile'] = {}
-                extract_w_profiles['create'].append(customer)
-                continue
-            customer['klaviyo_profile'] = profiles[0] 
-            extract_w_profiles['update'].append(customer)
-        return extract_w_profiles
+            else:                
+                customer['Action'] = 'Update'
+                customer['klaviyo_profile'] = profiles[0] 
+            profile_extract.append(customer)
+        return profile_extract
 
 
     #MARK: _format_payloads_
     def _format_payloads_(self, extract_w_profiles):
         bp = 'here'
-        customers = {'create': [], 'update': []}
-        for action, group in extract_w_profiles.items():
-            for customer in group:
-                bp = 'here'
-                payload = self.pipeline.klaviyo.payload_profile if action == 'create' else {'data': customer['klaviyo_profile']}
-                customer_record = self.__format_payload__(action=action, customer=customer, payload=payload)
-                customers[action].append(customer_record)
-                bp = 'here'
+        #region ood
+        # customers = {'create': [], 'update': []}
+        # for action, group in extract_w_profiles.items():
+        #     for customer in group:
+        #         bp = 'here'
+        #         payload = self.pipeline.klaviyo.payload_profile if action == 'create' else {'data': customer['klaviyo_profile']}
+        #         customer_record = self.__format_payload__(action=action, customer=customer, payload=payload)
+        #         customers[action].append(customer_record)
+        #         bp = 'here'
+        #endregion    
+        bp = 'here'
+        customers = []
+        for customer in extract_w_profiles:
+            bp = 'here'
+            payload = self.pipeline.klaviyo.payload_profile if customer['Action'] == 'Create' else {'data': customer['klaviyo_profile']}
+            customer_record = self.__format_payload__(action=customer['Action'], customer=customer, payload=payload)
+            customers.append(customer_record)
+            bp = 'here'
         return customers
 
 
     #MARK: __format_payload__
-    def __format_payload__(self, action: Literal['update', 'create'], customer: dict, payload: dict) -> dict:
+    def __format_payload__(self, action: Literal['Update', 'Create'], customer: dict, payload: dict) -> dict:
+        fields_changed = None
+        customer_record = {}
         phone = customer['PhoneNumber'] if customer['PhoneNumber'][:2] == '+1' else f'+1{customer['PhoneNumber']}'
         payload['data']['attributes']['email'] = customer['Email']
         payload['data']['attributes']['phone_number'] = phone
-        if action == 'update':
+        if action == 'Update':
             customer_record = self._format_update_payload_(customer=customer, payload=payload)
-        else:
-            customer_record = self._format_create_payload_(customer=customer, payload=payload)
-
+            fields_changed = customer_record['fields_changed'] if customer_record['fields_changed'] != [] else None
+            bp = 'here'
+        customer_record = self._format_create_payload_(customer=customer, payload=payload, action=action, update_customer_record=customer_record)
+        customer_record['fields_changed'] = fields_changed
         return customer_record
 
     #MARK: __format_update_payload__
@@ -80,16 +107,21 @@ class Transform:
         
         prop_record = self._compare_attributes_or_properties_(customer=customer, payload=payload, attr_or_prop='properties')
         attr_record = self._compare_attributes_or_properties_(customer=customer, payload=prop_record['payload'], attr_or_prop='attributes')
+        fields_changed = prop_record['_updated'] + (attr_record['_updated'] or [])
+        check_these = prop_record['_check_these'] + (attr_record['_check_these'] or [])
+        matches = prop_record['_matches'] + (attr_record['_matches'] or [])
+
         customer_record = {
+            'action': 'Update',
             'payload': attr_record['payload'],
             'db': attr_record['db'],
-            'updated': prop_record['_updated'] + attr_record['_updated'],
-            'check_these': prop_record['_check_these'] + attr_record['_check_these'],
-            'matches': prop_record['_matches'] + attr_record['_matches'],
+            'fields_changed': fields_changed,
+            'check_these': check_these,
+            'matches': matches,
         }
         return customer_record
 
-
+    #MARK: _compare_attributes_or_properties_
     def _compare_attributes_or_properties_(self, customer: dict, payload: dict, attr_or_prop: Literal['attributes', 'properties']):
         klaviyo_values = payload['data']['attributes'].get('properties') if attr_or_prop == 'properties' else {k: v for k, v in payload['data']['attributes'].items() if not isinstance(v, dict)}
         self._updated = []
@@ -179,6 +211,7 @@ class Transform:
 
         
 
+    #MARK: _compare_attributes_properties_dates_
     def _compare_attributes_properties_dates_(self, customer: dict, payload: dict, attr_or_prop: Literal['attributes', 'properties'], was_list, key, db_value, value):
         if isinstance(db_value, date):
             db_value = datetime(year=db_value.year, month=db_value.month, day=db_value.day)
@@ -193,7 +226,8 @@ class Transform:
                 self.logger.info(f'{key}: Updating from {date_value} to {db_value}')
                 self._check_these.append({f'{attr_or_prop}.{key}': {'klaviyo': value, 'db': db_value}})
         return payload
-                    
+            
+    #MARK: _parse_and_compare_dates_
     def _parse_and_compare_dates_(self, klaviyo_date: str, db_date: datetime | date) -> datetime | None:
         kdate_len = len(klaviyo_date)
         kdate_dash = klaviyo_date.find('-')
@@ -225,6 +259,7 @@ class Transform:
         return date_value
 
 
+    #MARK: _add_profile_datapoint_
     def _add_profile_datapoint_(self, payload: dict, attr_or_prop: Literal['attributes', 'properties'], was_list: bool,  key: str, db_value, old_value):
         ''':class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._add_profile_datapoint_`
         ---
@@ -264,8 +299,9 @@ class Transform:
 
 
     #MARK: __format_create_payload__
-    def _format_create_payload_(self, payload: dict, customer: dict):
+    def _format_create_payload_(self, payload: dict, customer: dict, action: Literal['Create', 'Update'], update_customer_record: dict):
         bp = 'do a compare or something here'
+        fields_added = []
         for key, value in customer.items():
             if not value:
                 continue
@@ -274,24 +310,35 @@ class Transform:
             attr_match = self.pipeline.klaviyo.map_attributes_create.get(key)
             loc_match = self.pipeline.klaviyo.map_location_create.get(key)
             if prop_match:
-                bp = 'here'
-                payload['data']['attributes']['properties'][prop_match] = value
-                bp = 'here'
-            if attr_match:
-                bp = 'here'
-                payload['data']['attributes'][attr_match] = value
-                bp = 'here'
+                payload['data']['attributes']['properties'], fields_added = self._match_payload_values_(payload_section=payload['data']['attributes']['properties'], match_key=prop_match, value=value, matched=fields_added, list_prepend='properties.')
+            if attr_match and attr_match != 'email':
+                payload['data']['attributes'], fields_added = self._match_payload_values_(payload_section=payload['data']['attributes'], match_key=attr_match, value=value, matched=fields_added, list_prepend='attributes.')
             if loc_match:
-                bp = 'here'
-                payload['data']['attributes']['location'][loc_match] = value
-                bp = 'here'
+                payload['data']['attributes']['location'], fields_added = self._match_payload_values_(payload_section=payload['data']['attributes']['location'], match_key=loc_match, value=value, matched=fields_added, list_prepend='location.')
             bp = 'here'
         customer_record = {
+            'action': action,
             'payload': payload,
-            'db': customer
+            'db': customer,
+            'fields_added': fields_added if fields_added != [] else None
         }
         return customer_record
 
+    #MARK: _match_payload_values_
+    def _match_payload_values_(self, payload_section: dict, match_key: str, value, matched: list, list_prepend: str):
+        klaviyo_value = payload_section.get(match_key)
+        if isinstance(klaviyo_value, str) and isinstance(value, str):
+            klaviyo_value = klaviyo_value.lower()
+            value = value.lower()
+        if klaviyo_value != value:
+            if match_key == 'phone_number':
+                if klaviyo_value and value in klaviyo_value: #If the db's tfn is within klaviyos. (db doesn't have +1 and klaviyo does)
+                    return payload_section, matched
+            payload_section[match_key] = value
+            self.logger.info(f'{match_key} updated from {klaviyo_value} to {value}')
+            matched.append({f'{list_prepend}{match_key}': {'old': klaviyo_value, 'new': value}})
+        return payload_section, matched
+            
 
 
 

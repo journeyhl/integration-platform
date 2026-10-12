@@ -1,5 +1,5 @@
 with TopLevel as(
-	select top 0 'Create' Action
+	select distinct top 0 'Create' Action
 		, c.*	 
 		, pe.PhoneNumber PhoneNumber_email
 		, pe.Email Email_email
@@ -223,8 +223,9 @@ with TopLevel as(
 	where (pe.Email is null and pp.PhoneNumber is null and pp.RawPhoneNumber is null)
 	and c.Marketingcontactstatus = 'Marketing Contact'
 	and c.Email is not null and right(c.Email, 8) != '@zap.com'
+	and (pe.Updated <= dateadd(hour, -6, getdate()) or pe.updated is null)
 	union
-	select top 5 'Update' Action
+	select distinct top 5 'Update' Action
 		, c.*
 		, pe.PhoneNumber PhoneNumber_email
 		, pe.Email Email_email
@@ -447,6 +448,7 @@ with TopLevel as(
 	where (pe.Email is not null or pp.Email is not null)
 	and c.Marketingcontactstatus = 'Marketing Contact'
 	and c.Email is not null and right(c.Email, 8) != '@zap.com'
+	and (pe.Updated <= dateadd(hour, -6, getdate()) or pe.updated is null)
 )
 select distinct t.*
 	 , d2c_last.DatePlaced LastPurchaseDate

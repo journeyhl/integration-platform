@@ -3,20 +3,21 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from integration_platform.connectors.klaviyo import KlaviyoAPI
 from integration_platform.transform.klaviyo_newsletter import Transform
-
+import polars as pl
 class KlaviyoNewsletter(Pipeline):
-    def __init__(self, function: str, is_newsletter: bool = True):
+    def __init__(self, function: str, is_newsletter: bool = True, filter_if_not_newsletter: str = ''):
         super().__init__('KlaviyoNewsletter', function)
         self.klaviyo = KlaviyoAPI(self)
         self.transformer = Transform(self)
         self.is_newsletter = is_newsletter
+        self.filter_if_not_newsletter = filter_if_not_newsletter
 
     def extract(self):
         cutoff = datetime.now(ZoneInfo('America/New_York')) - timedelta(days=7)
         cut_str = cutoff.strftime('%Y-%m-%dT%H:%M:%SZ')
         last_checked = datetime.now(ZoneInfo('America/New_York'))
         if not self.is_newsletter:
-            data_extract = self.klaviyo.get_profiles()
+            data_extract = self.klaviyo.get_profiles() if self.filter_if_not_newsletter == '' else self.klaviyo.get_profiles(filter=self.filter_if_not_newsletter)
             data_extract = {
                 'profiles': data_extract,
                 'LastChecked': last_checked
@@ -27,10 +28,12 @@ class KlaviyoNewsletter(Pipeline):
             data_extract['LastChecked'] = last_checked
 
         data_extract['is_newsletter'] = self.is_newsletter
+        self.df_newsletter = self.centralstore.query_db('Select ID, IsNewsletter from klaviyo.ProfileHeader where IsNewsletter = 1')
         return data_extract
 
     def transform(self, data_extract):
         data_transformed = self.transformer.landing(data_extract=data_extract)
+
         return data_transformed
 
     def load(self, data_transformed):
