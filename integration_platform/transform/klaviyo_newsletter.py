@@ -69,10 +69,11 @@ class Transform:
         parsed_properties = []
         parsed_subscriptions = []
         for i, p in enumerate(profiles):
-            p = {
-                'id': p['id'],
-                **p['attributes']
-            }
+            if p.get('attributes'):
+                p = {
+                    'id': p['id'],
+                    **p['attributes']
+                }
             self.log_prefix = f'{i+1}/{total}: ' 
             bp = 'here'
             profile_header = self._profile_header_(profile=p)

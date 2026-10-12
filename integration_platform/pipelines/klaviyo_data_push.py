@@ -25,6 +25,13 @@ class KlaviyoDataPush(Pipeline):
         # for i, payload in enumerate(creates):
         #     response = self.klaviyo.create_or_update_profile(payload=payload)
         #     bp = 'here'
+        creates = data_transformed['create']
+        updates = data_transformed['update']
+
+        for i, customer_record in enumerate(updates):
+            bp = 'here'
+
+
 
         bp = 'here'
         updates = [customer_record['payload'] for action, customer_records in data_transformed.items() for customer_record in customer_records if customer_record['updated'] != []]
@@ -32,7 +39,6 @@ class KlaviyoDataPush(Pipeline):
             response = self.klaviyo.create_or_update_profile(payload=payload)
             #TODO: left off here 10/9 5pm
             bp = 'here'
-            
         return data_transformed
 
     def log_results(self, data_loaded):

@@ -14,14 +14,17 @@ class KlaviyoNewsletter(Pipeline):
     def extract(self):
         cutoff = datetime.now(ZoneInfo('America/New_York')) - timedelta(days=3)
         cut_str = cutoff.strftime('%Y-%m-%dT%H:%M:%SZ')
+        last_checked = datetime.now(ZoneInfo('America/New_York'))
         if not self.is_newsletter:
             data_extract = self.klaviyo.get_profiles()
             data_extract = {
                 'profiles': data_extract,
-                'LastChecked': datetime.now(ZoneInfo('America/New_York'))
+                'LastChecked': last_checked
             }
         else:
             data_extract = self.klaviyo.get_list(list_id='Rz3G6F', profile_filter=f"filter=greater-than(joined_group_at,{cut_str})")
+            data_extract['LastChecked'] = last_checked
+
         data_extract['is_newsletter'] = self.is_newsletter
         return data_extract
 
