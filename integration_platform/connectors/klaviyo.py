@@ -74,10 +74,11 @@ class KlaviyoAPI:
         profiles = []
         paged = False
         bp = 'here'
-        if '?filter' not in filter:
-            filter = f'?filter={filter}'
-        filter += '&' if '&' not in filter else ''
-        params = f'{filter}additional-fields[profile]={','.join([s for s in self.fields_add_profile])}&fields[profile]={','.join([s for s in self.fields_profile])}&page[size]=100'
+        if filter:
+            prefix = f'?{filter}&'
+        else:
+            prefix = '?'
+        params = f'{prefix}additional-fields[profile]={','.join([s for s in self.fields_add_profile])}&fields[profile]={','.join([s for s in self.fields_profile])}&page[size]=100'
         while True:
             parsed_response = self._get_data_(url=url, params=params) if not paged else self._get_data_(url=url)
             profiles.extend(parsed_response.get('data') or [])
@@ -156,9 +157,7 @@ class KlaviyoAPI:
          ### :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:class:`~integration_platform.helpers.klaviyo_api_helper.KlaviyoAPIHelper`.:meth:`~integration_platform.helpers.klaviyo_api_helper.KlaviyoAPIHelper.consolidate_profiles`
         '''        
         url = f'{url}/profiles'
-        filter = f'?{profile_filter}' if profile_filter != '' else '?'
-        params = f'additional-fields[profile]={','.join([s for s in self.fields_add_profile])}&fields[profile]={','.join([s for s in self.list_fields_profile])}&page[size]=100'
-        profiles = self.get_profiles(url=url, filter=filter, params=params)
+        profiles = self.get_profiles(url=url, filter=profile_filter)
         parsed_profiles = self.helper.consolidate_profiles(profiles=profiles)
         bp = 'here'
         return parsed_profiles

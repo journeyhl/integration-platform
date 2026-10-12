@@ -22,8 +22,8 @@ class KlaviyoNewsletter(Pipeline):
                 'LastChecked': last_checked
             }
         else:
-            data_extract = self.klaviyo.get_list(list_id='Rz3G6F', profile_filter=f"filter=greater-than(joined_group_at,{cut_str})")
-            # data_extract = self.klaviyo.get_list(list_id='Rz3G6F')
+            # data_extract = self.klaviyo.get_list(list_id='Rz3G6F', profile_filter=f"filter=greater-than(joined_group_at,{cut_str})")
+            data_extract = self.klaviyo.get_list(list_id='Rz3G6F')
             data_extract['LastChecked'] = last_checked
 
         data_extract['is_newsletter'] = self.is_newsletter
