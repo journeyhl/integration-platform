@@ -165,6 +165,8 @@ class Transform:
         payload['data']['attributes'].pop('predictive_analytics', None)
         payload['data']['attributes'].pop('updated', None)
         payload['data']['attributes'].pop('created', None)
+        payload['data']['attributes'].pop('last_event_date', None)
+        
 
         customer_record = {
             'payload': payload,
