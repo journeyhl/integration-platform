@@ -8,8 +8,13 @@ from zoneinfo import ZoneInfo
 
 cutoff = datetime.now(ZoneInfo('America/New_York')) - timedelta(days=.2)
 cut_str = cutoff.strftime('%Y-%m-%dT%H:%M:%SZ')
-klaviyo = KlaviyoNewsletter('.debug', is_newsletter=False, filter_if_not_newsletter=f"filter=greater-than(updated,{cut_str})")
 
-klaviyo.run()
-pass
-    
+klaviyo_update = KlaviyoNewsletter('.debug', is_newsletter=False, filter_if_not_newsletter=f"filter=greater-than(updated,{cut_str})")
+klaviyo_update.run()
+
+bp = 'here'
+
+klaviyo_create = KlaviyoNewsletter('.debug', is_newsletter=False, filter_if_not_newsletter=f"filter=greater-than(created,{cut_str})")
+klaviyo_create.run()
+
+bp = 'here'
