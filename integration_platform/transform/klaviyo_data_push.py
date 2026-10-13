@@ -20,6 +20,35 @@ class Transform:
 
     #MARK: landing
     def landing(self, data_extract: pl.DataFrame):
+        ''':class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform.landing`
+        ---
+        
+        Landing method called from :meth:`~integration_platform.pipelines.klaviyo_data_push.KlaviyoDataPush.transform` step of :class:`~integration_platform.pipelines.klaviyo_data_push.KlaviyoDataPush` pipeline. We'll return our completed output from here
+        
+        Parameters
+        ---
+        :param (*pl.DataFrame*) `data_extract`: dataframe of customers returned from sql query. Query pulls hubspot customers left joined to Klaviyo tables
+        
+        Returns
+        ---
+        :return `customer_records` (list): list of dicts of customer data. Contains **`action`**, **`payload`**, **`db`**, **`fields_added`** and **`fields_changed`**
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.pipelines.klaviyo_data_push.KlaviyoDataPush`.:meth:`~integration_platform.pipelines.klaviyo_data_push.KlaviyoDataPush.transform`
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._get_klaviyo_profiles_`
+        
+          - Gets profile data from klaviyo
+        
+         ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._format_payloads_`
+           
+          - Drives transformation of payloads to send back to klaviyo
+        '''        
         bp = 'here'
         data_extract_dicts = [
             {
@@ -33,22 +62,37 @@ class Transform:
         return customer_records
 
     #MARK: _get_klaviyo_profiles_
-    def _get_klaviyo_profiles_(self, data_extract):
-        bp = 'here'
+    def _get_klaviyo_profiles_(self, data_extract: list[dict]):
+        ''':class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._get_klaviyo_profiles_`
+        ---
+        
+        First method called from :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform.landing`
+
+        For each customer extracted from the database, hits KlaviyoAPI's profiles endpoint and checks for a profile match by email
+
+        If a match is found, we'll go about updating the record, if not, we'll create one
+        
+        Parameters
+        ---
+        :param (*list[dict]*) `data_extract`: list of dicts(rows) extracted from the database of customers to look for in klaviyo
+        
+        Returns
+        ---
+        :return `profile_extract` (list[dict]): same list of dicts, but with the profile data from klaviyo if found, or an empty dict if not, as `klaviyo_profile`
+        
+        <hr>
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform.landing`
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.get_profiles`
+        '''        
         records = len(data_extract)
-        #region ood
-        # extract_w_profiles = {'update': [], 'create': []}
-        # for i, customer in enumerate(data_extract):
-        #     profiles = self.pipeline.klaviyo.get_profiles(filter=f'filter={customer['filter']}')
-        #     if profiles == []:
-        #         customer['Action'] = 'Create'
-        #         customer['klaviyo_profile'] = {}
-        #         extract_w_profiles['create'].append(customer)
-        #         continue
-        #     customer['Action'] = 'Update'
-        #     customer['klaviyo_profile'] = profiles[0] 
-        #     extract_w_profiles['update'].append(customer)
-        #endregion
         profile_extract = []
         for i, customer in enumerate(data_extract):
             profiles = self.pipeline.klaviyo.get_profiles(filter=f'filter={customer['filter']}')
@@ -63,31 +107,88 @@ class Transform:
 
 
     #MARK: _format_payloads_
-    def _format_payloads_(self, extract_w_profiles):
-        bp = 'here'
-        #region ood
-        # customers = {'create': [], 'update': []}
-        # for action, group in extract_w_profiles.items():
-        #     for customer in group:
-        #         bp = 'here'
-        #         payload = self.pipeline.klaviyo.payload_profile if action == 'create' else {'data': customer['klaviyo_profile']}
-        #         customer_record = self.__format_payload__(action=action, customer=customer, payload=payload)
-        #         customers[action].append(customer_record)
-        #         bp = 'here'
-        #endregion    
-        bp = 'here'
-        customers = []
-        for customer in extract_w_profiles:
-            bp = 'here'
+    def _format_payloads_(self, extract_w_profiles: list[dict]):
+        ''':class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._format_payloads_`
+        ---
+        
+        Formats the header level structure for the payload depending on if the profile should be created or updated, then passes to :meth:`~integration_platform.transform.klaviyo_data_push.Transform.__format_payload__` 
+        
+        Parameters
+        ---
+        :param (*list[dict]*) `extract_w_profiles`: list of dicts that was returned from :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._get_klaviyo_profiles_`.
+        
+        Returns
+        ---
+        :return `customer_records` (list[dict]): list of dicts of customer data. Each dict contains **`action`**, **`payload`**, **`db`**, **`fields_added`** and **`fields_changed`**
+        
+        <hr>
+        
+        Sets
+        ---
+        - #### self.:attr:`~integration_platform.transform.klaviyo_data_push.Transform.current_customer_email`
+        - #### self.:attr:`~integration_platform.transform.klaviyo_data_push.Transform.current_prefix`
+
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform.landing`
+        
+          - Called **second** from :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform.landing`,  after look up of klaviyo profile
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform.__format_payload__`
+        
+          - Does all the work of formatting the payload, determining what values should be sent and so on
+        '''        
+        customer_records = []
+        total = len(extract_w_profiles)
+        for i, customer in enumerate(extract_w_profiles):
+            self.current_customer_email = customer['Email']
+            self.current_prefix = f'{i+1}/{total}, {self.current_customer_email}: '
             payload = self.pipeline.klaviyo.payload_profile if customer['Action'] == 'Create' else {'data': customer['klaviyo_profile']}
             customer_record = self.__format_payload__(action=customer['Action'], customer=customer, payload=payload)
-            customers.append(customer_record)
-            bp = 'here'
-        return customers
+            customer_records.append(customer_record)
+        return customer_records
 
-
+    
     #MARK: __format_payload__
     def __format_payload__(self, action: Literal['Update', 'Create'], customer: dict, payload: dict) -> dict:
+        ''':class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform.__format_payload__`
+        ---
+        
+        Base level of iteration through database extract. We're passed a single customer, payload and action, which we then pass on to submethods and functions that
+        handle the parsing and formatting. After that's returned, we do one last step of formatting to each customer's dict of data, then pass it back to our main iterator
+        
+        Parameters
+        ---
+        :param (Literal[`Update`, `Create`]) `action`: Whether or not the klaviyo profile is to be updated or created
+        :param (*dict*) `customer`: A particular customer's data that was extracted from the db
+        :param (*dict*) `payload`: The payload to be sent to klaviyo containing that customer's profile data
+        
+        Returns
+        ---
+        :return `customer_record` (list[dict]): dict of customer data. Contains **`action`**, **`payload`**, **`db`**, **`fields_added`** and **`fields_changed`**
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._format_payloads_`
+        
+          - Called from to get a payload for each customer
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._format_update_payload_`
+        
+          - If the profile exists, handle the field update portion, skip if we're creating profile
+        
+         ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._format_create_payload_`
+           
+          - Checks for any non-null db values we can add in the payload to klaviyo
+        '''        
         fields_changed = None
         customer_record = {}
         phone = customer['PhoneNumber'] if customer['PhoneNumber'][:2] == '+1' else f'+1{customer['PhoneNumber']}'
@@ -96,15 +197,41 @@ class Transform:
         if action == 'Update':
             customer_record = self._format_update_payload_(customer=customer, payload=payload)
             fields_changed = customer_record['fields_changed'] if customer_record['fields_changed'] != [] else None
-            bp = 'here'
         customer_record = self._format_create_payload_(customer=customer, payload=payload, action=action, update_customer_record=customer_record)
         customer_record['fields_changed'] = fields_changed
         return customer_record
 
     #MARK: __format_update_payload__
-    def _format_update_payload_(self, customer: dict, payload: dict):
-        k_location = payload['data']['attributes'].get('location')
+    def _format_update_payload_(self, customer: dict, payload: dict) -> dict:
+        ''':class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._format_update_payload_`
+        ---
         
+        If the action is update, format the payload to be sent to update the customer's profile in klaviyo
+        
+        Parameters
+        ---
+        :param (*dict*) `customer`: A particular customer's data that was extracted from the db
+        :param (*dict*) `payload`: The payload to be sent to klaviyo containing that customer's profile data
+        
+        Returns
+        ---
+        :return `customer_record` (list[dict]): dict of customer data. Contains **`action`**, **`payload`**, **`db`**, **`fields_changed`**, **`check_these`** and **`matches`**
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform.__format_payload__`
+        
+          - Called if action == `Update`
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._format_update_payload_`
+        
+          - Called twice, once to compare properties, and once for attribute comparison
+        '''        
+        k_location = payload['data']['attributes'].get('location')        
         prop_record = self._compare_attributes_or_properties_(customer=customer, payload=payload, attr_or_prop='properties')
         attr_record = self._compare_attributes_or_properties_(customer=customer, payload=prop_record['payload'], attr_or_prop='attributes')
         fields_changed = prop_record['_updated'] + (attr_record['_updated'] or [])
@@ -123,6 +250,47 @@ class Transform:
 
     #MARK: _compare_attributes_or_properties_
     def _compare_attributes_or_properties_(self, customer: dict, payload: dict, attr_or_prop: Literal['attributes', 'properties']):
+        ''':class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._compare_attributes_or_properties_`
+        ---
+        
+        Given customer data from the database, `customer`, the profile data retrieved from klaviyo, `payload`, and the dict to look at, compare the values from klaviyo and the db
+        
+        Parameters
+        ---
+        :param (*dict*) `customer`: A particular customer's data that was extracted from the db
+        :param (*dict*) `payload`: The payload to be sent to klaviyo containing that customer's profile data
+        :param (*Literal[`attributes`, `properties`]*) `attr_or_prop`: Which part of klaviyo's profile payload are we comparing
+        
+        Returns
+        ---
+        :return `customer_record` (dict): dict of customer data. Contains **`action`**, **`payload`**, **`db`**, **`_updated`**, **`_check_these`** and **`_matches`**
+
+        <hr>
+        
+        Sets
+        ---
+        - #### self.:attr:`~integration_platform.transform.klaviyo_data_push.Transform._updated`
+        - #### self.:attr:`~integration_platform.transform.klaviyo_data_push.Transform._check_these`
+        - #### self.:attr:`~integration_platform.transform.klaviyo_data_push.Transform._matched`
+
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._format_update_payload_`
+        
+          - Calls twice, once to compare properties, and once for attribute comparison
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._add_profile_datapoint_`
+        
+          - Adds new value to klaviyo payload
+        
+         ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._compare_attributes_properties_dates_`
+           
+          - Compares a date value from the db to a text value from klaviyo
+        '''        
         klaviyo_values = payload['data']['attributes'].get('properties') if attr_or_prop == 'properties' else {k: v for k, v in payload['data']['attributes'].items() if not isinstance(v, dict)}
         self._updated = []
         self._check_these = []
@@ -139,8 +307,6 @@ class Transform:
                 continue
             elif db_value != value:
                 if value == '' or not value:
-                    self.logger.info(f'{key}: Updating from blank to {db_value}')
-                    self._updated.append({dict_key: {'old': value, 'new': db_value}})
                     payload = self._add_profile_datapoint_(payload=payload, attr_or_prop=attr_or_prop, was_list=was_list, key=key, db_value=db_value, old_value=value)
                     continue
                 else:
@@ -213,22 +379,80 @@ class Transform:
 
     #MARK: _compare_attributes_properties_dates_
     def _compare_attributes_properties_dates_(self, customer: dict, payload: dict, attr_or_prop: Literal['attributes', 'properties'], was_list, key, db_value, value):
+        ''':class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._compare_attributes_properties_dates_`
+        ---
+        
+        If the value from the database to compare to klaviyo is a date, this method is called to cast klaviyo's value as a date, then compare
+        
+        Parameters
+        ---
+        :param (*dict*) `customer`: A particular customer's data that was extracted from the db
+        :param (*dict*) `payload`: The payload to be sent to klaviyo containing that customer's profile data
+        :param (*Literal[`attributes`, `properties`]*) `attr_or_prop`: Which part of klaviyo's profile payload are we comparing
+        :param (*_type_*) `was_list`: Was this value a list type?
+        :param (*_type_*) `key`: the klaviyo dict key
+        :param (*_type_*) `db_value`: the value from the database
+        :param (*_type_*) `value`: the value from klaviyo
+        
+        Returns
+        ---
+        :return `payload` (dict): Updated (or not) payload of profile data to send to klaviyo
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._compare_attributes_or_properties_`
+        
+          - Called when comparing klaviyo values to those of db, when db value is a datetime
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform.__parse_and_compare_dates__`
+        
+          - Does the actual parsing of the string from klaviyo, then casts as datetime
+        
+         ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._add_profile_datapoint_`
+           
+          - Adds new value to klaviyo payload and appends to :attr:
+        '''
         if isinstance(db_value, date):
             db_value = datetime(year=db_value.year, month=db_value.month, day=db_value.day)
-        date_value = self._parse_and_compare_dates_(klaviyo_date=value, db_date=db_value)
+        date_value = self.__parse_and_compare_dates__(klaviyo_date=value)
         if date_value:
             if date_value < db_value:
                 db_value = db_value.strftime('%Y/%m/%dT%H:%M:%SZ')
-                self.logger.info(f'{key}: Updating from {date_value} to {db_value}')
-                self._updated.append({f'{attr_or_prop}.{key}': {'old': value, 'new': db_value}})
                 payload = self._add_profile_datapoint_(payload=payload, attr_or_prop=attr_or_prop, was_list=was_list, key=key, db_value=db_value, old_value=value)
             elif date_value > db_value:
-                self.logger.info(f'{key}: Updating from {date_value} to {db_value}')
+                self.logger.warning(f'{self.current_prefix} {key}: CHECK THIS! from {date_value} to {db_value}')
                 self._check_these.append({f'{attr_or_prop}.{key}': {'klaviyo': value, 'db': db_value}})
         return payload
             
     #MARK: _parse_and_compare_dates_
-    def _parse_and_compare_dates_(self, klaviyo_date: str, db_date: datetime | date) -> datetime | None:
+    def __parse_and_compare_dates__(self, klaviyo_date: str) -> datetime | None:
+        ''':class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform.__parse_and_compare_dates__`
+        ---
+        
+        Handles the date parsing of different formatted dates from klaviyo
+        
+        Parameters
+        ---
+        :param (*str*) `klaviyo_date`: klavio date as string
+        
+        Returns
+        ---
+        :return `date_value` (datetime | None): klaviyo date value, datetime if parsaed successfully, None if not
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._compare_attributes_properties_dates_`
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### :class:`~integration_platform.transform.default_transformer.DefaultTransformer`.:meth:`~integration_platform.transform.default_transformer.DefaultTransformer.parse_date_str`
+        '''        
         kdate_len = len(klaviyo_date)
         kdate_dash = klaviyo_date.find('-')
         kdate_slash = klaviyo_date.find('/')
@@ -264,9 +488,9 @@ class Transform:
         ''':class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._add_profile_datapoint_`
         ---
         
-        Given the klaviyo profile payload, the subdict within the payload that will be 
-        updated, whether or not the value is a list, the key and the actual value to
-        change to, add the key and new value to payload
+        Given the klaviyo profile payload, **`payload`**, the subdict within the payload that will be 
+        updated ,**`attr_or_prop`**, whether or not the value is a list, **`was_list`**, the key, **`key`**, and the actual value to
+        change to, **`db_value`**, add the key and new value to payload
         
         Parameters
         ---
@@ -274,7 +498,8 @@ class Transform:
         :param (*Literal['attributes', 'properties']*) `attr_or_prop`: `attributes` or `properties` portion of profile payload
         :param (*bool*) `was_list`: was this value a list in the data pull from klaviyo? If yes, we'll need to make sure its a list when we send again
         :param (*str*) `key`: the property's id in klaviyo
-        :param (*_type_*) `db_value`: value from db that we will be sending to klaviyo
+        :param  `db_value`: value from db that we will be sending to klaviyo
+        :param  `old_value`: value changing from. Only used for logging output and tracking
         
         Returns
         ---
@@ -285,8 +510,8 @@ class Transform:
         ## Upstream Calls (Methods/Functions Called by)
         
          ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._compare_attr_prop_`
-        '''        
-        self.logger.info(f'{key}: Updating from {old_value if old_value and old_value != '' else 'blank'} to {db_value}')
+        '''
+        self.logger.info(f'{self.current_prefix}{key}: Updating from {old_value if old_value and old_value != '' else 'blank'} to {db_value}')
         self._updated.append({f'{attr_or_prop}.{key}': {'old': old_value, 'new': db_value}})
         if attr_or_prop == 'properties':
             payload['data']['attributes']['properties'][key] = [db_value] if was_list else db_value
@@ -299,7 +524,38 @@ class Transform:
 
 
     #MARK: __format_create_payload__
-    def _format_create_payload_(self, payload: dict, customer: dict, action: Literal['Create', 'Update'], update_customer_record: dict):
+    def _format_create_payload_(self, payload: dict, customer: dict, action: Literal['Create', 'Update'], update_customer_record: dict) -> dict:
+        ''':class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._format_create_payload_`
+        ---
+        
+        Formats portion of payload to send to klaviyo that fills in values from the database that aren't captured at Klaviyo
+        If updating, this is only some or no fields, if creating, all the data we send will be added from here
+        
+        Parameters
+        ---
+        :param (*dict*) `customer`: A particular customer's data that was extracted from the db
+        :param (*dict*) `payload`: The payload to be sent to klaviyo containing that customer's profile data
+        :param (*Literal[`attributes`, `properties`]*) `attr_or_prop`: Which part of klaviyo's profile payload are we comparing
+        :param (*dict*) `update_customer_record`: _description_
+        
+        Returns
+        ---
+        :return `customer_record` (dict): dict of customer data. Contains **`action`**, **`payload`**, **`db`** and **`fields_added`**
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform.__format_payload__`
+        
+          - Called regardless of action
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._match_payload_values_`
+        
+          - Called if there's a match in any of the klaviyo mapping dictionaries
+        '''
         fields_added = []
         for key, value in customer.items():
             if not value:
@@ -325,6 +581,30 @@ class Transform:
 
     #MARK: _match_payload_values_
     def _match_payload_values_(self, payload_section: dict, match_key: str, value, matched: list, list_prepend: str):
+        ''':class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._match_payload_values_`
+        ---
+        
+        Checks to see if a value already exists in the klaviyo payload, if not, add it.
+        
+        Parameters
+        ---
+        :param (*dict*) `payload_section`: section of klaviyo payload value is from
+        :param (*str*) `match_key`: the key to lookup in klaviyo mapping dicts
+        :param (*_type_*) `value`: value to check for
+        :param (*list*) `matched`: list of matched keys that had values added to payload
+        :param (*str*) `list_prepend`: what part of klaviyo payload the value is from
+        
+        Returns
+        ---
+        :return `payload_section` (dict): updated part of payload which key/value originate from
+        :return `matched` (list): updated (or not) list of matched keys/values
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._format_create_payload_`
+        '''        
         klaviyo_value = payload_section.get(match_key)
         if isinstance(klaviyo_value, str) and isinstance(value, str):
             klaviyo_value = klaviyo_value.lower()
@@ -333,19 +613,18 @@ class Transform:
             if match_key == 'phone_number':
                 if klaviyo_value and value in klaviyo_value: #If the db's tfn is within klaviyos. (db doesn't have +1 and klaviyo does)
                     return payload_section, matched
+            elif 'zip' in match_key.lower():
+                v = value[:5]
+                k = klaviyo_value[:5] if isinstance(klaviyo_value, str) else None
+                if v == k:
+                    return payload_section, matched
+            elif match_key == 'country' and value == 'united states' and klaviyo_value == 'us':
+                return payload_section, matched
             payload_section[match_key] = value
-            self.logger.info(f'{match_key} updated from {klaviyo_value} to {value}')
+            self.logger.info(f'{self.current_prefix}{match_key}, {klaviyo_value} to {value}')
             matched.append({f'{list_prepend}{match_key}': {'old': klaviyo_value, 'new': value}})
         return payload_section, matched
             
 
 
 
-
-
-    #MARK: __add_property__
-    def __add_property__(self, payload_properties, key_name, db_value):
-        if not db_value and db_value != 0:
-            return payload_properties
-        payload_properties[key_name] = db_value
-        return payload_properties

@@ -1,5 +1,5 @@
 with TopLevel as(
-	select distinct top 0 'Create' Action
+	select distinct top 5 'Create' Action
 		, c.*	 
 		, pe.PhoneNumber PhoneNumber_email
 		, pe.Email Email_email
@@ -225,7 +225,7 @@ with TopLevel as(
 	and c.Email is not null and right(c.Email, 8) != '@zap.com'
 	and (pe.Updated <= dateadd(hour, -6, getdate()) or pe.updated is null)
 	union
-	select distinct top 5 'Update' Action
+	select distinct top 10 'Update' Action
 		, c.*
 		, pe.PhoneNumber PhoneNumber_email
 		, pe.Email Email_email

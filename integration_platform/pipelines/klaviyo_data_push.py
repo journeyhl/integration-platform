@@ -5,6 +5,28 @@ from integration_platform.connectors.klaviyo import KlaviyoAPI
 from integration_platform.transform.klaviyo_data_push import Transform
 from integration_platform.load.klaviyo_data_push import Load
 class KlaviyoDataPush(Pipeline):
+    '''
+    ## Situation
+        Using the broadened marketing data I've made available from the Newsletter pipeline, we want to now make sure we are creating profiles and updating data where available within klaviyo
+    
+    <hr>
+
+    ## Task
+        Design a process to create and update profiles in klaviyo.
+        We have a limit of profiles before we incur increased costs, must stay within threshold.
+    
+    <hr>
+    
+    ## Action
+        Wrote query pulling all data from the table populated via :class:`~integration_platform.pipelines.ucmi_hubspot.UCMI_HubspotCustomers` using custom built :class:`~integration_platform.connectors.sql.SQLConnector`, 
+        For each row or customer, lookup klaviyo profile by email. If email is found update, if not, create.
+        For updates, compare the existing values in klaviyo with what we have in db. If differenct, update. If there are any db values popualted but not in klaviyo that we can fill, send them
+        For creations, send all non-null db values in klaviyo payload
+    <hr>
+    
+    ## Result
+        
+    '''
     def __init__(self, function: str):
         super().__init__('KlaviyoNewsletter', function)
         self.klaviyo = KlaviyoAPI(self)

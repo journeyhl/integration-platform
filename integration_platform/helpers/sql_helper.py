@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, Any
 if TYPE_CHECKING:
     from integration_platform.connectors.sql import SQLConnector
 import logging
@@ -9,9 +9,9 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 import polars as pl
 
-class SQLHelper:
+class SQLHelper():
     
-    def __init__(self, sqldb: SQLConnector) -> None:
+    def __init__(self, sqldb: SQLConnector[Any]) -> None:
         self.db = sqldb
         self.pipeline = self.db.pipeline
         try:

@@ -385,7 +385,7 @@ class SQLConnector(Generic[QT]):
         self.engine = self._create_engine_()
         self.raw_connection = self.engine.raw_connection()
         self.queries = _QUERY_CLASSES.get(database_name, Queries)(database_name)  # type: ignore[assignment]
-        self.sql_helper = SQLHelper(sqldb=self)
+        self.sql_helper = SQLHelper(sqldb=self) # type: ignore[assignment]
         self.logger.info(f'Connection to {database_name} successful')
         pass
 
