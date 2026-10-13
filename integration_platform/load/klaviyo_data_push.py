@@ -21,7 +21,11 @@ class Load:
         total = len(data_transformed)
         for i, customer_record in enumerate(data_transformed):
             prepend = f'{customer_record['action'][:-1]}ing'
-            self.logger.info(f'{prepend} profile {i+1}/{total}...{customer_record['db']['Email']}')
+            if not customer_record['fields_added'] and not customer_record['fields_changed']:
+                self.logger.info(f'Skipping profile {i+1}/{total} {customer_record['db']['Email']}...No fields added, nor changed')
+                customer_record['klaviyo_response'] = None
+                continue
+            self.logger.info(f'{prepend} profile {i+1}/{total}... {customer_record['db']['Email']}{f' (https://www.klaviyo.com/profile/{customer_record['payload']['data']['id']})' if customer_record['action'] == 'Update' else ''}')
             response = self.pipeline.klaviyo.create_or_update_profile(payload=customer_record['payload'])
             if response.status_code == 201:
                 self.logger.info(f'{customer_record['db']['Email']} created successfully')

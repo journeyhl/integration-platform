@@ -300,7 +300,6 @@ class Transform:
 
     #MARK: __format_create_payload__
     def _format_create_payload_(self, payload: dict, customer: dict, action: Literal['Create', 'Update'], update_customer_record: dict):
-        bp = 'do a compare or something here'
         fields_added = []
         for key, value in customer.items():
             if not value:

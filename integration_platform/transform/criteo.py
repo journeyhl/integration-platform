@@ -183,7 +183,7 @@ class Transform:
 
         # ── Cast data types ─────────────────────────────────────────────────
         data_transformed = data_transformed.with_columns([
-            pl.col('report_date').cast(pl.Date),
+            pl.col('report_date').str.to_date(),
             pl.col('clicks').cast(pl.Int64, strict=False).fill_null(0),
             pl.col('impressions').cast(pl.Int64, strict=False).fill_null(0),
             pl.col('cost').cast(pl.Float64, strict=False).fill_null(0.0).round(4),
