@@ -452,7 +452,14 @@ class Transform:
         ## Downstream Calls (Methods/Functions called)
         
          ### :class:`~integration_platform.transform.default_transformer.DefaultTransformer`.:meth:`~integration_platform.transform.default_transformer.DefaultTransformer.parse_date_str`
-        '''        
+        '''
+        def retry(date_str):
+            formats = ['%Y-%m-%dT%H:%M:%S.%fZ', '%Y/%m/%d %H:%M', '%Y/%m/%dT%H:%M:%SZ']
+            for format in formats:
+                date_value = self.default_transformer.parse_date_str(date_str=klaviyo_date, tries=0, format=format)
+                if date_value:
+                    return date_value
+            return date_value
         kdate_len = len(klaviyo_date)
         kdate_dash = klaviyo_date.find('-')
         kdate_slash = klaviyo_date.find('/')
@@ -466,6 +473,10 @@ class Transform:
         else:
             datepart = f'%Y{d_or_s}%m{d_or_s}%d'
         date_value = self.default_transformer.parse_date_str(date_str=klaviyo_date, tries=0)
+        if not date_value:
+            date_value = retry(date_str=klaviyo_date)
+        if not date_value:
+            bp = 'here'
         if kdate_space != -1:
             date_value = self.default_transformer.parse_date_str(date_str=klaviyo_date, tries=0, format=f'{datepart} %H:%M')
         elif kdate_len in [25, 26]:

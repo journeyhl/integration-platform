@@ -13,6 +13,7 @@ class DefaultTransformer:
             self.logger = logging.getLogger(f'{pipeline}.DefaultTransformer')
         else:
             self.logger = logging.getLogger(f'{pipeline.pipeline_name}.DefaultTransformer')
+        self.distinct_date_formats = {'success':{}, 'error': {}}
         pass
 
 
@@ -166,7 +167,7 @@ class DefaultTransformer:
         return phone_fmt
 
     #MARK: parse_date_str
-    def parse_date_str(self, date_str: str | None, tries: int, format: str = '%Y-%m-%dT%H:%M:%S.%fZ', offset: bool = False, log_prefix: str = ''):
+    def parse_date_str(self, date_str: str | None, tries: int, format: str = '%Y-%m-%dT%H:%M:%S.%fZ', offset: bool = False, log_prefix: str = '', str_descr: str = ''):
         # self.logger.info(f'{log_prefix}Date string provided: {date_str}, format provided: {format}. {'No offset' if not offset else 'Offset'}')
         date_str = self._handle_none_and_empty_strings_(string=date_str, string_descr='Date', additional_conditions=tries<5, log_prefix=log_prefix, additional_log_str='string is blank or fifth try has been exceeded, returning None...')
         if date_str == None:            
@@ -188,10 +189,18 @@ class DefaultTransformer:
             except ValueError as e:
                 # self.logger.warning(f"{log_prefix}Couldn't parse date again...Appending Z and trying again as `{date_str}Z{offset_hr_str}`...")
                 tries += 1
-                date = self.parse_date_str(date_str=f'{date_str}Z{offset_hr_str}', tries=tries, offset=offset_hr_str!='', log_prefix=log_prefix)
+                date = self.parse_date_str(date_str=f'{date_str}Z{offset_hr_str}', tries=tries, offset=offset_hr_str!='', log_prefix=log_prefix, str_descr=str_descr)
         # self.logger.info(f'{log_prefix}Parsed date successfully!')
+        if not date:
+            self.logger.info(f"Couldn't parse date! {date_str} {f': {str_descr}' if str_descr != '' else ''}'")
+        self.__distinct_date_format_check__(date_str=date_str, format=format, parse_result='success' if date else 'error')
         return date
 
+    def __distinct_date_format_check__(self, date_str: str, format: str, parse_result: str):
+        if self.distinct_date_formats[parse_result].get(format):
+            self.distinct_date_formats[parse_result][format].append(date_str)
+        else:
+            self.distinct_date_formats[parse_result][format] = [date_str]
 
     #MARK: _handle_none_and_empty_strings_
     def _handle_none_and_empty_strings_(self, string: str | None, string_descr: str, additional_conditions: bool = True, log_prefix: str = '', additional_log_str: str = ''):

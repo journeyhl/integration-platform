@@ -5,14 +5,310 @@ if TYPE_CHECKING:
 import logging
 import polars as pl
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 class TransformPhase2:
     def __init__(self, pipeline: UCMI_HubspotCustomers):
         self.pipeline = pipeline
         self.logger = logging.getLogger(f'{pipeline.pipeline_name}.TransformPhase2')
+        self._set_mappings_()
         pass
 
 
-    def phase2_landing(self, data_transformed: list[dict]):
-        bp = 'here'
+    def phase2_landing(self, data_extract: dict):
+        detailed_rows = self._compress_rows_(data_extract=data_extract)
+        formatted_rows = [self._format_row_(row=row) for row in detailed_rows]
+        return formatted_rows
+
+
+
+    def _compress_rows_(self, data_extract: dict):        
+        detailed_rows = [{
+            'id': row['id'],
+            'createdAt': row['createdAt'],
+            'updatedAt': row['updatedAt'],
+            'url': row['url'],
+            **row['properties'],
+            'LastChecked': data_extract['LastChecked']
+            
+        } for row in data_extract['detailed_rows']
+        ]
+        return detailed_rows
+
+
+    def _format_row_(self, row: dict):
+        row_fmt = {
+            'RecordID':                                     row.get('id'),
+            'FirstName':                                    self.pipeline.default_transformer.string_case_pascal(row.get('firstname')),
+            'LastName':                                     self.pipeline.default_transformer.string_case_pascal(row.get('lastname')),
+            'Email':                                        row.get('email'),
+            'PhoneNumberFmt':                               self.pipeline.default_transformer.parse_phone(phone_str=row.get('phone')),
+            'Contactowner':                                 row.get('hubspot_owner_id'),            # owner ID, not name - resolve via owners
+            'LastActivityDate':                             self.pipeline.default_transformer.parse_date_str(date_str=row.get('notes_last_updated'), tries=0, str_descr='notes_last_updated'),
+            'LeadStatus':                                   row.get('hs_lead_status'),
+            'Marketingcontactstatus':                       row.get('hs_marketable_status'),
+            'CreateDate':                                   self.pipeline.default_transformer.parse_date_str(date_str=row.get('createdate'), tries=0, str_descr='createdate'),
+            'HubspotLink':                                  row.get('url'),
+            'AcumaticaOrderNumbers':                        row.get('acumatica_order_number_s_'),
+            'BillingAddress':                               row.get('billing_address'),
+            'BillingCity':                                  row.get('billing_city'),
+            'BillingState':                                 row.get('billing_state'),
+            'BillingZip':                                   row.get('billing_zip'),
+            'LastContacted':                                self.pipeline.default_transformer.parse_date_str(date_str=row.get('notes_last_contacted'), tries=0, str_descr='notes_last_contacted'),
+            'LastModifiedDate':                             self.pipeline.default_transformer.parse_date_str(date_str=row.get('lastmodifieddate'), tries=0, str_descr='lastmodifieddate'),
+            'LeadSource':                                   row.get('lead_source'),
+            'ShippingAddress':                              row.get('shipping_address'),
+            'ShippingCity':                                 row.get('shipping_city'),
+            'ShippingState':                                row.get('shipping_state'),
+            'ShippingZip':                                  row.get('shipping_zip'),
+            'EcommerceContact':                             row.get('ecommerce_contact'),
+            'SourceStore':                                  row.get('source_store'),
+            'DateBecameNewLeadStatus':                      self.pipeline.default_transformer.parse_date_str(date_str=row.get('date_became_the_new_lead_status'),               format='%Y-%m-%d', tries=0, str_descr='date_became_the_new_lead_status'),
+            'DateBecameOpenLeadLeadStatus':                 self.pipeline.default_transformer.parse_date_str(date_str=row.get('date_became_the_open_lead_lead_status'),         format='%Y-%m-%d', tries=0, str_descr='date_became_the_open_lead_lead_status',),
+            'DateBecameOutboundLeadStatus':                 self.pipeline.default_transformer.parse_date_str(date_str=row.get('date_became_the_outbound_lead_status'),          format='%Y-%m-%d', tries=0, str_descr='date_became_the_outbound_lead_status'),
+            'DateBecameReservedLeadStatus':                 self.pipeline.default_transformer.parse_date_str(date_str=row.get('date_became_the_reserved_lead_status'),          format='%Y-%m-%d', tries=0, str_descr='date_became_the_reserved_lead_status'),
+            'DateBecameSoldLeadStatus':                     self.pipeline.default_transformer.parse_date_str(date_str=row.get('date_became_the_sold_lead_status'),              format='%Y-%m-%d', tries=0, str_descr='date_became_the_sold_lead_status'),
+            'DateBecameUnqualifiedLeadStatus':              self.pipeline.default_transformer.parse_date_str(date_str=row.get('date_became_the_unqualified_lead_status'),       format='%Y-%m-%d', tries=0, str_descr='date_became_the_unqualified_lead_status'),
+            'DateBecameDncLeadStatus':                      self.pipeline.default_transformer.parse_date_str(date_str=row.get('date_became_the_dnc_lead_status'),               format='%Y-%m-%d', tries=0, str_descr='date_became_the_dnc_lead_status'),
+            'DateBecameLeadExhaustedLeadStatus':            self.pipeline.default_transformer.parse_date_str(date_str=row.get('date_became_the_lead_exhausted_lead_status'),    format='%Y-%m-%d', tries=0, str_descr='date_became_the_lead_exhausted_lead_status'),
+            'FirstConversionDate':                          self.pipeline.default_transformer.parse_date_str(date_str=row.get('first_conversion_date'),                         tries=0, str_descr='first_conversion_date'),
+            'Sold':                                         row.get('sold'),
+            'RecentConversionDate':                         self.pipeline.default_transformer.parse_date_str(date_str=row.get('recent_conversion_date'), tries=0, str_descr='recent_conversion_date'),
+            'RecentConversion':                             row.get('recent_conversion_event_name'),
+            'LeadSourceDate':                               self.pipeline.default_transformer.parse_date_str(date_str=row.get('lead_source_date'), format='%Y-%m-%d', tries=0, str_descr='lead_source_date'),
+            'LinkedinClickId':                              row.get('linkedin_click_id'),
+            'IPRegion':                                     row.get('ip_state'),
+            'IPCountry':                                    row.get('ip_country_code'),
+            'KustomerID':                                   row.get('kustomer_id'),
+            'KustomerLastSync':                             row.get('kustomer_last_sync'),
+            'KustomerSyncError':                            row.get('kustomer_sync_error'),
+            'ai_followup_last_selected_at':                 row.get('ai_followup_last_selected_at'),
+            'KustomerSyncNeeded':                           row.get('kustomer_sync_needed'),
+            'KustomerSyncStatus':                           row.get('kustomer_sync_status'),
+            'TimeInCurrentStage':                           row.get('hs_v2_time_in_current_stage'),
+            'LatestTimeInUnqualifiedLead':                  None,   # TODO custom lifecycle stage: hs_v2_latest_time_in_<stageId>
+            'LatestTimeInSubscriber':                       row.get('hs_v2_latest_time_in_subscriber'),
+            'LatestTimeInOpportunity':                      row.get('hs_v2_latest_time_in_opportunity'),
+            'LatestTimeInLead':                             row.get('hs_v2_latest_time_in_lead'),
+            'DateExitedUnqualifiedLead':                    None,   # TODO hs_v2_date_exited_<stageId>
+            'DateEnteredUnqualifiedLead':                   None,   # TODO hs_v2_date_entered_<stageId>
+            'DateEnteredCurrentStage':                      self.pipeline.default_transformer.parse_date_str(date_str=row.get('hs_v2_date_entered_current_stage'), tries=0, str_descr='hs_v2_date_entered_current_stage'),
+            'DateEnteredSubscriber':                        self.pipeline.default_transformer.parse_date_str(date_str=row.get('hs_v2_date_entered_subscriber'), tries=0, str_descr='hs_v2_date_entered_subscriber'),
+            'DateEnteredMarketingQualifiedLead':            self.pipeline.default_transformer.parse_date_str(date_str=row.get('hs_v2_date_entered_marketingqualifiedlead'), tries=0, str_descr='hs_v2_date_entered_marketingqualifiedlead'),
+            'DateEnteredLead':                              self.pipeline.default_transformer.parse_date_str(date_str=row.get('hs_v2_date_entered_lead'), tries=0, str_descr='hs_v2_date_entered_lead'),
+            'CumulativeTimeInUnqualifiedLead':              None,   # TODO hs_v2_cumulative_time_in_<stageId>
+            'CumulativeTimeInSubscriber':                   row.get('hs_v2_cumulative_time_in_subscriber'),
+            'CumulativeTimeInOpportunity':                  row.get('hs_v2_cumulative_time_in_opportunity'),
+            'CompanyName':                                  row.get('company'),
+            'CompanyCreateDate':                            None,   # TODO associated company (associations API)
+            'CompanyLastActivityDate':                      None,   # TODO associated company (associations API)
+            'Country':                                      row.get('country'),
+            'Name':                                         ' '.join(n for n in (row.get('firstname'), row.get('lastname')) if n) or None,
+            'PhoneNumber':                                  row.get('phone'),
+            'AcceptsMarketing':                             row.get('accepts_marketing'),
+            'VerifiedEmail':                                row.get('verified_email'),
+            'LastTouchConvertingCampaign':                  row.get('hs_analytics_last_touch_converting_campaign'),
+            'OptedOutOfEmail_OneToOne':                     None,   # TODO hs_email_optout_<subscriptionId>
+            'OptedOutOfEmail_MarketingInformation':         None,   # TODO hs_email_optout_<subscriptionId>
+            'OptedOutOfEmail_HmeSalesSupport':              None,   # TODO hs_email_optout_<subscriptionId>
+            'OptedOutOfEmail_CustomerServiceCommunication': None,   # TODO hs_email_optout_<subscriptionId>
+            'UnsubscribedFromAllEmail':                     row.get('hs_email_optout'),
+            'SendsSinceLastEngagement':                     self.pipeline.default_transformer.string_to_int(int_str=row.get('hs_email_sends_since_last_engagement')),
+            'ShopifyCreatedAt':                             row.get('shopify_created_at'),
+            'AIWeeklyReview_ContactCount':                  row.get('ai_weekly_review_contact_count'),
+            'AIWeeklyReview_GeneratedAt':                   row.get('ai_weekly_review_generated_at'),
+            'AIWeeklyReview_HTML':                          row.get('ai_weekly_review_html'),
+            'AIWeeklyReview_Text':                          row.get('ai_weekly_review_text'),
+            'FirstMarketingEmailOpenDate':                  self.pipeline.default_transformer.parse_date_str(date_str=row.get('hs_email_first_open_date'), tries=0, str_descr='hs_email_first_open_date'),
+            'NumberPageViews':                              self.pipeline.default_transformer.string_to_int(int_str=row.get('hs_analytics_num_page_views')),
+            'NumberSessions':                               self.pipeline.default_transformer.string_to_int(int_str=row.get('hs_analytics_num_visits')),
+            'IntentsDuringCall':                            row.get('intents_during_call'),
+            'DirectMail':                                   row.get('direct_mail'),
+            'DoNotCall':                                    row.get('do_not_call'),
+            'CurrentCustomer':                              row.get('current_customer'),
+            'ContactStatus':                                row.get('contact_status'),
+            'CallSummary':                                  row.get('call_summary'),
+            'CallTranscript':                               row.get('call_transcript'),
+            'CallDisposition':                              row.get('call_disposition'),
+            'CallDisposition2':                             row.get('call_disposition_2'),
+            'CallDispositions_Five9':                       row.get('call_dispositions_five9'),
+            'B2BD2CContact':                                row.get('b2b_d2c_contact'),
+            'AIAgent':                                      row.get('ai_agent'),
+            'CustomerServiceCall':                          row.get('customer_service_call'),
+            'EmailCollection':                              row.get('email_collection'),
+            'EmailOption':                                  row.get('email_option'),
+            'LastChecked':                                  row['LastChecked'],
+            'InsertedDT':                                   datetime.now(ZoneInfo('America/New_York')),
+        }
+        return row_fmt
+
+
+
+
+
+
+        
+    def _set_mappings_(self):
+        self.rename_columns = {
+            'id':                           'RecordID',
+            'Record ID - Contact':          'RecordID',
+            'First Name':                   'FirstName',
+            'Last Name':                    'LastName',
+            'Phone Number':                 'PhoneNumber',
+            'Contact owner':                'Contactowner',
+            'Last Activity Date':           'LastActivityDate',
+            'Marketing contact status':     'Marketingcontactstatus',
+            'Create Date':                  'CreateDate',
+            'Contact URL (HS)':             'HubspotLink',
+            'Acumatica Order Number(s)':    'AcumaticaOrderNumbers',
+            'Acumatica Product Name':       'AcumaticaProductName',
+            'Billing Address':              'BillingAddress',
+            'Billing City':                 'BillingCity',
+            'Billing State':                'BillingState',
+            'Billing Zip':                  'BillingZip',
+            'Last Contacted':               'LastContacted',
+            'Last Modified Date':           'LastModifiedDate',
+            'Lead Source':                  'LeadSource',
+            'Shipping Address':             'ShippingAddress',
+            'Shipping City':                'ShippingCity',
+            'Shipping State':               'ShippingState',
+            'Shipping Zip':                 'ShippingZip',
+            'Ecommerce contact':            'EcommerceContact',
+            'Source store':                 'SourceStore',
+            'Record ID - Company':          'CompanyRecordID_drop',
+            'Company name':                 'CompanyName',
+            'Company owner':                'CompanyOwner',
+            'Create Date_1':                'CompanyCreateDate',
+            'Phone Number_1':               'CompanyPhone',
+            'Last Activity Date_1':         'CompanyLastActivityDate',
+            'Country/Region':               'Country',
+            'Lead Status':                  'LeadStatus',
+            'Added To List On':             'AddedToListOn',
+            'CreateDate2':                  'CompanyCreateDate',
+            'PhoneNumber3':                 'CompanyPhone',
+            'LastActivityDate4':            'CompanyLastActivityDate',
+            'ContactURL(HS)':               'HubspotLink',            
+            'Date Became the New Lead Status': 'DateBecameNewLeadStatus',
+            'Date Became the Open Lead Lead Status': 'DateBecameOpenLeadLeadStatus',
+            'Date Became the Outbound Lead Status': 'DateBecameOutboundLeadStatus',
+            'Date Became the Reserved Lead Status': 'DateBecameReservedLeadStatus',
+            'Date Became the Sold Lead Status': 'DateBecameSoldLeadStatus',
+            'Date Became the Unqualified Lead Status': 'DateBecameUnqualifiedLeadStatus',
+            'Date Became the DNC Lead Status': 'DateBecameDncLeadStatus',
+            'Date Became the Lead Exhausted Lead Status': 'DateBecameLeadExhaustedLeadStatus',
+            'First Conversion': 'FirstConversion',
+            'First Conversion Date': 'FirstConversionDate',
+            'Recent Conversion Date': 'RecentConversionDate',
+            'Recent Conversion': 'RecentConversion',
+            'Lead Source Date': 'LeadSourceDate',
+            'LinkedIn click id': 'LinkedinClickId',
+            'IP State/Region': 'IPRegion',
+            'Time in current stage (HH:mm:ss)': 'TimeInCurrentStage',
+            'Latest time in "Unqualified Lead (Lifecycle Stage Pipeline)" (HH:mm:ss)': 'LatestTimeInUnqualifiedLead',
+            'Latest time in "Subscriber (Lifecycle Stage Pipeline)" (HH:mm:ss)': 'LatestTimeInSubscriber',
+            'Latest time in "Opportunity (Lifecycle Stage Pipeline)" (HH:mm:ss)': 'LatestTimeInOpportunity',
+            'Latest time in "Lead (Lifecycle Stage Pipeline)" (HH:mm:ss)': 'LatestTimeInLead',
+            'Date exited "Unqualified Lead (Lifecycle Stage Pipeline)"': 'DateExitedUnqualifiedLead',
+            'Date entered current stage': 'DateEnteredCurrentStage',
+            'Date entered "Unqualified Lead (Lifecycle Stage Pipeline)"': 'DateEnteredUnqualifiedLead',
+            'Date entered "Subscriber (Lifecycle Stage Pipeline)"': 'DateEnteredSubscriber',
+            'Date entered "Marketing Qualified Lead (Lifecycle Stage Pipeline)"': 'DateEnteredMarketingQualifiedLead',
+            'Date entered "Lead (Lifecycle Stage Pipeline)"': 'DateEnteredLead',
+            'Cumulative time in "Unqualified Lead (Lifecycle Stage Pipeline)" (HH:mm:ss)': 'CumulativeTimeInUnqualifiedLead',
+            'Cumulative time in "Subscriber (Lifecycle Stage Pipeline)" (HH:mm:ss)': 'CumulativeTimeInSubscriber',
+            'Cumulative time in "Opportunity (Lifecycle Stage Pipeline)" (HH:mm:ss)': 'CumulativeTimeInOpportunity',
+            'IpState/region': "IPRegion",
+            'kustomer_id': 'KustomerID',
+            'kustomer_last_sync': 'KustomerLastSync',
+            'kustomer_sync_error': 'KustomerSyncError',
+            'kustomer_sync_needed': 'KustomerSyncNeeded',
+            'kustomer_sync_status': 'KustomerSyncStatus',
+            'Marketing emails clicked': 'MarketingEmailsClicked',
+            'Marketing email confirmation status': 'MarketingEmailConfirmationStatus',
+            'Last marketing email send date': 'LastMarketingEmailSendDate',
+            'Marketing emails delivered': 'MarketingEmailsDelivered',
+            'Marketing emails opened': 'MarketingEmailsOpened',
+            'Marketing emails replied': 'MarketingEmailsReplied',
+            'Accepts marketing': 'AcceptsMarketing',
+            'Verified email': 'VerifiedEmail',
+            'Shopify Created At':'ShopifyCreatedAt',
+            'Last Touch Converting Campaign':'LastTouchConvertingCampaign',
+            'Opted out of email: One to One':'OptedOutOfEmail_OneToOne',
+            'Opted out of email: Marketing Information':'OptedOutOfEmail_MarketingInformation',
+            'Opted out of email: HME Sales Support':'OptedOutOfEmail_HmeSalesSupport',
+            'Opted out of email: Customer Service Communication':'OptedOutOfEmail_CustomerServiceCommunication',
+            'Unsubscribed from all email':'UnsubscribedFromAllEmail',
+            'Sends Since Last Engagement':'SendsSinceLastEngagement',
+
+            'AI Weekly Review – Contact Count': 'AIWeeklyReview_ContactCount',
+            'AI Weekly Review – Generated At': 'AIWeeklyReview_GeneratedAt',
+            'AI Weekly Review – HTML': 'AIWeeklyReview_HTML',
+            'AI Weekly Review – Text': 'AIWeeklyReview_Text',
+            'First marketing email open date': 'FirstMarketingEmailOpenDate',
+            'IP Country Code': 'IPCountry',
+            'Number of Pageviews': 'NumberPageViews',
+            'Number of Sessions': 'NumberSessions',
+            'Intents During Call': 'IntentsDuringCall',
+            'Direct Mail': 'DirectMail',
+            'Do Not Call': 'DoNotCall',
+            'Current Customer': 'CurrentCustomer',
+            'Contact Status': 'ContactStatus',
+            'Call Summary': 'CallSummary',
+            'Call Transcript': 'CallTranscript',
+            'Call Disposition': 'CallDisposition',
+            'Call Disposition 2': 'CallDisposition2',
+            'Call Dispositions - Five9': 'CallDispositions_Five9',
+            'B2B/D2C Contact': 'B2BD2CContact',
+            'AI Agent': 'AIAgent',
+            'Email Collection': 'EmailCollection',
+            'Email Option': 'EmailOption',
+            'Contact Status': 'ContactStatus',
+        }
+        self.drop_columns =  [
+            'AcumaticaProductName',
+            # 'AcumaticaProductList',
+            'AddedToListOn',
+            'AddressLine1',
+            'AddressLine2',
+            'Address2',
+            'City',
+            'Industry',
+            'CompanyOwner',
+            'CompanyPhone',
+            'CompanyRecordID_drop',
+            'First Page Seen',
+            'First Referring Site',
+            'Last Page Seen',
+            'Last Referring Site',
+            'Latest Traffic Source',
+            'Original Source',
+            'Original Source Drill-Down 1',
+            'Original Source Drill-Down 2',
+            'Latest Traffic Source Drill-Down 1',
+            'Latest Traffic Source Drill-Down 2',
+            'Time of First Session',
+            'Time of Last Session',
+            'Time Last Seen',
+            'Time First Seen',
+            'Returning to office detected date',
+            # 'Marketing emails clicked',
+            # 'Marketing email confirmation status',
+            # 'Last marketing email send date',
+            # 'Marketing emails delivered',
+            # 'Marketing emails opened',
+            # 'Marketing emails replied',
+        ]
+        
+        self.junk_strings = [
+            'is not provided',
+            'no last name',
+            'not explicitly',
+            'not mentioned',
+            'without any last name',
+            'does not',
+            'was not',
+            '--'
+        ]
+        self.honorifics = {'mr.', 'mrs.', 'ms.', 'miss', 'dr.', 'prof.', 'rev.', 'sr.', 'jr.'}
+
         
