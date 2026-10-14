@@ -454,7 +454,15 @@ class Transform:
          ### :class:`~integration_platform.transform.default_transformer.DefaultTransformer`.:meth:`~integration_platform.transform.default_transformer.DefaultTransformer.parse_date_str`
         '''
         def retry(date_str):
-            formats = ['%Y-%m-%dT%H:%M:%S.%fZ', '%Y/%m/%d %H:%M', '%Y/%m/%dT%H:%M:%SZ']
+            formats = [
+                '%Y/%m/%dT%H:%M:%SZ',    '%m/%d/%YT%H:%M:%SZ',
+                '%Y/%m/%d %H:%M',        '%m/%d/%Y %H:%M',
+                '%Y-%m-%d %H:%M',        '%m-%d-%Y %H:%M',
+                '%Y-%m-%d %H:%M %p',     '%m-%d-%Y %H:%M %p',
+                '%Y/%m/%d %H:%M %p',     '%m/%d/%Y %H:%M %p',
+                '%Y-%m-%dT%H:%M:%S.%fZ', '%m-%d-%YT%H:%M:%S.%fZ',
+                '%m/%d/%Y',
+            ]
             for format in formats:
                 date_value = self.default_transformer.parse_date_str(date_str=klaviyo_date, tries=0, format=format)
                 if date_value:
@@ -473,10 +481,6 @@ class Transform:
         else:
             datepart = f'%Y{d_or_s}%m{d_or_s}%d'
         date_value = self.default_transformer.parse_date_str(date_str=klaviyo_date, tries=0)
-        if not date_value:
-            date_value = retry(date_str=klaviyo_date)
-        if not date_value:
-            bp = 'here'
         if kdate_space != -1:
             date_value = self.default_transformer.parse_date_str(date_str=klaviyo_date, tries=0, format=f'{datepart} %H:%M')
         elif kdate_len in [25, 26]:
@@ -490,7 +494,8 @@ class Transform:
             bp = 'here'
         if isinstance(date_value, date):
             date_value = datetime(year=date_value.year, month=date_value.month, day=date_value.day)
-
+        if not date_value:
+            date_value = retry(date_str=klaviyo_date)
         return date_value
 
 
