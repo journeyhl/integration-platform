@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from integration_platform.pipelines.redstag_send_shipments import SendRedStagShipments
+    from integration_platform.pipelines.redstag_send_shipments import SendShipmentsRedStag
 import logging
 import time
 
@@ -13,7 +13,7 @@ class Load:
     Class for smart handling of Acumatica API interactions 
     
     '''
-    def __init__(self, pipeline: SendRedStagShipments):
+    def __init__(self, pipeline: SendShipmentsRedStag):
         self.pipeline = pipeline
         self.logger = logging.getLogger(f'{pipeline.pipeline_name}.Load')
 

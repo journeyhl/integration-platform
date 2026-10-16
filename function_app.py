@@ -125,7 +125,7 @@ def redstag_send_shipment_pipeline(timer: af.TimerRequest):
     ---
     <hr>
 
-    SendRedStagShipments
+    SendShipmentsRedStag
     ===
     
     Sends Shipments to RedStag. If successful, marks as SentToWH in Acumatica along with any other attributes specified
@@ -136,8 +136,8 @@ def redstag_send_shipment_pipeline(timer: af.TimerRequest):
     ===
      *Runs at :05 and :35 every hour from 4am-11pm*
     '''
-    from integration_platform.pipelines.redstag_send_shipments import SendRedStagShipments #redstag-send-shipments
-    shipment_pipeline = SendRedStagShipments('redstag_send_shipment_pipeline')
+    from integration_platform.pipelines.redstag_send_shipments import SendShipmentsRedStag #redstag-send-shipments
+    shipment_pipeline = SendShipmentsRedStag('redstag_send_shipment_pipeline')
     shipment_pipeline.run()
 #endregion redstag_send_shipment_pipeline
 

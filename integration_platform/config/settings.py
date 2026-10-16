@@ -5174,6 +5174,87 @@ TABLES = {
         ],
     },
     
+    'shop.Customers': {
+        'keys': [
+            'CustomerID',
+        ],
+        'columns': [
+            'CustomerID',
+            'FirstName',
+            'LastName',
+            'Email',
+            'EmailMarketingState',
+            'PhoneNumber',
+            'PhoneNumberFmt',
+            'NumberOfOrders',
+            'Tags',
+            'AmountSpent',
+            'CreatedAt',
+            'LastChecked',
+            'InsertedDT',
+        ],
+        'update_columns': [
+            'FirstName',
+            'LastName',
+            'Email',
+            'EmailMarketingState',
+            'PhoneNumber',
+            'PhoneNumberFmt',
+            'NumberOfOrders',
+            'Tags',
+            'AmountSpent',
+            'CreatedAt',
+            'LastChecked',
+        ],
+    },
+    'shop.CustomerOrders': {
+        'keys': [
+            'CustomerID',
+            'OrderID',
+        ],
+        'columns': [
+            'CustomerID',
+            'OrderID',
+            'ShopOrderNbr',
+            'CreatedAt',
+            'Price',
+            'CustomerOrderSeq',
+            'LastChecked',
+            'InsertedDT',
+        ],
+        'update_columns': [
+            'ShopOrderNbr',
+            'CreatedAt',
+            'Price',
+            'CustomerOrderSeq',
+            'LastChecked',
+        ],
+    },
+    'shop.CustomerAddresses': {
+        'keys': [
+            'CustomerID',
+            'AddressID',
+        ],
+        'columns': [
+            'CustomerID',
+            'AddressID',
+            'Address1',
+            'City',
+            'Province',
+            'Zip',
+            'Country',
+            'LastChecked',
+            'InsertedDT',
+        ],
+        'update_columns': [
+            'Address1',
+            'City',
+            'Province',
+            'Zip',
+            'Country',
+            'LastChecked',
+        ],
+    },
     
     
     

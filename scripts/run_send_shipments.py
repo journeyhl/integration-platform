@@ -1,10 +1,10 @@
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from integration_platform.pipelines import SendRMIShipments, SendRedStagShipments
+from integration_platform.pipelines import SendRMIShipments, SendShipmentsRedStag
 
 
-send_redstag = SendRedStagShipments('.debug')
+send_redstag = SendShipmentsRedStag('.debug')
 send_redstag.run()
 bp = 'here'
 

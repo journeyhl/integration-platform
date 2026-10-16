@@ -5,12 +5,12 @@ from integration_platform.load.load_redstag_send import Load
 import json
 
 from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
-class SendRedStagShipments(Pipeline):
-    '''`SendRedStagShipments`(Pipeline)
+class SendShipmentsRedStag(Pipeline):
+    '''`SendShipmentsRedStag`(Pipeline)
     ---
     <hr>
 
-    Pipeline to send Open Shipments to RedStag via **SendRedStagShipments** query
+    Pipeline to send Open Shipments to RedStag via **SendShipmentsRedStag** query
     
     # Extraction
      - Extracts Shipments that are ready to be sent to RedStag
@@ -60,7 +60,7 @@ class SendRedStagShipments(Pipeline):
     '''
     
     def __init__(self, function: str, env: str='prod'):
-        super().__init__(pipeline_name='redstag-send-shipments', function=function, env=env)
+        super().__init__(pipeline_name='SendShipmentsRedStag', function=function, env=env)
         self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
             pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
         )
@@ -70,7 +70,7 @@ class SendRedStagShipments(Pipeline):
         self.loader = Load(self)
 
     def extract(self):
-        data_extract = self.acudb.query_to_dataframe(query=self.acudb.queries.SendRedStagShipments)
+        data_extract = self.acudb.query_to_dataframe(query=self.acudb.queries.SendShipmentsRedStag)
         return data_extract
     
     def transform(self, data_extract):

@@ -15,7 +15,7 @@ class Load:
         bp = 'here'
 
 
-
+    #TODO add subscription data
     def landing_loader(self, data_transformed: list):
         bp = 'here'
         total = len(data_transformed)

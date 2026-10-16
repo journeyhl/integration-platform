@@ -150,7 +150,7 @@ class AcumaticaDbQueries(Queries):
 
      **SiteCD** = *'RMI'*
         - Warehouse is RMI'''
-    SendRedStagShipments: Query
+    SendShipmentsRedStag: Query
     '''Pulls Shipments that are ready to be sent to RedStag
 
     Where

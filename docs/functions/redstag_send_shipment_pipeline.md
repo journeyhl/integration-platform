@@ -5,18 +5,18 @@
 - ### :05, :15, :35
 
 ## Execution Behavior
-Executes single pipeline, **SendRedStagShipments**
+Executes single pipeline, **SendShipmentsRedStag**
 
 ---
 
 ## Pipelines
 
-### SendRedStagShipments
-#### `SendRedStagShipments` Pipeline Documentation — [pipelines/redstag_send_shipments.py](../../pipelines/redstag_send_shipments.py)
+### SendShipmentsRedStag
+#### `SendShipmentsRedStag` Pipeline Documentation — [pipelines/redstag_send_shipments.py](../../pipelines/redstag_send_shipments.py)
 ```mermaid
 %%{init: {"flowchart": {"wrappingWidth": 400}}}%%
 flowchart TD
-    A([redstag_send_shipments]) --> B[SendRedStagShipments.__init__]
+    A([redstag_send_shipments]) --> B[SendShipmentsRedStag.__init__]
     B --> B1[inherits Pipeline]
     B --> B2[
         self.transformer = Transform
@@ -29,7 +29,7 @@ flowchart TD
     RUN --> EX[extract]
     EX --> D1[(
         <b><i>AcuDb</i></b>
-        SendRedStagShipments: Query
+        SendShipmentsRedStag: Query
     )]
 
     RUN --> TR[transform]
@@ -64,4 +64,4 @@ flowchart TD
 
 ## Queries
 ### AcumaticaDb
- - #### [SendRedStagShipments.sql](../../sql/queries/AcumaticaDb/SendRedStagShipments.sql)
+ - #### [SendShipmentsRedStag.sql](../../sql/queries/AcumaticaDb/SendShipmentsRedStag.sql)

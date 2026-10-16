@@ -1,7 +1,7 @@
 ```mermaid
 %%{init: {"flowchart": {"wrappingWidth": 400}}}%%
 flowchart TD
-    A([redstag_send_shipments]) --> B[SendRedStagShipments.__init__]
+    A([redstag_send_shipments]) --> B[SendShipmentsRedStag.__init__]
     B --> B1[inherits Pipeline]
     B --> B2[
         self.transformer = Transform
@@ -14,7 +14,7 @@ flowchart TD
     RUN --> EX[extract]
     EX --> D1[(
         <b><i>AcuDb</i></b>
-        SendRedStagShipments: Query
+        SendShipmentsRedStag: Query
     )]
 
     RUN --> TR[transform]

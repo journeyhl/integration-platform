@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from integration_platform.pipelines.create_acu_receipt import CreateAcuReceipt
     from integration_platform.pipelines.pack_shipments import PackShipments
-    from integration_platform.pipelines.redstag_send_shipments import SendRedStagShipments
+    from integration_platform.pipelines.redstag_send_shipments import SendShipmentsRedStag
 import logging
 import time
 
@@ -15,7 +15,7 @@ class Load:
     Class for smart handling of Acumatica API interactions 
     
     '''
-    def __init__(self, pipeline: CreateAcuReceipt | PackShipments | SendRedStagShipments):
+    def __init__(self, pipeline: CreateAcuReceipt | PackShipments | SendShipmentsRedStag):
         self.pipeline = pipeline
         self.logger = logging.getLogger(f'{pipeline.pipeline_name}.Load')
 

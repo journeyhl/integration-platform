@@ -20,7 +20,7 @@
   - [PackShipments](#pipeline---pack_shipmentspy)
   - [ShipmentsReadyToConfirm](#pipeline---confirm_open_shipmentspy)
   - [RedStagInventory](#pipeline---redstag_inventorypy)
-  - [SendRedStagShipments](#pipeline---redstag_send_shipmentspy)
+  - [SendShipmentsRedStag](#pipeline---redstag_send_shipmentspy)
   - [AcumaticaDeletions](#pipeline---acu_deletionspy)
   - [AddressValidator](#pipeline---address_validatorpy)
   - [Criteo](#pipeline---criteopy)
@@ -161,7 +161,7 @@ The application runs as twenty timer-triggered Azure Functions defined in [`func
 | `create_acu_receipts` | [`CreateAcuReceipt`](#pipeline---create_acu_receiptpy) | `50 * * * *` | :50 every hour |
 | `confirm_acu_shipments` | [`ShipmentsReadyToConfirm`](#pipeline---confirm_open_shipmentspy) | `*/20 * * * *` | Every 20 minutes (:00, :20, :40) |
 | `pack_shipments` | [`PackShipments`](#pipeline---pack_shipmentspy) | `*/15 * * * *` | Every 15 minutes (:00, :15, :30, :45) |
-| `redstag_send_shipment_pipeline` | [`SendRedStagShipments`](#pipeline---redstag_send_shipmentspy) | `15,5/30 * * * *` | :05, :15, :35 every hour |
+| `redstag_send_shipment_pipeline` | [`SendShipmentsRedStag`](#pipeline---redstag_send_shipmentspy) | `15,5/30 * * * *` | :05, :15, :35 every hour |
 | `redstag_inventory_retrieval` | [`RedStagInventory`](#pipeline---redstag_inventorypy) | `10 */2 * * *` | :10 every 2 hours |
 | `acu_deletions` | [`AcumaticaDeletions`](#pipeline---acu_deletionspy) | `40 * * * *` | :40 every hour |
 | `address_validator` | [`AddressValidator`](#pipeline---address_validatorpy) | `55 * * * *` | :55 every hour |
@@ -327,7 +327,7 @@ logistics-integration-platform/
 │   │                                     #   shipments, adds packages and tracking via Acumatica API
 │   ├── confirm_open_shipments.py         # ShipmentsReadyToConfirm: confirms packed shipments in Acumatica
 │   ├── redstag_inventory.py              # RedStagInventory: RedStag → RedstagInventorySummary/Detail
-│   ├── redstag_send_shipments.py         # SendRedStagShipments: open RedStag-bound shipments → RedStag API
+│   ├── redstag_send_shipments.py         # SendShipmentsRedStag: open RedStag-bound shipments → RedStag API
 │   ├── acu_deletions.py                  # AcumaticaDeletions: SOOrder/SOLine/SOShipment/SOOrderShipment
 │   │                                     #   row-deletions captured by trigger → _util.* tables; then
 │   │                                     #   reconciles acu.SalesOrders and acu.Shipments in CentralStore
@@ -362,7 +362,7 @@ logistics-integration-platform/
 │   ├── run_pack_shipments.py             # Runs: PackShipments
 │   ├── run_confirm_open_shipments.py     # Runs: ShipmentsReadyToConfirm
 │   ├── run_create_acu_receipt.py         # Runs: CreateAcuReceipt
-│   ├── run_redstag.py                    # Runs: SendRedStagShipments
+│   ├── run_redstag.py                    # Runs: SendShipmentsRedStag
 │   ├── run_redstag_inventory.py          # Runs: RedStagInventory
 │   ├── run_acu_deletions.py              # Runs: AcumaticaDeletions
 │   ├── run_address_validator.py          # Runs: AddressValidator
@@ -390,7 +390,7 @@ logistics-integration-platform/
 │
 ├── sql/
 │   ├── queries/
-│   │   ├── AcumaticaDb/                  # SendRMIShipments, SendRMIReturns, SendRedStagShipments,
+│   │   ├── AcumaticaDb/                  # SendRMIShipments, SendRMIReturns, SendShipmentsRedStag,
 │   │   │                                 #   OpenRCsNoReceipt, ShipmentsReadyToConfirm, PackShipment,
 │   │   │                                 #   ValidateAddresses, SOOrderDeletions, SOLineDeletions,
 │   │   │                                 #   SOShipmentDeletions, SOOrderShipmentDeletions,
@@ -778,9 +778,9 @@ Pipeline to retrieve inventory levels from RedStag 3PL through their API and loa
 
 ## Pipeline - [`redstag_send_shipments.py`](pipelines/redstag_send_shipments.py)
 
-### `SendRedStagShipments`
+### `SendShipmentsRedStag`
 
-Pipeline to send Open Shipments to RedStag using the [`AcumaticaDbQueries.SendRedStagShipments`](sql/queries/AcumaticaDb/SendRedStagShipments.sql) query.
+Pipeline to send Open Shipments to RedStag using the [`AcumaticaDbQueries.SendShipmentsRedStag`](sql/queries/AcumaticaDb/SendShipmentsRedStag.sql) query.
 
 ### Execution Behavior
 
@@ -1457,7 +1457,7 @@ Queries to be executed within `AcumaticaDb` ([`sql/queries/AcumaticaDb/`](sql/qu
 |---|---|
 | [`SendRMIReturns`](sql/queries/AcumaticaDb/SendRMIReturns.sql) | Pulls all `RC` Sales Orders in **Open** status with `AttributeRCSHP2WH` null or != 1 |
 | [`SendRMIShipments`](sql/queries/AcumaticaDb/SendRMIShipments.sql) | Pulls Shipments ready to be sent to RMI as Type Ws |
-| [`SendRedStagShipments`](sql/queries/AcumaticaDb/SendRedStagShipments.sql) | Pulls Shipments ready to be sent to RedStag |
+| [`SendShipmentsRedStag`](sql/queries/AcumaticaDb/SendShipmentsRedStag.sql) | Pulls Shipments ready to be sent to RedStag |
 | [`OpenRCsNoReceipt`](sql/queries/AcumaticaDb/OpenRCsNoReceipt.sql) | Pulls all Open `RC` Orders that have been sent to RMI and don't have a Shipment (Receipt) |
 | [`ShipmentsReadyToConfirm`](sql/queries/AcumaticaDb/ShipmentsReadyToConfirm.sql) | Pulls all Open Shipments with a Tracking Number that are ready to be confirmed |
 | [`PackShipment`](sql/queries/AcumaticaDb/PackShipment.sql) | Query from ADF that populates `acu.rsFulfill` |
@@ -1932,7 +1932,7 @@ The [`transform/`](transform/) modules contain the data-shaping logic each pipel
 | [`transform/create_acu_receipt.py`](transform/create_acu_receipt.py) | [`CreateAcuReceipt`](#pipeline---create_acu_receiptpy) | `transform(data_extract: dict[str, pl.DataFrame])` |
 | [`transform/pack_shipment.py`](transform/pack_shipment.py) | [`PackShipments`](#pipeline---pack_shipmentspy) | `transform`, `group_tracking`, `_format_package`, `_format_friendly_package_payload`, `transform_redstag_events` |
 | [`transform/redstag_inventory.py`](transform/redstag_inventory.py) | [`RedStagInventory`](#pipeline---redstag_inventorypy) | `transform_inventory` |
-| [`transform/redstag_send.py`](transform/redstag_send.py) | [`SendRedStagShipments`](#pipeline---redstag_send_shipmentspy) | `transform`, `transform_lookup_payload`, `transform_lookup_response`, `transform_order_create_payload`, `transform_acu_attribute_payload`, `_check_shipvia`, `_determine_shipvia` |
+| [`transform/redstag_send.py`](transform/redstag_send.py) | [`SendShipmentsRedStag`](#pipeline---redstag_send_shipmentspy) | `transform`, `transform_lookup_payload`, `transform_lookup_response`, `transform_order_create_payload`, `transform_acu_attribute_payload`, `_check_shipvia`, `_determine_shipvia` |
 | [`transform/criteo.py`](transform/criteo.py) | [`Criteo`](#pipeline---criteopy) | `landing`, `transform_criteo`, `find_differences`, `_format_table` |
 | [`transform/address_validator.py`](transform/address_validator.py) | [`AddressValidator`](#pipeline---address_validatorpy) | `transform`, `format_order_address_payload`, `format_acu_api_log_update_override`, `format_acu_api_log_validate`, `_log_differences` |
 | [`transform/cleaner.py`](transform/cleaner.py) | [`SalesOrderCleaner`](#pipeline---sales_order_cleanerpy) | `transform`, `clean`, `parse_orders` |
@@ -1994,7 +1994,7 @@ Should return and populate the `rsOrderID` value back to Acumatica afterwards.
 Reusable load orchestration extracted from individual pipelines, kept under [`load/`](load/).
 
 ## `load/shipment_api.py`: `Load`
-Class for smart handling of Acumatica API interactions, used by [`CreateAcuReceipt`](#pipeline---create_acu_receiptpy), [`PackShipments`](#pipeline---pack_shipmentspy), and [`SendRedStagShipments`](#pipeline---redstag_send_shipmentspy).
+Class for smart handling of Acumatica API interactions, used by [`CreateAcuReceipt`](#pipeline---create_acu_receiptpy), [`PackShipments`](#pipeline---pack_shipmentspy), and [`SendShipmentsRedStag`](#pipeline---redstag_send_shipmentspy).
 
 - `load_shipments(data_transformed: dict)`: Iterates through `data_transformed` items and adds a Package for each Shipment in Acumatica if it meets all conditions. Each entry's key is the `ShipmentNbr` and the value contains `PackagePayload`.
 - `load_receipts(data_transformed)`: Used by [`CreateAcuReceipt`](#pipeline---create_acu_receiptpy). Iterates through each shipment needing a receipt, determines if it's ready to be created, and acts accordingly.
@@ -2002,7 +2002,7 @@ Class for smart handling of Acumatica API interactions, used by [`CreateAcuRecei
 - `check_if_ready_for_confirm(receipt_response)`: Determines whether the shipment can be confirmed.
 
 ## `load/load_redstag_send.py`: `Load`
-Class for smart handling of Acumatica API interactions, used by [`SendRedStagShipments`](#pipeline---redstag_send_shipmentspy).
+Class for smart handling of Acumatica API interactions, used by [`SendShipmentsRedStag`](#pipeline---redstag_send_shipmentspy).
 
 - `send_shipments(data_transformed)`: Once the `order_id` (`rsOrderID`) is known from RedStag, marks the shipment as Sent to WH.
 

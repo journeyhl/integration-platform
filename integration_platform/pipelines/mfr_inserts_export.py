@@ -12,7 +12,7 @@ class MFRInsertsExport(Pipeline):
     '''
 
     def __init__(self, function: str):
-        super().__init__('mfr-inserts-export', function)
+        super().__init__('MFRInsertsExport', function)
         self.sftp = SFTP(self, server='INC_MEDIA')
 
     def extract(self):

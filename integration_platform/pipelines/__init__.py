@@ -30,7 +30,7 @@ from .acu_to_dbc_b2b_collections import AcuToDbcB2BCollections
 from .acu_to_dbc import ModularAcuToDbc
 
 
-from .redstag_send_shipments import SendRedStagShipments
+from .redstag_send_shipments import SendShipmentsRedStag
 from .redstag_inventory import RedStagInventory
 from .send_ryder_shipments import SendRyderShipments
 

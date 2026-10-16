@@ -127,6 +127,37 @@ class DefaultTransformer:
         return integer
 
     
+    def string_to_float(self, float_str: str | None, str_descr: str = '', log_prefix: str = ''):
+        ''':class:`~integration_platform.transform.default_transformer.DefaultTransformer`.:meth:`~integration_platform.transform.default_transformer.DefaultTransformer.string_to_float`
+        ---
+        
+        Given a string, attempt to convert it to an float.
+            
+        <hr>
+        
+        Parameters
+        ---
+        :param (*str | None*) `float_str`: string that should be cast to float
+
+            ### ***Optional***
+        :param (*str = ''*) `log_prefix`: String to prepend to any logger outputs. Usually used when iterating, like `'keyvalue1, 1/150: '`, `'keyvalue2, 2/150: '` and so on 
+        
+        <hr>
+        
+        Returns
+        ---
+        :return `integer` (*int | None*): returns int value of int_str parameter if able to be parsed, otherwise returns None
+        '''
+        float_str = self._handle_none_and_empty_strings_(string=float_str, string_descr=str_descr, log_prefix=log_prefix)
+        if float_str == None:
+            return None
+        try:
+            nbr_float = float(float_str)
+        except Exception as e:
+            self.logger.error(f'{log_prefix}Error while converting string to float! {e}')
+            return None
+        return nbr_float
+    
     #MARK: parse_phone
     def parse_phone(self, phone_str: str | None, string_descr: str = '',log_prefix: str = '', return_option: Literal['none', 'str'] = 'none'):
         ''':class:`~integration_platform.transform.default_transformer.DefaultTransformer`.:meth:`~integration_platform.transform.default_transformer.DefaultTransformer.parse_phone`

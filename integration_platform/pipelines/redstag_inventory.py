@@ -28,7 +28,7 @@ class RedStagInventory(Pipeline):
     '''
 
     def __init__(self, function: str):
-        super().__init__('redstag-inventory', function)
+        super().__init__('RedStagInventory', function)
         self.transformer = Transform(self)
         self.redstag = RedStagAPI(self)
         self.acu_api = AcumaticaAPI(self)

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from integration_platform.pipelines import SendRedStagShipments, RedStagOrderSearch
+    from integration_platform.pipelines import SendShipmentsRedStag, RedStagOrderSearch
 import polars as pl
 import logging
 from datetime import datetime
@@ -12,7 +12,7 @@ class Transform:
     
     Should return and populate the rsOrderID value to Acumatica afterwards
     '''
-    def __init__(self, pipeline: SendRedStagShipments | RedStagOrderSearch):
+    def __init__(self, pipeline: SendShipmentsRedStag | RedStagOrderSearch):
         self.pipeline = pipeline
         self.logger = logging.getLogger(f'{pipeline.pipeline_name}.Transform')
         self.regulated_goods = ['01025','08371','01102','08824','08505','08305','08307','08369','08939','08835','08306',]

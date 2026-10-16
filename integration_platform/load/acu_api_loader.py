@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from integration_platform.pipelines.create_acu_receipt import CreateAcuReceipt
     from integration_platform.pipelines.pack_shipments import PackShipments
-    from integration_platform.pipelines.redstag_send_shipments import SendRedStagShipments
+    from integration_platform.pipelines.redstag_send_shipments import SendShipmentsRedStag
     from integration_platform.pipelines.ship_chair_removal_separate import ShipChairRemovalSeparate
 import logging
 import time
@@ -13,7 +13,7 @@ import time
 
 
 class AcuAPILoader:
-    def __init__(self, pipeline: CreateAcuReceipt | PackShipments | SendRedStagShipments | ShipChairRemovalSeparate):
+    def __init__(self, pipeline: CreateAcuReceipt | PackShipments | SendShipmentsRedStag | ShipChairRemovalSeparate):
         self.pipeline = pipeline
         self.logger = logging.getLogger(f'{pipeline.pipeline_name}.Load')
         pass
