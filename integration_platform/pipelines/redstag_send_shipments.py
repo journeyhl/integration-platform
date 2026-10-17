@@ -70,7 +70,7 @@ class SendShipmentsRedStag(Pipeline):
         self.loader = Load(self)
 
     def extract(self):
-        data_extract = self.acudb.query_to_dataframe(query=self.acudb.queries.SendShipmentsRedStag)
+        data_extract = self.acudb.query_to_dataframe(query=self.acudb.queries.SendRedStagShipments)
         return data_extract
     
     def transform(self, data_extract):
