@@ -115,7 +115,10 @@ class HubSpotAPI:
                 )
                 time.sleep(delay)
                 continue
-            response.raise_for_status()
+            try:
+                response.raise_for_status()
+            except:
+                return {}
             jresponse = response.json()
             self.logger.info(f'{self.prefix}Successfully parsed response from {log_label}')
             return jresponse
