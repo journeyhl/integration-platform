@@ -963,21 +963,6 @@ def link_aftership_to_acu(timer: af.TimerRequest):
 
 
 
-#region                                                   klaviyo_newsletter
-# Pulls Klaviyo profile data from members of newsletter list into db_Central
-#                                                    2x/day (3:33am, 7:33pm)
-@app.timer_trigger(
-    schedule = '33 3,19 * * *',
-    arg_name = 'timer',
-    run_on_startup = False
-)
-def klaviyo_newsletter(timer: af.TimerRequest):
-    from integration_platform.pipelines.klaviyo_newsletter import KlaviyoNewsletter
-    klaviyo = KlaviyoNewsletter('klaviyo_newsletter') #KlaviyoNewsletter
-    klaviyo.run()
-#endregion                                               klaviyo_newsletter
-
-
 
 #MARK:                                                  acu_to_dbc_accounts
 #         Loads Account, Sub and CashAccount tables from Acumatica into dbc
@@ -988,6 +973,22 @@ def klaviyo_newsletter(timer: af.TimerRequest):
     run_on_startup = False
 )
 def acu_to_dbc_accounts(timer: af.TimerRequest):
+    ''':func:`~function_app.acu_to_dbc_accounts`
+    ---
+    
+    Loads Account info tables from AcumaticaDb to db_CentralStore
+
+    <hr>
+    
+    ### Source
+    AcumaticaDb
+
+    ### Destination
+    db_CentralStore
+    - acu.Account
+    - acu.CashAccount
+    - acu.Sub
+    '''  
     from integration_platform.pipelines.acu_to_dbc import ModularAcuToDbc
     accounts = ModularAcuToDbc(function='acu_to_dbc_accounts', table_name='acu.Account') #ModularAcuToDbc
     accounts.run()
@@ -1004,6 +1005,23 @@ def acu_to_dbc_accounts(timer: af.TimerRequest):
     run_on_startup = False
 )
 def acu_to_dbc_bank_deposits(timer: af.TimerRequest):
+    ''':func:`~function_app.acu_to_dbc_bank_deposits`
+    ---
+    
+    Loads some Banking (CA) tables from AcumaticaDb to db_CentralStore
+
+    <hr>
+    
+    ### Source
+    AcumaticaDb
+
+    ### Destination
+    db_CentralStore
+    - acu.CADeposit
+    - acu.CADepositCharge
+    - acu.CADepositDetail
+    - acu.CATran
+    '''  
     from integration_platform.pipelines.acu_to_dbc import ModularAcuToDbc
     deposits = ModularAcuToDbc(function='acu_to_dbc_bank_deposits', table_name='acu.CADeposit') #ModularAcuToDbc
     deposits.run()
@@ -1020,11 +1038,139 @@ def acu_to_dbc_bank_deposits(timer: af.TimerRequest):
     run_on_startup = False
 )
 def acu_to_dbc_accounts_receivable(timer: af.TimerRequest):
+    ''':func:`~function_app.acu_to_dbc_accounts_receivable`
+    ---
+    
+    Loads some Accounts Receivable (AR) tables from AcumaticaDb to db_CentralStore
+
+    <hr>
+    
+    ### Source
+    AcumaticaDb
+
+    ### Destination
+    db_CentralStore
+    - acu.ARAdjust
+    - acu.ARRegister
+    - acu.ARTran
+    '''    
     from integration_platform.pipelines.acu_to_dbc import ModularAcuToDbc
     accts_receivable = ModularAcuToDbc(function='acu_to_dbc_accounts_receivable', table_name='acu.ARAdjust') #ModularAcuToDbc
     accts_receivable.run()
     accts_receivable.rerun(table_name='acu.ARRegister')
     accts_receivable.rerun(table_name='acu.ARTran')
+
+
+
+
+
+#region                                                   klaviyo_newsletter
+# Pulls Klaviyo profile data from members of newsletter list into db_Central
+#                                                    2x/day (3:33am, 7:33pm)
+@app.timer_trigger(
+    schedule = '33 3,19 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def klaviyo_newsletter(timer: af.TimerRequest):
+    ''':func:`~function_app.klaviyo_newsletter`
+    ---
+    
+    Loads recently created or updated customers from Klaviyo to db_CentralStore. Also loads customers recently added to the Newsletter list
+
+    <hr>
+    
+    ### Source
+    Klaviyo
+
+    ### Destination
+    db_CentralStore
+    - klaviyo.ProfileHeader
+    - klaviyo.ProfileProperties
+    - klaviyo.ProfileSubscriptions
+    '''    
+    from integration_platform.pipelines.klaviyo_newsletter import KlaviyoNewsletter
+    from datetime import datetime, timedelta
+    from zoneinfo import ZoneInfo
+    cutoff = datetime.now(ZoneInfo('America/New_York')) - timedelta(days=1)
+    cutoff_str = cutoff.strftime('%Y-%m-%dT%H:%M:%SZ')
+    klaviyo_created_records = KlaviyoNewsletter('klaviyo_newsletter', is_newsletter=False, filter_if_not_newsletter=f"filter=greater-than(created,{cutoff_str})") #KlaviyoNewsletter
+    klaviyo_created_records.run()
+    klaviyo_updated_records = KlaviyoNewsletter('klaviyo_newsletter', is_newsletter=False, filter_if_not_newsletter=f"filter=greater-than(updated,{cutoff_str})") #KlaviyoNewsletter
+    klaviyo_updated_records.run()
+    klaviyo_newsletter = KlaviyoNewsletter('klaviyo_newsletter', is_newsletter=True) #KlaviyoNewsletter
+    klaviyo_newsletter.run()
+#endregion                                               klaviyo_newsletter
+
+
+
+#region                                                         ucmi_shopify
+#                   Loads all customers stored in Shopify to db_CentralStore
+#                                                            1x/day (1:35am)
+@app.timer_trigger(
+    schedule = '35 1 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def ucmi_shopify(timer: af.TimerRequest):
+    ''':func:`~function_app.ucmi_shopify`
+    ---
+    
+    Loads all Shopify Customers with their orders and addresses to db_CentralStore
+
+    <hr>
+    
+    ### Source
+    Shopify
+
+    ### Destination
+    db_CentralStore
+    - shop.Customers
+    - shop.CustomerOrders
+    - shop.CustomerAddresses
+    '''  
+    from integration_platform.pipelines.ucmi_shopify import UCMI_ShopifyCustomers
+    shopify = UCMI_ShopifyCustomers(function='ucmi_shopify')
+    shopify.run()
+#endregion
+
+
+
+#region                                                                  ucmi_hubspot
+# Loads customers in hubspot with recent activity and phone number to db_CentralStore
+#                                                                     1x/day (2:35am)
+@app.timer_trigger(
+    schedule = '35 2 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def ucmi_hubspot(timer: af.TimerRequest):
+    ''':func:`~function_app.ucmi_shopify`
+    ---
+    
+    Loads all Shopify Customers with their orders and addresses to db_CentralStore
+
+    <hr>
+    
+    ### Source
+    Hubspot list: [All Phone Number is Known - Recent](https://app.hubspot.com/contacts/5053729/objectLists/3534/filters)
+
+    ### Destination
+    db_CentralStore
+    - ucmiraw.HubspotCustomers
+    '''  
+    
+    from integration_platform.pipelines.ucmi_hubspot import UCMI_HubspotCustomers
+    hubspot = UCMI_HubspotCustomers(function='ucmi_hubspot')
+    hubspot.run()
+#endregion
+
+
+
+
+
+
+
 
 
 

@@ -1,6 +1,6 @@
 with TopLevel as(
-	select distinct top 20 'Create' Action
-		, c.*	 
+	select distinct top 0 'Create' Action
+		, c.*
 		, pe.PhoneNumber PhoneNumber_email
 		, pe.Email Email_email
 		, pe.FirstName FirstName_email
@@ -20,8 +20,8 @@ with TopLevel as(
 		, pep.DateCreated DateCreated_email
 		, pep.LastMailedDate LastMailedDate_email
 		, pep.LastOpenedDate LastOpenedDate_email
-		, pep.Consent Consent_email
-		, pep.ConsentTimestamp ConsentTimestamp_email
+, pep.Consent Consent_email
+, pep.ConsentTimestamp ConsentTimestamp_email
 		, pep.Source Source_email
 		, pep.PhoneNumberRegion PhoneNumberRegion_email
 		, pep.HubspotRecordID HubspotRecordID_email
@@ -30,10 +30,10 @@ with TopLevel as(
 		, pep.Timestamp Timestamp_email
 		, pep.CreativeID CreativeID_email
 		, pep.SMSAttentiveSignup SMSAttentiveSignup_email
-		, pep.SMSConsentMethod SMSConsentMethod_email
-		, pep.ConsentMethod ConsentMethod_email
-		, pep.ConsentFormID ConsentFormID_email
-		, pep.ConsentFormVersion ConsentFormVersion_email
+, pep.SMSConsentMethod SMSConsentMethod_email
+, pep.ConsentMethod ConsentMethod_email
+, pep.ConsentFormID ConsentFormID_email
+, pep.ConsentFormVersion ConsentFormVersion_email
 		, pep.ExpectedDateOfNextOrder ExpectedDateOfNextOrder_email
 		, pep.UTMSource UTMSource_email
 		, pep.UTMMedium UTMMedium_email
@@ -106,6 +106,43 @@ with TopLevel as(
 		, pep.UgcFreeItem UgcFreeItem_email
 		, pep.CompanyID CompanyID_email
 		, pep.EmailContentPreference EmailContentPreference_email
+	 , pes.Mkt_Email_CanReceiveEmail Mkt_Email_CanReceiveEmail_email
+, pes.Mkt_Email_Consent Mkt_Email_Consent_email
+, pes.Mkt_Email_ConsentTimestamp Mkt_Email_ConsentTimestamp_email
+	 , pes.Mkt_Email_LastUpdated Mkt_Email_LastUpdated_email
+	 , pes.Mkt_Email_Method Mkt_Email_Method_email
+	 , pes.Mkt_Email_MethodDetail Mkt_Email_MethodDetail_email
+	 , pes.Mkt_Email_CustomMethodDetail Mkt_Email_CustomMethodDetail_email
+	 , pes.Mkt_Email_DoubleOptin Mkt_Email_DoubleOptin_email
+, pes.OpenTrk_Email_Consent OpenTrk_Email_Consent_email
+, pes.OpenTrk_Email_ConsentTimestamp OpenTrk_Email_ConsentTimestamp_email
+	 , pes.OpenTrk_Email_LastUpdated OpenTrk_Email_LastUpdated_email
+	 , pes.OpenTrk_Email_CreatedTimestamp OpenTrk_Email_CreatedTimestamp_email
+	 , pes.OpenTrk_Email_Metadata OpenTrk_Email_Metadata_email
+	 , pes.OpenTrk_Email_CanReceive OpenTrk_Email_CanReceive_email
+	 , pes.OpenTrk_Email_ValidUntil OpenTrk_Email_ValidUntil_email
+, pes.ClickTrk_Email_Consent ClickTrk_Email_Consent_email
+, pes.ClickTrk_Email_ConsentTimestamp ClickTrk_Email_ConsentTimestamp_email
+	 , pes.ClickTrk_Email_LastUpdated ClickTrk_Email_LastUpdated_email
+	 , pes.ClickTrk_Email_CreatedTimestamp ClickTrk_Email_CreatedTimestamp_email
+	 , pes.ClickTrk_Email_Metadata ClickTrk_Email_Metadata_email
+	 , pes.ClickTrk_Email_CanReceive ClickTrk_Email_CanReceive_email
+	 , pes.ClickTrk_Email_ValidUntil ClickTrk_Email_ValidUntil_email
+	 , pes.Mkt_SMS_CanReceiveSMS Mkt_SMS_CanReceiveSMS_email
+, pes.Mkt_SMS_Consent Mkt_SMS_Consent_email
+, pes.Mkt_SMS_ConsentTimestamp Mkt_SMS_ConsentTimestamp_email
+	 , pes.Mkt_SMS_Method Mkt_SMS_Method_email
+	 , pes.Mkt_SMS_MethodDetail Mkt_SMS_MethodDetail_email
+	 , pes.Mkt_SMS_LastUpdated Mkt_SMS_LastUpdated_email
+	 , pes.Txn_SMS_CanReceiveSMS Txn_SMS_CanReceiveSMS_email
+, pes.Txn_SMS_Consent Txn_SMS_Consent_email
+, pes.Txn_SMS_ConsentTimestamp Txn_SMS_ConsentTimestamp_email
+	 , pes.Txn_SMS_Method Txn_SMS_Method_email
+	 , pes.Txn_SMS_MethodDetail Txn_SMS_MethodDetail_email
+	 , pes.Txn_SMS_LastUpdated Txn_SMS_LastUpdated_email
+	 , pes.Mkt_Push_CanReceivePush Mkt_Push_CanReceivePush_email
+, pes.Mkt_Push_Consent Mkt_Push_Consent_email
+, pes.Mkt_Push_ConsentTimestamp Mkt_Push_ConsentTimestamp_email
 
 
 
@@ -128,8 +165,8 @@ with TopLevel as(
      , ppp.DateCreated DateCreated_phone
      , ppp.LastMailedDate LastMailedDate_phone
      , ppp.LastOpenedDate LastOpenedDate_phone
-     , ppp.Consent Consent_phone
-     , ppp.ConsentTimestamp ConsentTimestamp_phone
+, ppp.Consent Consent_phone
+, ppp.ConsentTimestamp ConsentTimestamp_phone
      , ppp.Source Source_phone
      , ppp.PhoneNumberRegion PhoneNumberRegion_phone
      , ppp.HubspotRecordID HubspotRecordID_phone
@@ -137,11 +174,11 @@ with TopLevel as(
      , ppp.ContactOwnerPhone ContactOwnerPhone_phone
      , ppp.Timestamp Timestamp_phone
      , ppp.CreativeID CreativeID_phone
-     , ppp.SMSAttentiveSignup SMSAttentiveSignup_phone
-     , ppp.SMSConsentMethod SMSConsentMethod_phone
-     , ppp.ConsentMethod ConsentMethod_phone
-     , ppp.ConsentFormID ConsentFormID_phone
-     , ppp.ConsentFormVersion ConsentFormVersion_phone
+, ppp.SMSAttentiveSignup SMSAttentiveSignup_phone
+, ppp.SMSConsentMethod SMSConsentMethod_phone
+, ppp.ConsentMethod ConsentMethod_phone
+, ppp.ConsentFormID ConsentFormID_phone
+, ppp.ConsentFormVersion ConsentFormVersion_phone
      , ppp.ExpectedDateOfNextOrder ExpectedDateOfNextOrder_phone
      , ppp.UTMSource UTMSource_phone
      , ppp.UTMMedium UTMMedium_phone
@@ -193,7 +230,6 @@ with TopLevel as(
      , ppp.FathersDayOptOut FathersDayOptOut_phone
      , ppp.InitialReferringDomain InitialReferringDomain_phone
      , ppp.LastContactedOnPhone LastContactedOnPhone_phone
-
      , ppp.OkendoAverageReviewRating OkendoAverageReviewRating_phone
      , ppp.OkendoHasSubmittedMedia OkendoHasSubmittedMedia_phone
      , ppp.OkendoLatestReviewRating OkendoLatestReviewRating_phone
@@ -215,11 +251,51 @@ with TopLevel as(
      , ppp.UgcFreeItem UgcFreeItem_phone
      , ppp.CompanyID CompanyID_phone
      , ppp.EmailContentPreference EmailContentPreference_phone
+
+	 , pps.Mkt_Email_CanReceiveEmail Mkt_Email_CanReceiveEmail_phone
+, pps.Mkt_Email_Consent Mkt_Email_Consent_phone
+, pps.Mkt_Email_ConsentTimestamp Mkt_Email_ConsentTimestamp_phone
+	 , pps.Mkt_Email_LastUpdated Mkt_Email_LastUpdated_phone
+	 , pps.Mkt_Email_Method Mkt_Email_Method_phone
+	 , pps.Mkt_Email_MethodDetail Mkt_Email_MethodDetail_phone
+	 , pps.Mkt_Email_CustomMethodDetail Mkt_Email_CustomMethodDetail_phone
+	 , pps.Mkt_Email_DoubleOptin Mkt_Email_DoubleOptin_phone
+, pps.OpenTrk_Email_Consent OpenTrk_Email_Consent_phone
+, pps.OpenTrk_Email_ConsentTimestamp OpenTrk_Email_ConsentTimestamp_phone
+	 , pps.OpenTrk_Email_LastUpdated OpenTrk_Email_LastUpdated_phone
+	 , pps.OpenTrk_Email_CreatedTimestamp OpenTrk_Email_CreatedTimestamp_phone
+	 , pps.OpenTrk_Email_Metadata OpenTrk_Email_Metadata_phone
+	 , pps.OpenTrk_Email_CanReceive OpenTrk_Email_CanReceive_phone
+	 , pps.OpenTrk_Email_ValidUntil OpenTrk_Email_ValidUntil_phone
+, pps.ClickTrk_Email_Consent ClickTrk_Email_Consent_phone
+, pps.ClickTrk_Email_ConsentTimestamp ClickTrk_Email_ConsentTimestamp_phone
+	 , pps.ClickTrk_Email_LastUpdated ClickTrk_Email_LastUpdated_phone
+	 , pps.ClickTrk_Email_CreatedTimestamp ClickTrk_Email_CreatedTimestamp_phone
+	 , pps.ClickTrk_Email_Metadata ClickTrk_Email_Metadata_phone
+	 , pps.ClickTrk_Email_CanReceive ClickTrk_Email_CanReceive_phone
+	 , pps.ClickTrk_Email_ValidUntil ClickTrk_Email_ValidUntil_phone
+	 , pps.Mkt_SMS_CanReceiveSMS Mkt_SMS_CanReceiveSMS_phone
+, pps.Mkt_SMS_Consent Mkt_SMS_Consent_phone
+, pps.Mkt_SMS_ConsentTimestamp Mkt_SMS_ConsentTimestamp_phone
+	 , pps.Mkt_SMS_Method Mkt_SMS_Method_phone
+	 , pps.Mkt_SMS_MethodDetail Mkt_SMS_MethodDetail_phone
+	 , pps.Mkt_SMS_LastUpdated Mkt_SMS_LastUpdated_phone
+	 , pps.Txn_SMS_CanReceiveSMS Txn_SMS_CanReceiveSMS_phone
+, pps.Txn_SMS_Consent Txn_SMS_Consent_phone
+, pps.Txn_SMS_ConsentTimestamp Txn_SMS_ConsentTimestamp_phone
+	 , pps.Txn_SMS_Method Txn_SMS_Method_phone
+	 , pps.Txn_SMS_MethodDetail Txn_SMS_MethodDetail_phone
+	 , pps.Txn_SMS_LastUpdated Txn_SMS_LastUpdated_phone
+	 , pps.Mkt_Push_CanReceivePush Mkt_Push_CanReceivePush_phone
+, pps.Mkt_Push_Consent Mkt_Push_Consent_phone
+, pps.Mkt_Push_ConsentTimestamp Mkt_Push_ConsentTimestamp_phone
 	from ucmiraw.HubspotCustomers c
 	left join klaviyo.ProfileHeader pe on c.Email = pe.Email
 	left join klaviyo.ProfileProperties pep on pe.ID = pep.ID
+	left join klaviyo.ProfileSubscriptions pes on pe.ID = pes.ID
 	left join klaviyo.ProfileHeader pp on c.PhoneNumberFmt = pp.PhoneNumber or c.PhoneNumber = pp.RawPhoneNumber
 	left join klaviyo.ProfileProperties ppp on pp.ID = ppp.ID
+	left join klaviyo.ProfileSubscriptions pps on pp.ID = pps.ID
 	where (pe.Email is null and pp.PhoneNumber is null and pp.RawPhoneNumber is null)
 	and c.Marketingcontactstatus = 'Marketing Contact'
 	and c.Email is not null and right(c.Email, 8) != '@zap.com'
@@ -246,8 +322,8 @@ with TopLevel as(
 		, pep.DateCreated DateCreated_email
 		, pep.LastMailedDate LastMailedDate_email
 		, pep.LastOpenedDate LastOpenedDate_email
-		, pep.Consent Consent_email
-		, pep.ConsentTimestamp ConsentTimestamp_email
+, pep.Consent Consent_email
+, pep.ConsentTimestamp ConsentTimestamp_email
 		, pep.Source Source_email
 		, pep.PhoneNumberRegion PhoneNumberRegion_email
 		, pep.HubspotRecordID HubspotRecordID_email
@@ -256,10 +332,10 @@ with TopLevel as(
 		, pep.Timestamp Timestamp_email
 		, pep.CreativeID CreativeID_email
 		, pep.SMSAttentiveSignup SMSAttentiveSignup_email
-		, pep.SMSConsentMethod SMSConsentMethod_email
-		, pep.ConsentMethod ConsentMethod_email
-		, pep.ConsentFormID ConsentFormID_email
-		, pep.ConsentFormVersion ConsentFormVersion_email
+, pep.SMSConsentMethod SMSConsentMethod_email
+, pep.ConsentMethod ConsentMethod_email
+, pep.ConsentFormID ConsentFormID_email
+, pep.ConsentFormVersion ConsentFormVersion_email
 		, pep.ExpectedDateOfNextOrder ExpectedDateOfNextOrder_email
 		, pep.UTMSource UTMSource_email
 		, pep.UTMMedium UTMMedium_email
@@ -332,6 +408,43 @@ with TopLevel as(
 		, pep.UgcFreeItem UgcFreeItem_email
 		, pep.CompanyID CompanyID_email
 		, pep.EmailContentPreference EmailContentPreference_email
+, pes.Mkt_Email_CanReceiveEmail Mkt_Email_CanReceiveEmail_email
+, pes.Mkt_Email_Consent Mkt_Email_Consent_email
+, pes.Mkt_Email_ConsentTimestamp Mkt_Email_ConsentTimestamp_email
+	 , pes.Mkt_Email_LastUpdated Mkt_Email_LastUpdated_email
+	 , pes.Mkt_Email_Method Mkt_Email_Method_email
+	 , pes.Mkt_Email_MethodDetail Mkt_Email_MethodDetail_email
+	 , pes.Mkt_Email_CustomMethodDetail Mkt_Email_CustomMethodDetail_email
+	 , pes.Mkt_Email_DoubleOptin Mkt_Email_DoubleOptin_email
+, pes.OpenTrk_Email_Consent OpenTrk_Email_Consent_email
+, pes.OpenTrk_Email_ConsentTimestamp OpenTrk_Email_ConsentTimestamp_email
+	 , pes.OpenTrk_Email_LastUpdated OpenTrk_Email_LastUpdated_email
+	 , pes.OpenTrk_Email_CreatedTimestamp OpenTrk_Email_CreatedTimestamp_email
+	 , pes.OpenTrk_Email_Metadata OpenTrk_Email_Metadata_email
+	 , pes.OpenTrk_Email_CanReceive OpenTrk_Email_CanReceive_email
+	 , pes.OpenTrk_Email_ValidUntil OpenTrk_Email_ValidUntil_email
+, pes.ClickTrk_Email_Consent ClickTrk_Email_Consent_email
+, pes.ClickTrk_Email_ConsentTimestamp ClickTrk_Email_ConsentTimestamp_email
+	 , pes.ClickTrk_Email_LastUpdated ClickTrk_Email_LastUpdated_email
+	 , pes.ClickTrk_Email_CreatedTimestamp ClickTrk_Email_CreatedTimestamp_email
+	 , pes.ClickTrk_Email_Metadata ClickTrk_Email_Metadata_email
+	 , pes.ClickTrk_Email_CanReceive ClickTrk_Email_CanReceive_email
+	 , pes.ClickTrk_Email_ValidUntil ClickTrk_Email_ValidUntil_email
+	 , pes.Mkt_SMS_CanReceiveSMS Mkt_SMS_CanReceiveSMS_email
+, pes.Mkt_SMS_Consent Mkt_SMS_Consent_email
+, pes.Mkt_SMS_ConsentTimestamp Mkt_SMS_ConsentTimestamp_email
+	 , pes.Mkt_SMS_Method Mkt_SMS_Method_email
+	 , pes.Mkt_SMS_MethodDetail Mkt_SMS_MethodDetail_email
+	 , pes.Mkt_SMS_LastUpdated Mkt_SMS_LastUpdated_email
+	 , pes.Txn_SMS_CanReceiveSMS Txn_SMS_CanReceiveSMS_email
+, pes.Txn_SMS_Consent Txn_SMS_Consent_email
+, pes.Txn_SMS_ConsentTimestamp Txn_SMS_ConsentTimestamp_email
+	 , pes.Txn_SMS_Method Txn_SMS_Method_email
+	 , pes.Txn_SMS_MethodDetail Txn_SMS_MethodDetail_email
+	 , pes.Txn_SMS_LastUpdated Txn_SMS_LastUpdated_email
+	 , pes.Mkt_Push_CanReceivePush Mkt_Push_CanReceivePush_email
+, pes.Mkt_Push_Consent Mkt_Push_Consent_email
+, pes.Mkt_Push_ConsentTimestamp Mkt_Push_ConsentTimestamp_email
 
 
 
@@ -354,8 +467,8 @@ with TopLevel as(
      , ppp.DateCreated DateCreated_phone
      , ppp.LastMailedDate LastMailedDate_phone
      , ppp.LastOpenedDate LastOpenedDate_phone
-     , ppp.Consent Consent_phone
-     , ppp.ConsentTimestamp ConsentTimestamp_phone
+, ppp.Consent Consent_phone
+, ppp.ConsentTimestamp ConsentTimestamp_phone
      , ppp.Source Source_phone
      , ppp.PhoneNumberRegion PhoneNumberRegion_phone
      , ppp.HubspotRecordID HubspotRecordID_phone
@@ -364,10 +477,10 @@ with TopLevel as(
      , ppp.Timestamp Timestamp_phone
      , ppp.CreativeID CreativeID_phone
      , ppp.SMSAttentiveSignup SMSAttentiveSignup_phone
-     , ppp.SMSConsentMethod SMSConsentMethod_phone
-     , ppp.ConsentMethod ConsentMethod_phone
-     , ppp.ConsentFormID ConsentFormID_phone
-     , ppp.ConsentFormVersion ConsentFormVersion_phone
+, ppp.SMSConsentMethod SMSConsentMethod_phone
+, ppp.ConsentMethod ConsentMethod_phone
+, ppp.ConsentFormID ConsentFormID_phone
+, ppp.ConsentFormVersion ConsentFormVersion_phone
      , ppp.ExpectedDateOfNextOrder ExpectedDateOfNextOrder_phone
      , ppp.UTMSource UTMSource_phone
      , ppp.UTMMedium UTMMedium_phone
@@ -440,15 +553,56 @@ with TopLevel as(
      , ppp.UgcFreeItem UgcFreeItem_phone
      , ppp.CompanyID CompanyID_phone
      , ppp.EmailContentPreference EmailContentPreference_phone
+
+	 , pps.Mkt_Email_CanReceiveEmail Mkt_Email_CanReceiveEmail_phone
+, pps.Mkt_Email_Consent Mkt_Email_Consent_phone
+, pps.Mkt_Email_ConsentTimestamp Mkt_Email_ConsentTimestamp_phone
+	 , pps.Mkt_Email_LastUpdated Mkt_Email_LastUpdated_phone
+	 , pps.Mkt_Email_Method Mkt_Email_Method_phone
+	 , pps.Mkt_Email_MethodDetail Mkt_Email_MethodDetail_phone
+	 , pps.Mkt_Email_CustomMethodDetail Mkt_Email_CustomMethodDetail_phone
+	 , pps.Mkt_Email_DoubleOptin Mkt_Email_DoubleOptin_phone
+, pps.OpenTrk_Email_Consent OpenTrk_Email_Consent_phone
+, pps.OpenTrk_Email_ConsentTimestamp OpenTrk_Email_ConsentTimestamp_phone
+	 , pps.OpenTrk_Email_LastUpdated OpenTrk_Email_LastUpdated_phone
+	 , pps.OpenTrk_Email_CreatedTimestamp OpenTrk_Email_CreatedTimestamp_phone
+	 , pps.OpenTrk_Email_Metadata OpenTrk_Email_Metadata_phone
+	 , pps.OpenTrk_Email_CanReceive OpenTrk_Email_CanReceive_phone
+	 , pps.OpenTrk_Email_ValidUntil OpenTrk_Email_ValidUntil_phone
+, pps.ClickTrk_Email_Consent ClickTrk_Email_Consent_phone
+, pps.ClickTrk_Email_ConsentTimestamp ClickTrk_Email_ConsentTimestamp_phone
+	 , pps.ClickTrk_Email_LastUpdated ClickTrk_Email_LastUpdated_phone
+	 , pps.ClickTrk_Email_CreatedTimestamp ClickTrk_Email_CreatedTimestamp_phone
+	 , pps.ClickTrk_Email_Metadata ClickTrk_Email_Metadata_phone
+	 , pps.ClickTrk_Email_CanReceive ClickTrk_Email_CanReceive_phone
+	 , pps.ClickTrk_Email_ValidUntil ClickTrk_Email_ValidUntil_phone
+	 , pps.Mkt_SMS_CanReceiveSMS Mkt_SMS_CanReceiveSMS_phone
+, pps.Mkt_SMS_Consent Mkt_SMS_Consent_phone
+, pps.Mkt_SMS_ConsentTimestamp Mkt_SMS_ConsentTimestamp_phone
+	 , pps.Mkt_SMS_Method Mkt_SMS_Method_phone
+	 , pps.Mkt_SMS_MethodDetail Mkt_SMS_MethodDetail_phone
+	 , pps.Mkt_SMS_LastUpdated Mkt_SMS_LastUpdated_phone
+	 , pps.Txn_SMS_CanReceiveSMS Txn_SMS_CanReceiveSMS_phone
+, pps.Txn_SMS_Consent Txn_SMS_Consent_phone
+, pps.Txn_SMS_ConsentTimestamp Txn_SMS_ConsentTimestamp_phone
+	 , pps.Txn_SMS_Method Txn_SMS_Method_phone
+	 , pps.Txn_SMS_MethodDetail Txn_SMS_MethodDetail_phone
+	 , pps.Txn_SMS_LastUpdated Txn_SMS_LastUpdated_phone
+	 , pps.Mkt_Push_CanReceivePush Mkt_Push_CanReceivePush_phone
+, pps.Mkt_Push_Consent Mkt_Push_Consent_phone
+, pps.Mkt_Push_ConsentTimestamp Mkt_Push_ConsentTimestamp_phone
 	from ucmiraw.HubspotCustomers c
 	left join klaviyo.ProfileHeader pe on c.Email = pe.Email
 	left join klaviyo.ProfileProperties pep on pe.ID = pep.ID
+	left join klaviyo.ProfileSubscriptions pes on pe.ID = pes.ID
 	left join klaviyo.ProfileHeader pp on c.PhoneNumberFmt = pp.PhoneNumber
 	left join klaviyo.ProfileProperties ppp on pp.ID = ppp.ID
+	left join klaviyo.ProfileSubscriptions pps on pp.ID = pps.ID
 	where (pe.Email is not null or pp.Email is not null)
 	and c.Marketingcontactstatus = 'Marketing Contact'
 	and c.Email is not null and right(c.Email, 8) != '@zap.com'
 	and (pe.Updated <= dateadd(hour, -6, getdate()) or pe.updated is null)
+-- and ppp.Consent is not null and pes.Mkt_Email_Consent = 'SUBSCRIBED' and pes.Mkt_SMS_CanReceiveSMS = 1
 )
 select distinct t.*
 	 , d2c_last.DatePlaced LastPurchaseDate

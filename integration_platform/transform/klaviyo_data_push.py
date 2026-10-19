@@ -59,6 +59,8 @@ class Transform:
         ]
         extract_w_profiles = self._get_klaviyo_profiles_(data_extract=data_extract_dicts)
         customer_records = self._format_payloads_(extract_w_profiles=extract_w_profiles)
+        consent = self._check_consent_(customer_records=customer_records)
+        compared_consent = self._compare_consent_(customer_records=customer_records)
         return customer_records
 
     #MARK: _get_klaviyo_profiles_
@@ -190,6 +192,7 @@ class Transform:
           - Checks for any non-null db values we can add in the payload to klaviyo
         '''        
         fields_changed = None
+        klaviyo_response = None
         customer_record = {}
         phone = customer['PhoneNumber'] if customer['PhoneNumber'][:2] == '+1' else f'+1{customer['PhoneNumber']}'
         payload['data']['attributes']['email'] = customer['Email']
@@ -197,8 +200,10 @@ class Transform:
         if action == 'Update':
             customer_record = self._format_update_payload_(customer=customer, payload=payload)
             fields_changed = customer_record['fields_changed'] if customer_record['fields_changed'] != [] else None
+            klaviyo_response = customer_record['klaviyo_response']
         customer_record = self._format_create_payload_(customer=customer, payload=payload, action=action, update_customer_record=customer_record)
         customer_record['fields_changed'] = fields_changed
+        customer_record['klaviyo_response'] = klaviyo_response
         return customer_record
 
     #MARK: __format_update_payload__
@@ -237,7 +242,6 @@ class Transform:
         fields_changed = prop_record['_updated'] + (attr_record['_updated'] or [])
         check_these = prop_record['_check_these'] + (attr_record['_check_these'] or [])
         matches = prop_record['_matches'] + (attr_record['_matches'] or [])
-
         customer_record = {
             'action': 'Update',
             'payload': attr_record['payload'],
@@ -245,6 +249,7 @@ class Transform:
             'fields_changed': fields_changed,
             'check_these': check_these,
             'matches': matches,
+            'klaviyo_response': prop_record['klaviyo_response'],
         }
         return customer_record
 
@@ -299,6 +304,7 @@ class Transform:
             dict_key = f'{attr_or_prop}.{key}'
             was_list = False
             if isinstance(value, list):
+                if len(value) > 0 and isinstance(value[0], dict): continue
                 value = ','.join(value)
                 was_list = True
             db_column_name = self.pipeline.klaviyo.map_attributes_update.get(key) or self.pipeline.klaviyo.map_properties_update.get(key)
@@ -357,6 +363,21 @@ class Transform:
                 self._matched.append({dict_key: value})
                 bp = 'here'
         bp = 'here'
+        payload_fmt = self._pop_fields_(payload=payload)
+        
+
+        customer_record = {
+            'payload': payload_fmt,
+            'db': customer,
+            '_updated': self._updated,
+            '_check_these': self._check_these,
+            '_matches': self._matched,
+            'klaviyo_response': payload
+        }
+        return customer_record
+
+    def _pop_fields_(self, payload: dict):
+        payload = copy.deepcopy(payload)
         payload['data'].pop('links', None)
         payload['data'].pop('relationships', None)
         payload['data']['attributes'].pop('subscriptions', None)
@@ -364,18 +385,8 @@ class Transform:
         payload['data']['attributes'].pop('updated', None)
         payload['data']['attributes'].pop('created', None)
         payload['data']['attributes'].pop('last_event_date', None)
-        
+        return payload
 
-        customer_record = {
-            'payload': payload,
-            'db': customer,
-            '_updated': self._updated,
-            '_check_these': self._check_these,
-            '_matches': self._matched,
-        }
-        return customer_record
-
-        
 
     #MARK: _compare_attributes_properties_dates_
     def _compare_attributes_properties_dates_(self, customer: dict, payload: dict, attr_or_prop: Literal['attributes', 'properties'], was_list, key, db_value, value):
@@ -643,4 +654,60 @@ class Transform:
             
 
 
+    def _check_consent_(self, customer_records: list[dict]):
+        db_consent = []
+        consent_columns = {
+            'Mkt_Email_CanReceiveEmail_phone': None,
+            'Mkt_Email_CanReceiveEmail_email': None,
+            'Mkt_SMS_CanReceiveSMS_phone': None,
+            'Mkt_SMS_CanReceiveSMS_email': None,
+            'Consent_email': None,
+            'Consent_phone': None,
+            'Mkt_Email_Consent_email': None,
+            'Mkt_Email_Consent_phone': None,
+            'Mkt_SMS_Consent_email': None,
+            'Mkt_SMS_Consent_phone': None,
+            'EmailOption': None,
+        }
+        for customer in customer_records:
+            customer['db_consent'] = consent_columns
+            for key, value in customer['db'].items():
+                if key in list(consent_columns.keys()) and value:
+                    customer['db_consent'][key] = value
+        return customer_records
 
+
+    def _compare_consent_(self, customer_records: list[dict]):
+        bp = 'here'
+        update_klaviyo = []
+        total = len(customer_records)
+        for i, customer in enumerate(customer_records):
+            self.current_customer_email = customer['db']['Email']
+            self.current_prefix = f'{i+1}/{total}, {self.current_customer_email}: '
+            if not customer.get('klaviyo_response'):
+                continue
+            self.logger.info(f'{self.current_prefix}Comparing subscriptions...')
+            klaviyo = customer['klaviyo_response']['data']['attributes']['subscriptions']
+            db = customer['db_consent']
+
+            k_can_receive_email: bool = klaviyo['email']['marketing']['can_receive_email_marketing']
+            db_can_receive_email: bool = True if (db['Mkt_Email_CanReceiveEmail_phone'] or db['Mkt_Email_CanReceiveEmail_email']) else False
+
+            k_can_receive_sms = klaviyo['sms']['marketing']['can_receive_sms_marketing'] 
+            db_can_receive_sms = True if db['Mkt_SMS_CanReceiveSMS_phone'] or db['Mkt_SMS_CanReceiveSMS_email'] else False
+
+            if k_can_receive_email != db_can_receive_email:
+                update_klaviyo.append({'type': 'email', 'payload': customer['payload']})
+                bp = 'here'
+            if k_can_receive_sms != db_can_receive_sms:
+                update_klaviyo.append({'type': 'sms', 'payload': customer['payload']})
+                bp = 'here'
+
+            if klaviyo['email']['marketing']['consent'] != 'SUBSCRIBED':
+                if db['Mkt_Email_Consent_email'] == 'SUBSCRIBED' or db['Mkt_Email_Consent_phone'] == 'SUBSCRIBED':
+                    update_klaviyo.append({'type': 'email', 'payload': customer['payload']})
+            if klaviyo['sms']['marketing']['consent'] != 'SUBSCRIBED':
+                if db['Mkt_SMS_Consent_email'] == 'SUBSCRIBED' or db['Mkt_SMS_Consent_phone'] == 'SUBSCRIBED':
+                    update_klaviyo.append({'type': 'sms', 'payload': customer['payload']})
+
+        return update_klaviyo

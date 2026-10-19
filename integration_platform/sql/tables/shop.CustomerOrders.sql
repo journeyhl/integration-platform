@@ -19,8 +19,8 @@ OrderID varchar(20) not null,
 ShopOrderNbr varchar(35),
 CreatedAt datetime,
 Price decimal(18,2),
-LastChecked datetime,
 CustomerOrderSeq int,
+LastChecked datetime,
 InsertedDT datetime,
 primary key(CustomerID, OrderID))
 end

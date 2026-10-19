@@ -18,10 +18,10 @@ class UCMI_ShopifyCustomers(Pipeline):
 
     def transform(self, data_extract):
         data_transformed = self.transformer.landing(data_extract=data_extract)
-       
         return data_transformed
     
     def load(self, data_transformed):
+        self.centralstore.reconnect()
         data_loaded = {}
         for table, rows in data_transformed.items():
             rows = self.default_loader.add_InsertedDT_to_list(ldata=rows)
