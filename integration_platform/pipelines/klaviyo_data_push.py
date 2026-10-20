@@ -28,7 +28,7 @@ class KlaviyoDataPush(Pipeline):
         
     '''
     def __init__(self, function: str):
-        super().__init__('KlaviyoNewsletter', function)
+        super().__init__('KlaviyoDataPush', function)
         self.klaviyo = KlaviyoAPI(self)
         self.transformer = Transform(self)
         self.loader = Load(self)

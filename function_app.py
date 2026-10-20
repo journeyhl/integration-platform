@@ -955,18 +955,24 @@ def link_aftership_to_acu(timer: af.TimerRequest):
     ''':func:`~function_app.link_aftership_to_acu`
     ---
 
+    Pulls acumatica Orders that don't have an AftershipID but have been shipped from AcumaticaDb
+    
+    Pulls all AftershipIDs from db_CentralStore
+
+    Joins two dataframes, then updates Acumatica and the AftershipID user defined field by updating the SOOrderKvExt table in AcumaticaDb
+
     <hr>
     
     ### Source
-    AcumaticaDb
+    AcumaticaDb, db_CentralStore
 
     ### Destination
-    db_CentralStore
+    AcumaticaDb
     - 
     '''    
     from integration_platform.pipelines.link_aftership_to_acu import AftershipLinkToAcu
-    b2b_cohorts_to_dbc = AftershipLinkToAcu(function='link_aftership_to_acu', env='prod') #LinkAftershipToAcu
-    b2b_cohorts_to_dbc.run()
+    aftership_link = AftershipLinkToAcu(function='link_aftership_to_acu', env='prod') #LinkAftershipToAcu
+    aftership_link.run()
 
 #endregion                                               link_aftership_to_acu
 
