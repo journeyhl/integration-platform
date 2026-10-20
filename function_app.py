@@ -952,6 +952,18 @@ def b2b_cohorts(timer: af.TimerRequest):
     run_on_startup = False
 )
 def link_aftership_to_acu(timer: af.TimerRequest):
+    ''':func:`~function_app.link_aftership_to_acu`
+    ---
+
+    <hr>
+    
+    ### Source
+    AcumaticaDb
+
+    ### Destination
+    db_CentralStore
+    - 
+    '''    
     from integration_platform.pipelines.link_aftership_to_acu import AftershipLinkToAcu
     b2b_cohorts_to_dbc = AftershipLinkToAcu(function='link_aftership_to_acu', env='prod') #LinkAftershipToAcu
     b2b_cohorts_to_dbc.run()

@@ -16,10 +16,17 @@ class Load:
 
 
     #TODO add subscription data
-    def landing_loader(self, data_transformed: list):
+    def landing_loader(self, data_transformed: dict):
         bp = 'here'
-        total = len(data_transformed)
-        for i, customer_record in enumerate(data_transformed):
+        self._load_customer_records_(customer_records=data_transformed['customer_records'])
+        # self._load_consent_updates_(consent_updates=data_transformed['consent_updates'])
+        return data_transformed
+
+
+
+    def _load_customer_records_(self, customer_records: list):
+        total = len(customer_records)
+        for i, customer_record in enumerate(customer_records):
             prepend = f'{customer_record['action'][:-1]}ing'
             if not customer_record['fields_added'] and not customer_record['fields_changed']:
                 self.logger.info(f'Skipping profile {i+1}/{total} {customer_record['db']['Email']}...No fields added, nor changed')
@@ -35,5 +42,20 @@ class Load:
                 self.logger.error(f'Error {response.status_code}! {response.text}')
             bp = 'here'
             customer_record['klaviyo_response'] = response.status_code
-        return data_transformed
-            
+
+    def _load_consent_updates_(self, consent_updates: dict):
+        bp = 'here'
+        self.logger.info(f'Updating consent to subscribed for {len(consent_updates['profiles']['data'])} profiles')
+        payload = {
+            'data':{
+                'type': 'profile-subscription-bulk-create-job',
+                'attributes': consent_updates,
+            }
+        }
+        response = self.pipeline.klaviyo.subscribe_profiles(payload=payload)
+        resp_str = f'{response.status_code} {response.text}'
+        if response.status_code == 200:
+            self.logger.info(f'{resp_str}')
+        else:
+            self.pipeline.klaviyo.helper.parse_errors(response=response)
+        bp = 'here'

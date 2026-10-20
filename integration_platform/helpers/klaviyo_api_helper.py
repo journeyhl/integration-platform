@@ -131,6 +131,23 @@ class KlaviyoAPIHelper:
 
 
 
+    #MARK: parse_errors
+    def parse_errors(self, response: requests.Response):
+        bp = 'here'
+        try:
+            jresponse = response.json()
+        except Exception as e:
+            self.logger.error(f"Error! Couldn't parse response as JSON! {e}")
+        bp = 'here'
+        try:
+            errors = jresponse['errors']
+        except Exception as e:
+            self.logger.error(f'Error! No `errors` dict found in response!')
+            return
+        for error in errors:
+            self.logger.warning(f'Error! {error.get('detail')}')
+        return
+
     mapping = {
 
 'phone_number': 'PhoneNumber',

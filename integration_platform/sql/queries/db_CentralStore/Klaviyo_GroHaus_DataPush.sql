@@ -1,5 +1,5 @@
 with TopLevel as(
-	select distinct top 0 'Create' Action
+	select distinct top 5 'Create' Action
 		, c.*
 		, pe.PhoneNumber PhoneNumber_email
 		, pe.Email Email_email
@@ -297,11 +297,11 @@ with TopLevel as(
 	left join klaviyo.ProfileProperties ppp on pp.ID = ppp.ID
 	left join klaviyo.ProfileSubscriptions pps on pp.ID = pps.ID
 	where (pe.Email is null and pp.PhoneNumber is null and pp.RawPhoneNumber is null)
-	and c.Marketingcontactstatus = 'Marketing Contact'
+	and c.Marketingcontactstatus in('Marketing Contact', 'true')
 	and c.Email is not null and right(c.Email, 8) != '@zap.com'
 	and (pe.Updated <= dateadd(hour, -6, getdate()) or pe.updated is null)
 	union
-	select distinct top 20 'Update' Action
+	select distinct top 30 'Update' Action
 		, c.*
 		, pe.PhoneNumber PhoneNumber_email
 		, pe.Email Email_email
@@ -599,9 +599,9 @@ with TopLevel as(
 	left join klaviyo.ProfileProperties ppp on pp.ID = ppp.ID
 	left join klaviyo.ProfileSubscriptions pps on pp.ID = pps.ID
 	where (pe.Email is not null or pp.Email is not null)
-	and c.Marketingcontactstatus = 'Marketing Contact'
+	and c.Marketingcontactstatus in('Marketing Contact', 'true')
 	and c.Email is not null and right(c.Email, 8) != '@zap.com'
-	and (pe.Updated <= dateadd(hour, -6, getdate()) or pe.updated is null)
+	-- and (pe.Updated <= dateadd(hour, -6, getdate()) or pe.updated is null)
 -- and ppp.Consent is not null and pes.Mkt_Email_Consent = 'SUBSCRIBED' and pes.Mkt_SMS_CanReceiveSMS = 1
 )
 select distinct t.*

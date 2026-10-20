@@ -167,6 +167,11 @@ class KlaviyoAPI:
         response = self._post_data_(url=url, payload=payload)
         return response
 
+    def subscribe_profiles(self, payload: dict):
+        url = 'https://a.klaviyo.com/api/profile-subscription-bulk-create-jobs'
+        response = self._post_data_(url=url, payload=payload)
+        return response
+    
     #MARK: _get_data_
     def _get_data_(self, url: str, params: str = ''):
         ''':class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI._get_data_`

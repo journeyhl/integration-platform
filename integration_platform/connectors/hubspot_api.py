@@ -19,22 +19,24 @@ class HubSpotAPI:
         else:
             self.logger = logging.getLogger(f'{pipeline.pipeline_name}.HubSpotAPI') #type: ignore
         self.base_url = 'https://api.hubapi.com'
-        self.session = requests.Session()
-        self.session.headers.update({
-            'Authorization': f'Bearer {HUBSPOT["access_token"]}',
-            'Content-Type': 'application/json',
-        })
+        self.session = self._set_session_()
         self.calls = 0
         self.lists = f'/crm/v3/lists'
         self.contact_property_str = 'firstname,lastname,lead_source,email,phone,emailaddress,keycode,product,adddate,createdate,notes_last_updated,hubspot_owner_id,call_summary,hs_lead_status,hs_marketable_status,lead_source_date,intents_during_call,toll_free__,bps,unitsperorder,totalorders,revenueperorder,totalunits,revenue,last_five9_call_disposition,last_five9_call_at,acumatica_product_list,who_is_the_chair_for,notes_last_contacted,notes_next_activity_date,num_contacted_notes,hs_analytics_source,hs_latest_source,date_and_time_added_to_outbound_list,lead_grade,date_added_to_outbound_list,budget_range,created_on_weekend,kustomer_id,sold,date_became_the_warm_lead'
         self.prefix = ''
-
-
         if type(pipeline).__name__ == 'hubspot-snapshot':
             self._get_deal_pipelines_()
             self._get_owners_()
             self._set_snapshot_windows_()
 
+    def _set_session_(self):        
+        session = requests.Session()
+        session.headers.update({
+            'Authorization': f'Bearer {HUBSPOT["access_token"]}',
+            'Content-Type': 'application/json',
+        })
+        return session
+    
     #MARK: _request_
     def _request_(self, method: str, path: str, path_as_url: bool = False, log_label: str = '', **kwargs) -> dict[str, Any]:
         ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI._request_`
@@ -96,7 +98,12 @@ class HubSpotAPI:
         last_status: int | None = None
         for attempt in range(5):
             self.logger.info(f'{self.prefix}Sending {method} request to {log_label}')
-            response = self.session.request(method, url, timeout=30, **kwargs)
+            try:
+                response = self.session.request(method, url, timeout=30, **kwargs)
+            except:
+                self.session = self._set_session_()
+                response = self.session.request(method, url, timeout=30, **kwargs)
+                bp = 'here'
             self.calls += 1
             last_status = response.status_code
             if response.status_code == 429:

@@ -60,8 +60,12 @@ class Transform:
         extract_w_profiles = self._get_klaviyo_profiles_(data_extract=data_extract_dicts)
         customer_records = self._format_payloads_(extract_w_profiles=extract_w_profiles)
         consent = self._check_consent_(customer_records=customer_records)
-        compared_consent = self._compare_consent_(customer_records=customer_records)
-        return customer_records
+        consent_updates = self._compare_consent_(customer_records=customer_records)
+        customers_and_subscriptions = {
+            'customer_records': customer_records,
+            'consent_updates': consent_updates
+        }
+        return customers_and_subscriptions
 
     #MARK: _get_klaviyo_profiles_
     def _get_klaviyo_profiles_(self, data_extract: list[dict]):
@@ -194,7 +198,9 @@ class Transform:
         fields_changed = None
         klaviyo_response = None
         customer_record = {}
-        phone = customer['PhoneNumber'] if customer['PhoneNumber'][:2] == '+1' else f'+1{customer['PhoneNumber']}'
+        phone = customer['PhoneNumber'] or customer['RawPhoneNumber_email']
+        phone = phone if phone[:2] == '+1' else f'+1{phone}'
+
         payload['data']['attributes']['email'] = customer['Email']
         payload['data']['attributes']['phone_number'] = phone
         if action == 'Update':
@@ -204,6 +210,7 @@ class Transform:
         customer_record = self._format_create_payload_(customer=customer, payload=payload, action=action, update_customer_record=customer_record)
         customer_record['fields_changed'] = fields_changed
         customer_record['klaviyo_response'] = klaviyo_response
+        customer_record['payload'] = self._pop_fields_(payload=payload)
         return customer_record
 
     #MARK: __format_update_payload__
@@ -377,15 +384,15 @@ class Transform:
         return customer_record
 
     def _pop_fields_(self, payload: dict):
-        payload = copy.deepcopy(payload)
-        payload['data'].pop('links', None)
-        payload['data'].pop('relationships', None)
-        payload['data']['attributes'].pop('subscriptions', None)
-        payload['data']['attributes'].pop('predictive_analytics', None)
-        payload['data']['attributes'].pop('updated', None)
-        payload['data']['attributes'].pop('created', None)
-        payload['data']['attributes'].pop('last_event_date', None)
-        return payload
+        payload_fmt = copy.deepcopy(payload)
+        payload_fmt['data'].pop('links', None)
+        payload_fmt['data'].pop('relationships', None)
+        payload_fmt['data']['attributes'].pop('subscriptions', None)
+        payload_fmt['data']['attributes'].pop('predictive_analytics', None)
+        payload_fmt['data']['attributes'].pop('updated', None)
+        payload_fmt['data']['attributes'].pop('created', None)
+        payload_fmt['data']['attributes'].pop('last_event_date', None)
+        return payload_fmt
 
 
     #MARK: _compare_attributes_properties_dates_
@@ -653,7 +660,7 @@ class Transform:
         return payload_section, matched
             
 
-
+    #MARK: _check_consent_
     def _check_consent_(self, customer_records: list[dict]):
         db_consent = []
         consent_columns = {
@@ -668,6 +675,9 @@ class Transform:
             'Mkt_SMS_Consent_email': None,
             'Mkt_SMS_Consent_phone': None,
             'EmailOption': None,
+            'AcceptsMarketing': None,
+            'AcceptsMarketing_email': None,
+            'AcceptsMarketing_phone': None,
         }
         for customer in customer_records:
             customer['db_consent'] = consent_columns
@@ -677,37 +687,81 @@ class Transform:
         return customer_records
 
 
+    #MARK: _compare_consent_
     def _compare_consent_(self, customer_records: list[dict]):
         bp = 'here'
         update_klaviyo = []
         total = len(customer_records)
         for i, customer in enumerate(customer_records):
+            entries = 0
             self.current_customer_email = customer['db']['Email']
             self.current_prefix = f'{i+1}/{total}, {self.current_customer_email}: '
             if not customer.get('klaviyo_response'):
                 continue
-            self.logger.info(f'{self.current_prefix}Comparing subscriptions...')
             klaviyo = customer['klaviyo_response']['data']['attributes']['subscriptions']
             db = customer['db_consent']
 
-            k_can_receive_email: bool = klaviyo['email']['marketing']['can_receive_email_marketing']
-            db_can_receive_email: bool = True if (db['Mkt_Email_CanReceiveEmail_phone'] or db['Mkt_Email_CanReceiveEmail_email']) else False
+            k_email_consent = klaviyo['email']['marketing']['can_receive_email_marketing'] == True and klaviyo['email']['marketing']['consent'] == 'SUBSCRIBED'
+            db_email_consent = (
+                (db['Mkt_Email_CanReceiveEmail_phone'] == True and db['Mkt_Email_Consent_phone'] == 'SUBSCRIBED')
+                or
+                (db['Mkt_Email_CanReceiveEmail_email'] == True and db['Mkt_Email_Consent_email'] == 'SUBSCRIBED')
+            )
 
-            k_can_receive_sms = klaviyo['sms']['marketing']['can_receive_sms_marketing'] 
-            db_can_receive_sms = True if db['Mkt_SMS_CanReceiveSMS_phone'] or db['Mkt_SMS_CanReceiveSMS_email'] else False
+            k_sms_consent = klaviyo['sms']['marketing']['can_receive_sms_marketing'] == True and klaviyo['sms']['marketing']['consent'] == 'SUBSCRIBED'
+            
+            db_sms_consent = (
+                (db['Mkt_SMS_CanReceiveSMS_phone'] == True and db['Mkt_SMS_Consent_phone'] == 'SUBSCRIBED')
+                or
+                (db['Mkt_Email_CanReceiveEmail_email'] == True and db['Mkt_SMS_Consent_email'] == 'SUBSCRIBED')
 
-            if k_can_receive_email != db_can_receive_email:
-                update_klaviyo.append({'type': 'email', 'payload': customer['payload']})
+            )
+
+            
+            db_email_1 = db['Mkt_Email_CanReceiveEmail_phone'] == True and db['Mkt_Email_Consent_phone'] == 'SUBSCRIBED'
+            db_email_2 = db['Mkt_Email_CanReceiveEmail_email'] == True and db['Mkt_Email_Consent_email'] == 'SUBSCRIBED'
+            db_sms_1 = db['Mkt_SMS_CanReceiveSMS_phone'] == True and db['Mkt_SMS_Consent_phone'] == 'SUBSCRIBED'
+            db_sms_2 = db['Mkt_SMS_CanReceiveSMS_email'] == True and db['Mkt_SMS_Consent_email'] == 'SUBSCRIBED'
+
+
+            consent_header = self._format_consent_header_(customer=customer)
+            if k_email_consent != db_email_consent:
+                self.logger.info(f'{self.current_prefix}Email consent will be updated')
+                consent_payload = self._format_consent_(consent_header=consent_header, email_sms='email')
+                entries+=1
+            if k_sms_consent != db_sms_consent and not k_sms_consent:
+                self.logger.info(f'{self.current_prefix}SMS consent will be updated')
+                consent_payload = self._format_consent_(consent_header=consent_header, email_sms='sms')
                 bp = 'here'
-            if k_can_receive_sms != db_can_receive_sms:
-                update_klaviyo.append({'type': 'sms', 'payload': customer['payload']})
-                bp = 'here'
+                entries+=1
+            if entries >= 1:
+                update_klaviyo.append(consent_payload)
 
-            if klaviyo['email']['marketing']['consent'] != 'SUBSCRIBED':
-                if db['Mkt_Email_Consent_email'] == 'SUBSCRIBED' or db['Mkt_Email_Consent_phone'] == 'SUBSCRIBED':
-                    update_klaviyo.append({'type': 'email', 'payload': customer['payload']})
-            if klaviyo['sms']['marketing']['consent'] != 'SUBSCRIBED':
-                if db['Mkt_SMS_Consent_email'] == 'SUBSCRIBED' or db['Mkt_SMS_Consent_phone'] == 'SUBSCRIBED':
-                    update_klaviyo.append({'type': 'sms', 'payload': customer['payload']})
+        consent_updates = {'profiles': {'data': update_klaviyo}}
+        return consent_updates
 
-        return update_klaviyo
+
+    #MARK: _format_consent_header_
+    def _format_consent_header_(self, customer: dict):
+        new_payload = {
+            'type': 'profile',
+            'id': customer['payload']['data']['id'],
+            'attributes':{
+                'email': customer['klaviyo_response']['data']['attributes']['email'],
+                'phone_number': customer['klaviyo_response']['data']['attributes']['phone_number'],
+                'subscriptions': {}
+            }
+        }
+        
+        return new_payload
+
+
+    #MARK: _format_consent_
+    def _format_consent_(self, consent_header: dict, email_sms: Literal['email', 'sms']):
+        
+        consent_header['attributes']['subscriptions'][email_sms] = {
+            'marketing': {
+                'consent': 'SUBSCRIBED'
+            }
+        }
+        return consent_header
