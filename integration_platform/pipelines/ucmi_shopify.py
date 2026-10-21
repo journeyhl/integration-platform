@@ -6,6 +6,34 @@ from zoneinfo import ZoneInfo
 import polars as pl
 
 class UCMI_ShopifyCustomers(Pipeline):
+    ''':class:`~integration_platform.pipelines.ucmi_shopify.UCMI_ShopifyCustomers`
+    ---
+    
+    ## Initialization
+
+    Sets Shopify API connector and transformer
+
+    <hr>
+
+    ## Extraction
+    
+    Using the :class:`~integration_platform.connectors.shopify.ShopifyAPI` connector, runs a bulk query to pull all customers and each's details
+
+    <hr>
+
+    ## Transformation
+
+    For each customer, splits response from Shopify into three seperate lists, a dict containing Customer data, a lis containing the addresses found for that customer and another list containing the orders found for that customer
+
+    <hr>
+
+    ## Load
+
+    Data is loaded to db_CentralStore
+    - shop.Customers
+    - shop.CustomerOrders
+    - shop.CustomerAddresses
+    '''
     def __init__(self, function: str, env: str='prod'):
         super().__init__(pipeline_name='ucmi-shopify-customers', function=function, env=env)
         self.shopify = ShopifyAPI(self)

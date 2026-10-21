@@ -36,16 +36,24 @@ class Transform:
         # self.pipeline.centralstore.__dataframe_to_table_create_statement__(balance_by_status)
 
 
-
         data_transformed = {
-            'detail': data_extract,
-            'summary': collections_summary,
-            'summary_snapshot': collections_summary_snapshot,
-            'balance_by_status': balance_by_status,
-            'balance_by_status_snapshot': balance_by_status_snapshot,
-            'balance_by_salesrep': balance_by_salesrep,
-            'balance_by_salesrep_snapshot': balance_by_salesrep_snapshot,
+            'analytics.JHL_B2BCollectionsDetail': data_extract,
+            'analytics.JHL_B2BCollectionsSummary': collections_summary,
+            'analytics.JHL_B2BCollectionsSummary_Snapshot': collections_summary_snapshot,
+            'analytics.JHL_B2BCollectionsByStatus': balance_by_status,
+            'analytics.JHL_B2BCollectionsByStatus_Snapshot': balance_by_status_snapshot,
+            'analytics.JHL_B2BCollectionsBySalesRep': balance_by_salesrep,
+            'analytics.JHL_B2BCollectionsBySalesRep_Snapshot': balance_by_salesrep_snapshot,
         }
+        data_transformed = self._to_lists_(data_transformed=data_transformed)
+        return data_transformed
+
+    def _to_lists_(self, data_transformed: dict):
+        now = datetime.now(ZoneInfo(key='America/New_York'))
+        for table, frame in data_transformed.items():
+            frame = frame.to_dicts()
+            self.pipeline.default_loader.add_InsertedDT_to_list(ldata=frame, now=now)
+            data_transformed[table] = frame
         return data_transformed
 
 

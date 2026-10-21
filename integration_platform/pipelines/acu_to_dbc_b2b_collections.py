@@ -6,12 +6,43 @@ from zoneinfo import ZoneInfo
 import polars as pl
 from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 class AcuToDbcB2BCollections(Pipeline):
-    def __init__(self, function, backfill: bool = False, env: str = 'prod'):
+    ''':class:`~integration_platform.pipelines.acu_to_dbc_b2b_collections.AcuToDbcB2BCollections`
+    ---
+    
+    ## Initialization
+
+    Sets transformer, 
+
+    <hr>
+
+    ## Extraction
+    
+    Pulls all open Accounts Receivable documents belonging to B2B customers and each document's outstanding balance
+
+    <hr>
+
+    ## Transformation
+
+    Summarized the outstanding balance by Customer and also Salesperson, then splits into buckets based on how overdue that balance is
+
+    <hr>
+
+    ## Load
+
+    Loads to db_CentralStore via merge:
+
+    - analytics.JHL_B2BCollectionsDetail
+    - analytics.JHL_B2BCollectionsSummary
+    - analytics.JHL_B2BCollectionsSummary_Snapshot
+    - analytics.JHL_B2BCollectionsByStatus
+    - analytics.JHL_B2BCollectionsByStatus_Snapshot
+    - analytics.JHL_B2BCollectionsBySalesRep
+    - analytics.JHL_B2BCollectionsBySalesRep_Snapshot
+
+    '''
+    def __init__(self, function, env: str = 'prod'):
         super().__init__(pipeline_name='acu-to-dbc-b2b-collections', function=function, env=env)
         self.transformer = Transform(self)
-        self.backfill = backfill
-        if self.backfill:
-            self.logger.warning(f'Running in backfill mode!!!')
         self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(
             pipeline=self, database_name='AcudevDb' if env == 'dev' else 'AcumaticaDb'
         )
@@ -26,33 +57,12 @@ class AcuToDbcB2BCollections(Pipeline):
         return data_transformed
     
 
-    def load(self, data_transformed: dict[str, pl.DataFrame]):
-        collections_detail = data_transformed['detail'].with_columns(pl.lit(datetime.now(ZoneInfo('America/New_York')), pl.Datetime).alias('InsertedDT'))
-        collections_summary = data_transformed['summary'].with_columns(pl.lit(datetime.now(ZoneInfo('America/New_York')), pl.Datetime).alias('InsertedDT'))
-        balance_by_status = data_transformed['balance_by_status'].with_columns(pl.lit(datetime.now(ZoneInfo('America/New_York')), pl.Datetime).alias('InsertedDT'))
-        balance_by_salesrep = data_transformed['balance_by_salesrep'].with_columns(pl.lit(datetime.now(ZoneInfo('America/New_York')), pl.Datetime).alias('InsertedDT'))
-        collections_summary_snapshot = data_transformed['summary_snapshot']
-        balance_by_status_snapshot = data_transformed['balance_by_status_snapshot']
-        balance_by_salesrep_snapshot = data_transformed['balance_by_salesrep_snapshot']
-        dfs = {
-            'analytics.JHL_B2BCollectionsDetail': collections_detail,
-            'analytics.JHL_B2BCollectionsSummary': collections_summary,
-            'analytics.JHL_B2BCollectionsSummary_Snapshot': collections_summary_snapshot,
-            'analytics.JHL_B2BCollectionsByStatus': balance_by_status,
-            'analytics.JHL_B2BCollectionsByStatus_Snapshot': balance_by_status_snapshot,
-            'analytics.JHL_B2BCollectionsBySalesRep': balance_by_salesrep,
-            'analytics.JHL_B2BCollectionsBySalesRep_Snapshot': balance_by_salesrep_snapshot,
-        }
-        if self.backfill:
-            self.load_backfill(dfs)
-            return data_transformed
-        
-        frame_count = len(dfs)
-        for i, (table, data) in enumerate(dfs.items()):
+    def load(self, data_transformed: dict):
+        frame_count = len(data_transformed)
+        for i, (table, data) in enumerate(data_transformed.items()):
             prefix = f'{i+1}/{frame_count}: '
-            data_dict = data.to_dicts()
-            self.logger.info(f'{prefix}Upserting {len(data_dict)} rows to {table}...')
-            self.centralstore.checked_upsert_paginated(table_name=table, data=data_dict)
+            self.logger.info(f'{prefix}Merging {len(data)} rows to {table}...')
+            self.centralstore.merge_table_paginated(table_name=table, data=data)
         return data_transformed
 
 

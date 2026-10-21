@@ -12,9 +12,9 @@ class DefaultLoader:
 
 
 
-    def add_InsertedDT_to_list(self, ldata: list):
+    def add_InsertedDT_to_list(self, ldata: list, now: datetime = datetime.now(ZoneInfo('America/New_York'))):
         for row in ldata:
-            row['InsertedDT'] = datetime.now(ZoneInfo('America/New_York'))
+            row['InsertedDT'] = now
         return ldata
 
     
