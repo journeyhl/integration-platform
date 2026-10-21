@@ -38,8 +38,8 @@ flowchart TD
     LD --> LP[for each row: log progress<br/>+ aftership.post_data tracking_endpoint, row.formatted]
     LP --> AS[(AfterShip: POST<br/>/tracking/2026-01/trackings)]
     AS --> RESP{response status}
-    RESP -->|400| BAD[_parse_bad_tracking_response<br/>build log row from payload + meta]
-    RESP -->|other| GOOD[_parse_good_tracking_response<br/>build log row from response data]
+    RESP -->|400| BAD[_parse_bad_tracking_response_<br/>build log row from payload + meta]
+    RESP -->|other| GOOD[_parse_good_tracking_response_<br/>build log row from response data]
     BAD --> CSL[(
         <b><i>CentralStore</i></b>
         upsert _util.AfterShipLog

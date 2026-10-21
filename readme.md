@@ -1243,7 +1243,7 @@ Driven by [`transform/aftership.py`](transform/aftership.py)'s `transform_send`:
 
 #### Load
 - For each row, POSTs to `tracking_endpoint` via [`AfterShip.post_data`](#aftership)
-- `_parse_good_tracking_response` / `_parse_bad_tracking_response` builds a row for the log table from the API response (or, on 400, from the payload + metadata)
+- `_parse_good_tracking_response_` / `_parse_bad_tracking_response_` builds a row for the log table from the API response (or, on 400, from the payload + metadata)
 - Upserts to **`_util.AfterShipLog`**
 
 #### Results Logging
@@ -1938,7 +1938,7 @@ The [`transform/`](transform/) modules contain the data-shaping logic each pipel
 | [`transform/cleaner.py`](transform/cleaner.py) | [`SalesOrderCleaner`](#pipeline---sales_order_cleanerpy) | `transform`, `clean`, `parse_orders` |
 | [`transform/kustomer.py`](transform/kustomer.py) | [`SendOrderDetailsToKustomer`](#pipeline---kustomerpy) | `format_data_extract`, `add_shipments_to_orders`, `smash_orders` |
 | [`transform/hubspot_snapshot.py`](transform/hubspot_snapshot.py) | [`HubSpotSnapshot`](#pipeline---hubspot_snapshotpy) | `activity_counts`, `smash_activity_counts`, `deals` |
-| [`transform/aftership.py`](transform/aftership.py) | [`SendToAfterShip`](#pipeline---aftership_sendpy), [`UpdateAfterShip`](#pipeline---aftership_updatepy), [`AfterShipToDbc`](#pipeline---aftership_to_dbcpy) | `transform_send`, `transform_update`, `filter_update`, `_lander`, `_parse_good_tracking_response`, `_parse_bad_tracking_response` |
+| [`transform/aftership.py`](transform/aftership.py) | [`SendToAfterShip`](#pipeline---aftership_sendpy), [`UpdateAfterShip`](#pipeline---aftership_updatepy), [`AfterShipToDbc`](#pipeline---aftership_to_dbcpy) | `transform_send`, `transform_update`, `filter_update`, `_lander`, `_parse_good_tracking_response_`, `_parse_bad_tracking_response_` |
 | [`transform/notify_fulfillment_ops.py`](transform/notify_fulfillment_ops.py) | [`NotifyFulfillmentOps`](#dev--scaffolded-pipelines) (dev) | `transform(data_extract: pl.DataFrame)` |
 | [`transform/audit_fulfillment.py`](transform/audit_fulfillment.py) | [`AuditFulfillment`](#dev--scaffolded-pipelines) (dev) | `transform` (WIP) |
 

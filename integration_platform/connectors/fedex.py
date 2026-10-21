@@ -27,7 +27,7 @@ class Fedex:
         self._authenticate_()
 
 
-
+    #MARK: _authenticate_
     def _authenticate_(self):
         self.account_id = FEDEX['account_id']
         response = requests.post(
@@ -58,6 +58,7 @@ class Fedex:
         return parsed_response
 
 
+    #MARK: _get_rate_helper_
     def _get_rate_helper_(self, package_details) -> list | str:
         ''':class:`~integration_platform.connectors.fedex.Fedex`.:meth:`~integration_platform.connectors.fedex.Fedex._get_rate_helper_`
         ---

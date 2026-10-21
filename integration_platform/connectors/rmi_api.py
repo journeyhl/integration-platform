@@ -64,9 +64,9 @@ class RMIAPI():
         pass
 
 
-
+    #MARK: _set_endpoints_
     def _set_endpoints_(self):
-        ''':class:`~RMIAPI`.:meth:`~_set_endpoints_` (self, ):
+        ''':class:`~integration_platform.connectors.rmi_api.RMIAPI`.:meth:`~integration_platform.connectors.rmi_api.RMIAPI._set_endpoints_`
         ---
         <hr>
         
@@ -89,6 +89,7 @@ class RMIAPI():
         self.ep_inventory_by_location = f'{self.base_uri}api/InventoryByLocation'
         self.ep_inventory_with_serials = f'{self.base_uri}api/InventoryWithSerials'
         
+    #MARK: _auth_
     def _auth_(self):
         
         ''':class:`~RMIAPI`.:meth:`~_auth_` (self):
@@ -130,6 +131,7 @@ class RMIAPI():
         pass
         
 
+    #MARK: target_api
     def target_api(self, endpoint: str, payload: list, lookback_window_days: int = 21):
         bp = 'here'
         url = f'{self.base_uri}api/{endpoint}'
@@ -153,8 +155,7 @@ class RMIAPI():
         except Exception as e:
             bp = 'here'
 
-
-
+    #MARK: get_rma
     def get_rma(self, rma_number):
         url = f'{self.base_uri}api/RMA'
         from_date = datetime.today() - timedelta(days=180)
@@ -179,10 +180,7 @@ class RMIAPI():
         except Exception as e:
             bp = 'here'
 
-
-
-
-
+    #MARK: get_inventory_data
     def get_inventory_data(self, url: str) -> list:
         ''':class:`~RMIAPI`.:meth:`~get_inventory_data` (self, url: *str*, ):
         ---

@@ -50,13 +50,14 @@ class RedStagAPI:
         "accept": "application/json"
         }
         self.session = requests.Session()
-        self._auth()
+        self._auth_()
         pass
 
 
 
-    def _auth(self):
-        '''`_auth`(self)
+    #MARK: _auth_
+    def _auth_(self):
+        ''':class:`~integration_platform.connectors.redstag_api.RedStagAPI`.:meth:`~integration_platform.connectors.redstag_api.RedStagAPI._auth_`
         ===
         <hr>
         
@@ -87,9 +88,9 @@ class RedStagAPI:
             raise
         bp = 'here'
 
-
+    #MARK: target_api
     def target_api(self, payload_target: list, operation: str, log_prefix: str = ''):
-        ''':class:`~RedStagAPI`.:meth:`~target_api` (self, payload_target: *list*, operation: *str*, log_prefix: *str = ''*):
+        ''':class:`~integration_platform.connectors.redstag_api.RedStagAPI`.:meth:`~integration_platform.connectors.redstag_api.RedStagAPI.target_api`
         ---
         <hr>
 

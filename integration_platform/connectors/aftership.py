@@ -22,6 +22,7 @@ class AfterShip:
         self.trackings = []
         pass
 
+    #MARK: get_data
     def get_data(self, endpoint: str, params: dict = {}) -> dict:
         '''`get_data`(self, endpoint: *_type_*, params: *dict = {}*)
         ---
@@ -59,6 +60,7 @@ class AfterShip:
         return {}
         
 
+    #MARK: retrieve_trackings
     def retrieve_trackings(self, pipeline_name: str, updated_window: timedelta = timedelta(hours = 2)):
         '''`retrieve_trackings`(self)
         ---
@@ -96,6 +98,7 @@ class AfterShip:
         bp = 'here'
         return self.trackings
     
+    #MARK: paginate_tracking
     def paginate_tracking(self, tracking_response: dict, pipeline_name: str, params: dict = {}):
         '''`paginate_tracking`(self, tracking_response: *dict*)
         ---
@@ -169,6 +172,7 @@ class AfterShip:
     
 
 
+    #MARK: post_data
     def post_data(self, endpoint: str, payload: dict):
         '''`post_data`(self, endpoint: *str*, payload: *dict*)
         ---
@@ -177,9 +181,9 @@ class AfterShip:
         Method to ***POST*** data to Aftership API and parse response
         
         ### Downstream Calls 
-         #### :meth:`~_parse_good_tracking_response`
+         #### :meth:`~_parse_good_tracking_response_`
             - If response status code != 400 and we can parse as json, format response as log row and upsert to **_util.acu_api_log**
-         #### :meth:`~_parse_bad_tracking_response`
+         #### :meth:`~_parse_bad_tracking_response_`
             - If response status code == 400, format response as log row and upsert to **_util.acu_api_log**
         
         ### Upstream Calls 
@@ -196,7 +200,7 @@ class AfterShip:
         try:
             response = self.session.post(url = endpoint, headers = self.headers, json = payload)
             if response.status_code == 400:
-                self._parse_bad_tracking_response(response.json(), payload)
+                self._parse_bad_tracking_response_(response.json(), payload)
                 return {}
             else:
                 self.logger.info(f'Successfully posted to Aftership')
@@ -204,13 +208,14 @@ class AfterShip:
             self.logger.error(f'Error getting response from Aftership (post_data)')
         try:
             jresponse = response.json()
-            self._parse_good_tracking_response(jresponse = jresponse)
+            self._parse_good_tracking_response_(jresponse = jresponse)
             return jresponse
         except:
             self.logger.error(f'Error parsing response from Aftership (post_data)')
         return {}
     
 
+    #MARK: put_data
     def put_data(self, endpoint: str, params: dict, payload: dict, log_prefix: str = '', extra: dict = {}):
         '''`put_data`(self, endpoint: *str*, params: *dict*, payload: *dict*)
         ---
@@ -219,7 +224,7 @@ class AfterShip:
         Method to ***PUT*** data to Aftership API and parse response
         
         ### Downstream Calls 
-         #### :meth:`~_parse_good_tracking_response`
+         #### :meth:`~_parse_good_tracking_response_`
             - If response status code != 400 and we can parse as json, format response as log row and upsert to **_util.acu_api_log**
 
         ### Upstream Calls 
@@ -243,7 +248,7 @@ class AfterShip:
         bp = 'here'
         self.logger.info(f'Updated {log_prefix} successfully!')
         if response.status_code == 200:
-            self._parse_good_tracking_response(response.json())
+            self._parse_good_tracking_response_(response.json())
         else:
             jresponse = response.json()
             log_row = {
@@ -266,7 +271,8 @@ class AfterShip:
 
 
 
-    def _parse_good_tracking_response(self, jresponse: dict):
+    #MARK: _parse_good_tracking_response_
+    def _parse_good_tracking_response_(self, jresponse: dict):
         response_code = jresponse['meta']['code']
         msg = jresponse['meta'].get('message')
         jresponse = jresponse['data']
@@ -286,7 +292,8 @@ class AfterShip:
 
 
 
-    def _parse_bad_tracking_response(self, jresponse: dict, payload: dict):
+    #MARK: _parse_bad_tracking_response_
+    def _parse_bad_tracking_response_(self, jresponse: dict, payload: dict):
         response_code = jresponse['meta']['code']
         msg = jresponse['meta']['message']
         id = jresponse['data'].get('id')

@@ -11,6 +11,49 @@ from zoneinfo import ZoneInfo
 import polars as pl
 
 class AcumaticaAPIHelper:
+    '''_replace_me_with_full_sphinx_docstring_pls_
+    ---
+    
+    put_summary_here
+    
+    Parameters
+    ---
+    
+            
+       ### ***Optional***
+    :param (*str = ''*) `log_prefix`: String to prepend to any logger outputs. Usually used when iterating, like `'keyvalue1, 1/150: '`, `'keyvalue2, 2/150: '` and so on 
+    
+    Returns
+    ---
+    
+    <hr>
+    
+    Sets
+    ---
+    - #### ____replace_with_class_level_variable_pls____
+    
+    <hr>
+    
+    ## Upstream Calls (Methods/Functions Called by)
+    
+     ### _______replace_me_______
+    
+      - Description
+    
+     ### _______replace_me_______
+       
+      - Description
+    
+    ## Downstream Calls (Methods/Functions called)
+    
+     ### _______replace_me_______
+    
+      - Description
+    
+     ### _______replace_me_______
+       
+      - Description
+    '''    
     def __init__(self, acu_api: AcumaticaAPI) -> None:
         self.acu = acu_api
         if type(acu_api.pipeline) == str:

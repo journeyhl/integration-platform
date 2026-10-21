@@ -34,7 +34,7 @@ flowchart TD
     LD --> LP[for each id, values:<br/>log progress + aftership.put_data<br/>endpoint = tracking_endpoint/id]
     LP --> ASP[(AfterShip: PUT<br/>/tracking/2026-01/trackings/:id<br/>payload = customers/shipment_tags)]
     ASP --> RESP{response status}
-    RESP -->|200| GOOD[_parse_good_tracking_response<br/>build log row from response data]
+    RESP -->|200| GOOD[_parse_good_tracking_response_<br/>build log row from response data]
     RESP -->|other| BAD[build log row from response,<br/>falling back to extra<br/>ShipmentNbr/OrderNbr/Tracking]
     GOOD --> CSL[(
         <b><i>CentralStore</i></b>

@@ -851,7 +851,7 @@ values ({', '.join(f'source.{column}' for column in sql_table['columns'])});
         bp = 'here'
 
 
-
+    #MARK: get_file_as_dataframe
     def get_file_as_dataframe(self, type: Literal['csv', 'xlsx'], path: str = '') -> pl.DataFrame:
         ''':class:`~integration_platform.connectors.sftp.SFTP`.:meth:`~integration_platform.connectors.sftp.SFTP.get_file_as_dataframe`
         ---

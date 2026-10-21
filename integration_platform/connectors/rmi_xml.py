@@ -58,6 +58,7 @@ class RMIXML:
         self.results = []
         pass
 
+    #MARK: login
     def login(self):
         login_url = 'https://jhl.returnsmanagement.com/webserviceV2/user/Authentication.asmx'
         login_headers = {
@@ -84,7 +85,7 @@ class RMIXML:
             bp = 'here'
         bp = 'here'
 
-
+    #MARK: initiate_send
     def initiate_send(self, data_transformed):
         type_w = []
         type_3 = []

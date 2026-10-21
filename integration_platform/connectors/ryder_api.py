@@ -42,7 +42,7 @@ class RyderAPI:
 
 
 
-
+    #MARK: _auth_
     def _auth_(self):
         headers, body = self.helper._pre_auth_()
         response = self.session.post(f'https://{self.uri_env}.ryder.com/identityservices/oauth2/default/v1/token', headers=headers, data=body)
@@ -50,12 +50,14 @@ class RyderAPI:
         pass
 
 
+    #MARK: get_order_history
     def get_order_history(self, shipment_nbr: str, log_prefix: str = ''):
         url = f'{self.ep_order_history_by_orderRef}{shipment_nbr}'
         normalized_response = self._target_api_(url=url, operation='get', sender='get_order_history', descr=f'{shipment_nbr}: Get full history', log_prefix=log_prefix)
         bp = 'here'
         return normalized_response
 
+    #MARK: get_order_milestones
     def get_order_milestones(self, shipment_nbr: str, log_prefix: str = ''):
         url = f'{self.ep_order_status_by_orderRef}{shipment_nbr}'
         normalized_response = self._target_api_(url=url, operation='get', sender='get_order_milestones', descr=f'{shipment_nbr}: Get milestones', log_prefix=log_prefix)
@@ -66,6 +68,7 @@ class RyderAPI:
 
 
 
+    #MARK: _target_api_
     def _target_api_(self, url: str, operation: Literal['get', 'post', 'put', 'delete'], sender: str, payload: dict = {}, descr: str = '', log_prefix: str = ''):
         ''':class:`~RyderAPI`.:meth:`~_target_api_` (self, endpoint: *str*, operation: *str*, ):
         ---

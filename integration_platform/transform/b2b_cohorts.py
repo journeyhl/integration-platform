@@ -29,7 +29,7 @@ class Transform:
         self.all_customers = []
         pass
 
-
+    #MARK: landing
     def landing(self, data_extract: dict[str, list[dict]]):
         order_history = data_extract['customer_order_history']
         bp = 'here'
@@ -55,14 +55,14 @@ class Transform:
         self.__postgame__()
         return self.all_customers
 
+    #MARK: __postgame__
     def __postgame__(self):
         report_str = '\n'.join([f'{k}: {len(v)} customers ({round(round(len(v)/len(self.customers), 4) * 100, 2)}%)' for k, v in self.cohorts.items()])
         self.logger.info(f"\nTransformation report:\n{report_str}")
 
-        
-
+    #MARK: initial_iterator
     def initial_iterator(self, order: dict):
-        ''':class:`~Transform`.:meth:`~initial_iterator`
+        ''':class:`~integration_platform.transform.b2b_cohorts.Transform`.:meth:`~integration_platform.transform.b2b_cohorts.Transform.initial_iterator`
         ---
         
         Handles the main iterative functions that would take place in the :class:`~integration_platform.transform.b2b_cohorts.Transform`.:meth:`~integration_platform.transform.b2b_cohorts.Transform.landing` method
@@ -101,9 +101,9 @@ class Transform:
             else:
                 self.no_orders.append({'CustomerID': order['CustomerID'], 'CustomerClass': order['CustomerClass'], 'Customer': order['AccountName'], 'CreatedOn': order['CreatedOn']})
 
-
+    #MARK: customer_landing
     def customer_landing(self):
-        ''':class:`~Transform`.:meth:`~customer_landing`
+        ''':class:`~integration_platform.transform.b2b_cohorts.Transform`.:meth:`~integration_platform.transform.b2b_cohorts.Transform.customer_landing`
         ---
         
         After putting all distinct customers in a dictionary (CustomerID is key value), iterate through each of the orders found and check for a gap of a year or more. If there is a gap, filter the orders before the order after the gap out.
@@ -154,9 +154,9 @@ class Transform:
             bp = 'here'
         bp = 'here'
 
-
+    #MARK: assign_cohorts
     def assign_cohorts(self):
-        ''':class:`~Transform`.:meth:`~assign_cohorts`
+        ''':class:`~integration_platform.transform.b2b_cohorts.Transform`.:meth:`~integration_platform.transform.b2b_cohorts.Transform.assign_cohorts`
         ---
 
         Walks each customer's cycle-trimmed, ascending-sorted order history (built by self.:meth:`~customer_landing`) forward in time to compute the aggregates needed to classify their current relationship cycle, then hands them to self.:meth:`~_classify_cohort_` to get the final cohort.
@@ -251,13 +251,9 @@ class Transform:
             bp = 'here'
 
 
-    def _months_between_(self, start_date, end_date):
-        delta = relativedelta(end_date, start_date)
-        return delta.years * 12 + delta.months
-
-
+    #MARK: _classify_cohort_
     def _classify_cohort_(self, has_product_history: bool, months_since_product: int | None, months_since_pa: int | None, months_since_anchor: int, anchor_type: str, last_product_date, last_pa_date: datetime | None):
-        ''':class:`~Transform`.:meth:`~_classify_cohort_`
+        ''':class:`~integration_platform.transform.b2b_cohorts.Transform`.:meth:`~integration_platform.transform.b2b_cohorts.Transform._classify_cohort_`
         ---
 
         Applies the Step B cohort decision tree (first match wins) to one customer's current-cycle aggregates, as computed by self.:meth:`~assign_cohorts`: checks for total inactivity first (**Lost**), then whether the customer is still inside their anchor's 12-month window without having tripped the relevant dormancy threshold early (returns `anchor_type` as-is), then branches on whether the customer has any product history at all to pick between the Parts & Accessories-only cohorts and the product-history cohorts.
@@ -313,12 +309,8 @@ class Transform:
                 'Product Dormant - P&A Active'
         else:
             return 'Product Lost - P&A Active'
-
-
-
-
-
-
-
-
-
+        
+    #MARK: _months_between_
+    def _months_between_(self, start_date, end_date):
+        delta = relativedelta(end_date, start_date)
+        return delta.years * 12 + delta.months

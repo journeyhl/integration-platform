@@ -23,11 +23,12 @@ class ShopifyAPI:
         }
         self.since = date(2024, 1, 1).isoformat()         # or: (date.today() - timedelta(days=90)).isoformat()
         self.until = (date.today() - timedelta(days=1)).isoformat()  # yesterday
-        self._set_shopql()
+        self._set_shopql_()
         self.session = requests.Session()
         pass
 
 
+    #MARK: post
     def post(self, url: str = '', headers: dict = {}, payload: dict = {}):
         url = self.url if url == '' else url
         headers = self.headers if headers == {} else headers
@@ -44,7 +45,8 @@ class ShopifyAPI:
         return data
 
 
-    def _set_shopql(self):
+    #MARK: _set_shopql_
+    def _set_shopql_(self):
         self.shopifyql = f"""
         FROM sales
           SHOW gross_sales, net_sales
@@ -85,7 +87,7 @@ class ShopifyAPI:
 }
 """
 
-
+    #MARK: get_customers_bulk
     def get_customers_bulk(self) -> list[dict]:
         ''':class:`~integration_platform.connectors.shopify.ShopifyAPI`.:meth:`~integration_platform.connectors.shopify.ShopifyAPI.get_customers_bulk`
         ---
@@ -119,6 +121,7 @@ class ShopifyAPI:
             return results
         return []
 
+    #MARK: _start_bulk_query_
     def _start_bulk_query_(self, inner_query: str) -> str:
         ''':class:`~integration_platform.connectors.shopify.ShopifyAPI`.:meth:`~integration_platform.connectors.shopify.ShopifyAPI._start_bulk_query_`
         ---
@@ -160,6 +163,7 @@ class ShopifyAPI:
         operation_id = result['bulkOperation']['id']
         return operation_id
     
+    #MARK: _wait_for_bulk_query_
     def _wait_for_bulk_query_(self, poll_seconds: int = 10, timeout: int = 3600) -> str | None:
         ''':class:`~integration_platform.connectors.shopify.ShopifyAPI`.:meth:`~integration_platform.connectors.shopify.ShopifyAPI._wait_for_bulk_query_`
         ---
@@ -206,6 +210,7 @@ class ShopifyAPI:
             time.sleep(poll_seconds)
         raise TimeoutError('Bulk op did not finish in time')
     
+    #MARK: _download_bulk_results_
     def _download_bulk_results_(self, url: str) -> list[dict]:
         ''':class:`~integration_platform.connectors.shopify.ShopifyAPI`.:meth:`~integration_platform.connectors.shopify.ShopifyAPI._download_bulk_results_`
         ---

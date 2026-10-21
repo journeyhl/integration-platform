@@ -7,6 +7,31 @@ from integration_platform.connectors import HubSpotAPI
 
 
 class HubspotContacts(Pipeline):
+    '''__replace_with_full_sphinx_reference
+    ---
+    
+    ## Initialization
+
+    Put_details_of_init_here
+
+    <hr>
+
+    ## Extraction
+    
+    Put_details_of_extract_here
+
+    <hr>
+
+    ## Transformation
+
+    Put_details_of_transform_here
+
+    <hr>
+
+    ## Load
+
+    Put_details_of_load_here
+    '''
     def __init__(self, function: str):
         super().__init__(pipeline_name='hubspot-properties', function=function)
         self.hubapi = HubSpotAPI(self)

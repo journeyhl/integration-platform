@@ -72,12 +72,12 @@ class CriteoAPI:
             "Content-Type": "application/x-www-form-urlencoded"
         }
         self.session = requests.Session()
-        self.token = self._auth()
+        self.token = self._auth_()
 
         pass
 
-    
-    def _auth(self):
+    #MARK: _auth_
+    def _auth_(self):
         """`_auth`(self)
         ---
         <hr>
@@ -117,6 +117,7 @@ class CriteoAPI:
         return token
     
 
+    #MARK: fetch_campaign_data
     def fetch_campaign_data(self) -> pl.DataFrame:
         '''`fetch_campaign_data`(self)
         ---
