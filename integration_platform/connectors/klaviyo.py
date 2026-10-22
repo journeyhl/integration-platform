@@ -162,11 +162,38 @@ class KlaviyoAPI:
         bp = 'here'
         return parsed_profiles
 
+    #MARK: create_or_update_profile
     def create_or_update_profile(self, payload: dict):
+        ''':class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.create_or_update_profile`
+        ---
+        
+        Given a profile payload, send it to klaviyo to update the profile if it exists, or create if it doesn't
+        
+        Parameters
+        ---
+        :param (*dict*) `payload`: Profile payload to be posted to Klaviyo
+        
+        Returns
+        ---
+        :return `response` (_type_): _description_
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.load.klaviyo_data_push.Load`.:meth:`~integration_platform.load.klaviyo_data_push.Load._load_customer_records_`
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI._post_data_`
+        
+          - Method that sends payload to Klaviyo
+        '''        
         url = 'https://a.klaviyo.com/api/profile-import'
         response = self._post_data_(url=url, payload=payload)
         return response
-
+    
+    #MARK: subscribe_profiles
     def subscribe_profiles(self, payload: dict):
         url = 'https://a.klaviyo.com/api/profile-subscription-bulk-create-jobs'
         response = self._post_data_(url=url, payload=payload)

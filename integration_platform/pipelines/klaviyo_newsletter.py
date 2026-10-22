@@ -5,6 +5,35 @@ from integration_platform.connectors.klaviyo import KlaviyoAPI
 from integration_platform.transform.klaviyo_newsletter import Transform
 import polars as pl
 class KlaviyoNewsletter(Pipeline):
+    ''':class:`~integration_platform.pipelines.klaviyo_newsletter.KlaviyoNewsletter`
+    ---
+
+    Loads Klaviyo profile data to db_CentralStore
+    
+    ## Initialization
+
+    Sets up: :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`, transformer, is_newsletter, filter_if_not_newsletter, cutoff and cutoff_str
+    <hr>
+
+    ## Extraction
+    
+    Pulls profiles and details from Klaviyo. Depending on if is_newsletter is True or False, it'll look at only the members of the Newsletter list, or all profiles.
+
+    <hr>
+
+    ## Transformation
+
+    Splits up each profile from Klaviyo into three dicts, one for header level data, one for properties and one for subscriptions. Adds each profile's dicts to lists
+
+    <hr>
+
+    ## Load
+
+    Loads to db_CentralStore via merge
+    - klaviyo.ProfileHeader
+    - klaviyo.ProfileProperties
+    - klaviyo.ProfileSubscriptions
+    '''
     def __init__(self, function: str, is_newsletter: bool = True, filter_if_not_newsletter: str = ''):
         super().__init__('KlaviyoNewsletter', function)
         self.klaviyo = KlaviyoAPI(self)
@@ -40,7 +69,7 @@ class KlaviyoNewsletter(Pipeline):
         self.centralstore.reconnect()
         for i, (table, rows) in enumerate(data_transformed.items()):
             bp = 'here'
-            self.centralstore.merge_table_paginated(table_name=table, data=rows, page_size=500)
+            self.centralstore.merge_table_paginated(table_name=table, data=rows, page_size=100)
         return data_transformed
 
     def log_results(self, data_loaded):

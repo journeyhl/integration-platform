@@ -5,28 +5,46 @@ from integration_platform.connectors.klaviyo import KlaviyoAPI
 from integration_platform.transform.klaviyo_data_push import Transform
 from integration_platform.load.klaviyo_data_push import Load
 class KlaviyoDataPush(Pipeline):
-    '''
-    ## Situation
-        Using the broadened marketing data I've made available from the Newsletter pipeline, we want to now make sure we are creating profiles and updating data where available within klaviyo
+    ''':class:`~integration_platform.pipelines.klaviyo_data_push.KlaviyoDataPush`
+    ---
     
+    ## Initialization
+
+    Sets up KlavioAPI, transformer and loader
+
     <hr>
 
-    ## Task
-        Design a process to create and update profiles in klaviyo.
-        We have a limit of profiles before we incur increased costs, must stay within threshold.
+    ## Extraction
     
+    Queries db_CentralStore for all HubspotCustomers with a populated email value and joins to klavio schema tables twice, once on phone and email
+
     <hr>
-    
-    ## Action
-        Wrote query pulling all data from the table populated via :class:`~integration_platform.pipelines.ucmi_hubspot.UCMI_HubspotCustomers` using custom built :class:`~integration_platform.connectors.sql.SQLConnector`, 
-        For each row or customer, lookup klaviyo profile by email. If email is found update, if not, create.
-        For updates, compare the existing values in klaviyo with what we have in db. If differenct, update. If there are any db values popualted but not in klaviyo that we can fill, send them
-        For creations, send all non-null db values in klaviyo payload
+
+    ## Transformation
+
+    For each customer, looks up Klavio profile using :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.
+
+    If profile is returned, we'll update, if not, we create.
+
+    For each updated customer, we compare all the `attributes` & `properties` values from Klaviyo against what we have in our db
+
+    If there's a difference, determine if it's significant enough to warrant change. Do so for full response from klavio
+
+    Next, for all customers, check if there's any data in the database that we don't have in klavio. If there is, add it to the payload. If a value already exists, make sure it differs, then add
+
+    Finally, check the subscription/consent values from Klaviyo and the database. If the database has it that the customer has consented for SMS or email marketing, add to payload to send to Klaviyo for consent update
+
     <hr>
-    
-    ## Result
-        
+
+    ## Load
+
+    Filter out those customers who already existed, but don't have any fields to be updated.
+
+    For each customer to be created or updated, do so via :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.create_or_update_profile`
+
+    If any customers need their consent updated, send bulk consent update via :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.subscribe_profiles`
     '''
+    
     def __init__(self, function: str):
         super().__init__('KlaviyoDataPush', function)
         self.klaviyo = KlaviyoAPI(self)

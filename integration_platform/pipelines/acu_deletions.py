@@ -3,13 +3,17 @@ import polars as pl
 from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 
 class AcumaticaDeletions(Pipeline):
-    '''`AcumaticaDeletions`(Pipeline)
+    ''':class:`~integration_platform.pipelines.acu_deletions.AcumaticaDeletions`
     ---
+    
+    ## Initialization
+
+    Sets up AcumaticaDb
+
     <hr>
+
+    ## Extraction
     
-    Pipeline to extract deleted records from **SOOrder**, **SOLine**, **SOOrderShipment** and **SOShipment** in *Acumatica* and load them to ***db_CentralStore***
-    
-    # Extraction
      - Returns records from **AcumaticaDb** that were deleted in Acumatica within the past two hours from tracked tables with triggers enabled
      - Tracked Tables:
         - **SOOrderDeletions**
@@ -17,22 +21,21 @@ class AcumaticaDeletions(Pipeline):
         - **SOShipmentDeletions**
         - **SOOrderShipmentDeletions**
 
+    <hr>
 
-    # Transformation
-     - Transforms *polars DataFrames* retrieved by :meth:`~extract` to a list of dicts
+    ## Transformation
 
-    # Load
+    Transforms *polars DataFrames* retrieved by :meth:`~extract` to a list of dicts
+
+    <hr>
+
+    ## Load
+
      - Using :class:`~connectors.sql.SQLConnector`.:meth:`~connectors.sql.SQLConnector.checked_upsert`, upsert to respective **_util** table
         - **SOOrderDeletions** -> ***_util.SOOrderDeletions***
         - **SOLineDeletions** -> ***_util.SOLineDeletions***
         - **SOShipmentDeletions** -> ***_util.SOShipmentDeletions***
         - **SOOrderShipmentDeletions** -> ***_util.SOOrderShipmentDeletions***
-
-    # Clean
-     - After deletions are loaded, check **acu.SalesOrders** and **acu.Shipments** against our deletion tables and reconcile.
-
-    # Results Logging
-     - None needed
     '''
     def __init__(self, function: str, env: str = 'prod'):
         super().__init__(pipeline_name='acumatica-deletions', function=function, env=env)

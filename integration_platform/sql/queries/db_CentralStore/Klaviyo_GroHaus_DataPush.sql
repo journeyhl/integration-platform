@@ -601,7 +601,7 @@ with TopLevel as(
 	where (pe.Email is not null or pp.Email is not null)
 	and c.Marketingcontactstatus in('Marketing Contact', 'true')
 	and c.Email is not null and right(c.Email, 8) != '@zap.com'
-	-- and (pe.Updated <= dateadd(hour, -6, getdate()) or pe.updated is null)
+	and (pe.Updated <= dateadd(hour, -6, getdate()) or pe.updated is null)
 -- and ppp.Consent is not null and pes.Mkt_Email_Consent = 'SUBSCRIBED' and pes.Mkt_SMS_CanReceiveSMS = 1
 )
 select distinct t.*
@@ -617,3 +617,4 @@ select distinct t.*
 from TopLevel t
 left join analytics.JHL_D2CCustomerOrderHistory d2c_last on t.PhoneNumberFmt = d2c_last.Phone and d2c_last.OrdersDesc_Phone = 1 and d2c_last.PartProdAccFee != 'No Orders'
 left join analytics.JHL_D2CCustomerOrderHistory d2c_first on t.PhoneNumberFmt = d2c_first.Phone and d2c_first.OrdersAsc_Phone = 1 and d2c_first.PartProdAccFee != 'No Orders'
+where t.Email != ''

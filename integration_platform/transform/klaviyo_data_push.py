@@ -158,7 +158,6 @@ class Transform:
             customer_records.append(customer_record)
         return customer_records
 
-    
     #MARK: __format_payload__
     def __format_payload__(self, action: Literal['Update', 'Create'], customer: dict, payload: dict) -> dict:
         ''':class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform.__format_payload__`
@@ -199,10 +198,12 @@ class Transform:
         klaviyo_response = None
         customer_record = {}
         phone = customer['PhoneNumber'] or customer['RawPhoneNumber_email']
-        phone = phone if phone[:2] == '+1' else f'+1{phone}'
+        if phone:
+            phone = phone if phone[:2] == '+1' else f'+1{phone}'
+        payload['data']['attributes']['phone_number'] = phone
 
         payload['data']['attributes']['email'] = customer['Email']
-        payload['data']['attributes']['phone_number'] = phone
+
         if action == 'Update':
             customer_record = self._format_update_payload_(customer=customer, payload=payload)
             fields_changed = customer_record['fields_changed'] if customer_record['fields_changed'] != [] else None
@@ -348,6 +349,8 @@ class Transform:
                                 payload = self._add_profile_datapoint_(payload=payload, attr_or_prop=attr_or_prop, was_list=was_list, key=key, db_value=db_value, old_value=value)
                                 continue
                         elif key == 'Hubspot Record ID':
+                            if 'e+' in db_value.lower():
+                                continue
                             payload = self._add_profile_datapoint_(payload=payload, attr_or_prop=attr_or_prop, was_list=was_list, key=key, db_value=db_value, old_value=value)
                             continue
                         elif key == 'phone_number':
@@ -645,7 +648,7 @@ class Transform:
             value = value.lower()
         if klaviyo_value != value:
             if match_key == 'phone_number':
-                if klaviyo_value and value in klaviyo_value: #If the db's tfn is within klaviyos. (db doesn't have +1 and klaviyo does)
+                if klaviyo_value and value in klaviyo_value: #If the db's TFN value is within klaviyo's TFN value. (db doesn't have +1 and klaviyo does)
                     return payload_section, matched
             elif 'zip' in match_key.lower():
                 v = value[:5]
@@ -680,9 +683,9 @@ class Transform:
             'AcceptsMarketing_phone': None,
         }
         for customer in customer_records:
-            customer['db_consent'] = consent_columns
+            customer['db_consent'] = dict(consent_columns)
             for key, value in customer['db'].items():
-                if key in list(consent_columns.keys()) and value:
+                if key in list(consent_columns.keys()):
                     customer['db_consent'][key] = value
         return customer_records
 
@@ -703,9 +706,9 @@ class Transform:
 
             k_email_consent = klaviyo['email']['marketing']['can_receive_email_marketing'] == True and klaviyo['email']['marketing']['consent'] == 'SUBSCRIBED'
             db_email_consent = (
-                (db['Mkt_Email_CanReceiveEmail_phone'] == True and db['Mkt_Email_Consent_phone'] == 'SUBSCRIBED')
+                (db['Mkt_Email_Consent_phone'] == 'SUBSCRIBED' and db['Mkt_Email_CanReceiveEmail_phone'] == True)
                 or
-                (db['Mkt_Email_CanReceiveEmail_email'] == True and db['Mkt_Email_Consent_email'] == 'SUBSCRIBED')
+                (db['Mkt_Email_Consent_email'] == 'SUBSCRIBED' and db['Mkt_Email_CanReceiveEmail_email'] == True)
             )
 
             k_sms_consent = klaviyo['sms']['marketing']['can_receive_sms_marketing'] == True and klaviyo['sms']['marketing']['consent'] == 'SUBSCRIBED'
@@ -713,15 +716,9 @@ class Transform:
             db_sms_consent = (
                 (db['Mkt_SMS_CanReceiveSMS_phone'] == True and db['Mkt_SMS_Consent_phone'] == 'SUBSCRIBED')
                 or
-                (db['Mkt_Email_CanReceiveEmail_email'] == True and db['Mkt_SMS_Consent_email'] == 'SUBSCRIBED')
+                (db['Mkt_SMS_CanReceiveSMS_email'] == True and db['Mkt_SMS_Consent_email'] == 'SUBSCRIBED')
 
             )
-
-            
-            db_email_1 = db['Mkt_Email_CanReceiveEmail_phone'] == True and db['Mkt_Email_Consent_phone'] == 'SUBSCRIBED'
-            db_email_2 = db['Mkt_Email_CanReceiveEmail_email'] == True and db['Mkt_Email_Consent_email'] == 'SUBSCRIBED'
-            db_sms_1 = db['Mkt_SMS_CanReceiveSMS_phone'] == True and db['Mkt_SMS_Consent_phone'] == 'SUBSCRIBED'
-            db_sms_2 = db['Mkt_SMS_CanReceiveSMS_email'] == True and db['Mkt_SMS_Consent_email'] == 'SUBSCRIBED'
 
 
             consent_header = self._format_consent_header_(customer=customer)

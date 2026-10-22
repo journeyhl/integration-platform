@@ -19,12 +19,17 @@ class Transform:
     #MARK: landing
     def landing(self, data_extract):
         data_transformed = self.profiles_landing(data_extract['profiles'])
-        now = datetime.now(tz=ZoneInfo('America/New_York'))
-        
+        data_transformed = self._final_tuning_(data_extract=data_extract, data_transformed=data_transformed)
+        return data_transformed
+
+    #MARK: _final_tuning_
+    def _final_tuning_(self, data_extract, data_transformed):
+        now = datetime.now(tz=ZoneInfo('America/New_York'))                
         add_to_list = {'InsertedDT': now, 'LastChecked': data_extract['LastChecked'], 'IsNewsletter': data_extract['is_newsletter']}
         self.pipeline.default_loader.add_to_list(ldata=data_transformed['klaviyo.ProfileHeader'], additions=add_to_list)
         self.pipeline.default_loader.add_to_list(ldata=data_transformed['klaviyo.ProfileProperties'], additions=add_to_list)
         self.pipeline.default_loader.add_to_list(ldata=data_transformed['klaviyo.ProfileSubscriptions'], additions=add_to_list)
+
         for row in data_transformed['klaviyo.ProfileProperties']:
             for k, v in row.items():
                 if  isinstance(v, str) and '%' in v:
