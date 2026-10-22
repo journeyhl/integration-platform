@@ -5,36 +5,50 @@ from integration_platform.connectors.klaviyo import KlaviyoAPI
 from integration_platform.transform.klaviyo_newsletter import Transform
 import polars as pl
 class KlaviyoNewsletter(Pipeline):
-    ''':class:`~integration_platform.pipelines.klaviyo_newsletter.KlaviyoNewsletter`
-    ---
-
-    Loads Klaviyo profile data to db_CentralStore
-    
-    ## Initialization
-
-    Sets up: :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`, transformer, is_newsletter, filter_if_not_newsletter, cutoff and cutoff_str
-    <hr>
-
-    ## Extraction
-    
-    Pulls profiles and details from Klaviyo. Depending on if is_newsletter is True or False, it'll look at only the members of the Newsletter list, or all profiles.
-
-    <hr>
-
-    ## Transformation
-
-    Splits up each profile from Klaviyo into three dicts, one for header level data, one for properties and one for subscriptions. Adds each profile's dicts to lists
-
-    <hr>
-
-    ## Load
-
-    Loads to db_CentralStore via merge
-    - klaviyo.ProfileHeader
-    - klaviyo.ProfileProperties
-    - klaviyo.ProfileSubscriptions
-    '''
     def __init__(self, function: str, is_newsletter: bool = True, filter_if_not_newsletter: str = ''):
+        ''':class:`~integration_platform.pipelines.klaviyo_newsletter.KlaviyoNewsletter`
+        ---
+
+        Loads Klaviyo profile data to db_CentralStore
+        
+        ## Initialization
+
+        :param (*str*) `function`: name of Azure Function        
+                
+           ### ***Optional***
+        :param (*bool = True*) `is_newsletter`: Pull records only from Newsletter list?
+
+        :param (*str = ''*) `filter_if_not_newsletter`: If pulling all profiles, filter that should be applied
+
+
+        ### Sets
+
+         - #### self.:attr:`~integration_platform.pipelines.klaviyo_newsletter.KlaviyoNewsletter.klaviyo`:  :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`
+         - #### self.:attr:`~integration_platform.pipelines.klaviyo_newsletter.KlaviyoNewsletter.transformer`: :class:`~integration_platform.transform.klaviyo_newsletter.Transform`
+         - #### self.:attr:`~integration_platform.pipelines.klaviyo_newsletter.KlaviyoNewsletter.cutoff`: datetime.now() - 7 days
+         - #### self.:attr:`~integration_platform.pipelines.klaviyo_newsletter.KlaviyoNewsletter.cutoff_str`: self.cutoff as a string
+
+        <hr>
+
+        ## Extraction
+        
+        Pulls profiles and details from Klaviyo. Depending on if is_newsletter is True or False, it'll look at only the members of the Newsletter list, or all profiles.
+
+        <hr>
+
+        ## Transformation
+
+        Splits up each profile from Klaviyo into three dicts, one for header level data, one for properties and one for subscriptions. Adds each profile's dicts to lists
+
+        <hr>
+
+        ## Load
+
+        Loads to db_CentralStore via merge
+        - klaviyo.ProfileHeader
+        - klaviyo.ProfileProperties
+        - klaviyo.ProfileSubscriptions
+        '''
         super().__init__('KlaviyoNewsletter', function)
         self.klaviyo = KlaviyoAPI(self)
         self.transformer = Transform(self)

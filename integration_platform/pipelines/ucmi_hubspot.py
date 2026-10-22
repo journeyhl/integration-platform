@@ -7,32 +7,32 @@ from zoneinfo import ZoneInfo
 
 
 class UCMI_HubspotCustomers(Pipeline):
-    ''':class:`~integration_platform.pipelines.ucmi_hubspot.UCMI_HubspotCustomers`
-    ---
-    
-    ## Initialization
-
-    Sets Hubspot API connector and transformer
-
-    <hr>
-
-    ## Extraction
-    
-    Using the :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI` connector, pulls contacts from a given list (Phone or Email known - Recent) and details of all contacts
-
-    <hr>
-
-    ## Transformation
-
-    Parses all contact records and formats accordingly for load to db
-
-    <hr>
-
-    ## Load
-
-    Loads contact records from Hubspot list to ucmiraw.HubspotCustomers via merge
-    '''
     def __init__(self, function: str, env: str='prod'):
+        ''':class:`~integration_platform.pipelines.ucmi_hubspot.UCMI_HubspotCustomers`
+        ---
+        
+        ## Initialization
+
+        Sets Hubspot API connector and transformer
+
+        <hr>
+
+        ## Extraction
+        
+        Using the :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI` connector, pulls contacts from a given list (Phone or Email known - Recent) and details of all contacts
+
+        <hr>
+
+        ## Transformation
+
+        Parses all contact records and formats accordingly for load to db
+
+        <hr>
+
+        ## Load
+
+        Loads contact records from Hubspot list to ucmiraw.HubspotCustomers via merge
+        '''
         super().__init__(pipeline_name='ucmi-hubspot-customers', function=function, env=env)
         self.hubspot = HubSpotAPI(self)
         self.transformer = TransformPhase2(self)

@@ -6,41 +6,44 @@ from zoneinfo import ZoneInfo
 import polars as pl
 from integration_platform.connectors.sql import SQLConnector, AcumaticaDbQueries
 class AcuToDbcB2BCollections(Pipeline):
-    ''':class:`~integration_platform.pipelines.acu_to_dbc_b2b_collections.AcuToDbcB2BCollections`
-    ---
-    
-    ## Initialization
+    def __init__(self, function, env: str = 'prod'):        
+        ''':class:`~integration_platform.pipelines.acu_to_dbc_b2b_collections.AcuToDbcB2BCollections`
+        ---
+        
+        ## Initialization
 
-    Sets transformer, 
+        ### Sets
 
-    <hr>
+         - #### self.:attr:`~integration_platform.pipelines.acu_to_dbc_b2b_collections.AcuToDbcB2BCollections.transformer`:  :class:`~integration_platform.transform.acu_to_dbc_b2b_collections.Transform`
+         - #### self.:attr:`~integration_platform.pipelines.acu_to_dbc_b2b_collections.AcuToDbcB2BCollections.acudb`: :class:`~integration_platform.connectors.sql.SQLConnector`
 
-    ## Extraction
-    
-    Pulls all open Accounts Receivable documents belonging to B2B customers and each document's outstanding balance
+        <hr>
 
-    <hr>
+        ## Extraction
+        
+        Pulls all open Accounts Receivable documents belonging to B2B customers and each document's outstanding balance
 
-    ## Transformation
+        <hr>
 
-    Summarized the outstanding balance by Customer and also Salesperson, then splits into buckets based on how overdue that balance is
+        ## Transformation
 
-    <hr>
+        Summarized the outstanding balance by Customer and also Salesperson, then splits into buckets based on how overdue that balance is
 
-    ## Load
+        <hr>
 
-    Loads to db_CentralStore via merge:
+        ## Load
 
-    - analytics.JHL_B2BCollectionsDetail
-    - analytics.JHL_B2BCollectionsSummary
-    - analytics.JHL_B2BCollectionsSummary_Snapshot
-    - analytics.JHL_B2BCollectionsByStatus
-    - analytics.JHL_B2BCollectionsByStatus_Snapshot
-    - analytics.JHL_B2BCollectionsBySalesRep
-    - analytics.JHL_B2BCollectionsBySalesRep_Snapshot
+        Loads to db_CentralStore via merge:
 
-    '''
-    def __init__(self, function, env: str = 'prod'):
+        - analytics.JHL_B2BCollectionsDetail
+        - analytics.JHL_B2BCollectionsSummary
+        - analytics.JHL_B2BCollectionsSummary_Snapshot
+        - analytics.JHL_B2BCollectionsByStatus
+        - analytics.JHL_B2BCollectionsByStatus_Snapshot
+        - analytics.JHL_B2BCollectionsBySalesRep
+        - analytics.JHL_B2BCollectionsBySalesRep_Snapshot
+
+        '''
         super().__init__(pipeline_name='acu-to-dbc-b2b-collections', function=function, env=env)
         self.transformer = Transform(self)
         self.acudb: SQLConnector[AcumaticaDbQueries] = SQLConnector(

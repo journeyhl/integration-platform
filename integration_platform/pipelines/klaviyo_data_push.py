@@ -4,48 +4,53 @@ from zoneinfo import ZoneInfo
 from integration_platform.connectors.klaviyo import KlaviyoAPI
 from integration_platform.transform.klaviyo_data_push import Transform
 from integration_platform.load.klaviyo_data_push import Load
-class KlaviyoDataPush(Pipeline):
-    ''':class:`~integration_platform.pipelines.klaviyo_data_push.KlaviyoDataPush`
-    ---
-    
-    ## Initialization
+class KlaviyoDataPush(Pipeline):    
+    def __init__(self, function: str):        
+        ''':class:`~integration_platform.pipelines.klaviyo_data_push.KlaviyoDataPush`
+        ---
+        
+        ## Initialization
 
-    Sets up KlavioAPI, transformer and loader
+        Sets up KlavioAPI, transformer and loader
 
-    <hr>
+        ### Sets
 
-    ## Extraction
-    
-    Queries db_CentralStore for all HubspotCustomers with a populated email value and joins to klavio schema tables twice, once on phone and email
+         - #### self.:attr:`~integration_platform.pipelines.klaviyo_data_push.KlaviyoDataPush.klaviyo`:  :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`
+         - #### self.:attr:`~integration_platform.pipelines.klaviyo_data_push.KlaviyoDataPush.transformer`: :class:`~integration_platform.transform.klaviyo_data_push.Transform`
+         - #### self.:attr:`~integration_platform.pipelines.klaviyo_data_push.KlaviyoDataPush.loader`: :class:`~integration_platform.load.klaviyo_data_push.Load`
 
-    <hr>
+        <hr>
 
-    ## Transformation
+        ## Extraction
+        
+        Queries db_CentralStore for all HubspotCustomers with a populated email value and joins to klavio schema tables twice, once on phone and email
 
-    For each customer, looks up Klavio profile using :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.
+        <hr>
 
-    If profile is returned, we'll update, if not, we create.
+        ## Transformation
 
-    For each updated customer, we compare all the `attributes` & `properties` values from Klaviyo against what we have in our db
+        For each customer, looks up Klavio profile using :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.
 
-    If there's a difference, determine if it's significant enough to warrant change. Do so for full response from klavio
+        If profile is returned, we'll update, if not, we create.
 
-    Next, for all customers, check if there's any data in the database that we don't have in klavio. If there is, add it to the payload. If a value already exists, make sure it differs, then add
+        For each updated customer, we compare all the `attributes` & `properties` values from Klaviyo against what we have in our db
 
-    Finally, check the subscription/consent values from Klaviyo and the database. If the database has it that the customer has consented for SMS or email marketing, add to payload to send to Klaviyo for consent update
+        If there's a difference, determine if it's significant enough to warrant change. Do so for full response from klavio
 
-    <hr>
+        Next, for all customers, check if there's any data in the database that we don't have in klavio. If there is, add it to the payload. If a value already exists, make sure it differs, then add
 
-    ## Load
+        Finally, check the subscription/consent values from Klaviyo and the database. If the database has it that the customer has consented for SMS or email marketing, add to payload to send to Klaviyo for consent update
 
-    Filter out those customers who already existed, but don't have any fields to be updated.
+        <hr>
 
-    For each customer to be created or updated, do so via :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.create_or_update_profile`
+        ## Load
 
-    If any customers need their consent updated, send bulk consent update via :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.subscribe_profiles`
-    '''
-    
-    def __init__(self, function: str):
+        Filter out those customers who already existed, but don't have any fields to be updated.
+
+        For each customer to be created or updated, do so via :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.create_or_update_profile`
+
+        If any customers need their consent updated, send bulk consent update via :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.subscribe_profiles`
+        '''
         super().__init__('KlaviyoDataPush', function)
         self.klaviyo = KlaviyoAPI(self)
         self.transformer = Transform(self)

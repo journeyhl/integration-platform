@@ -38,6 +38,7 @@ class Transform:
         df_dt = pl.DataFrame(data_transformed['klaviyo.ProfileHeader'], infer_schema_length=None)
         df_extract_db = df_dt.join(self.pipeline.df_newsletter, on='ID', how='left')
         extract_db = df_extract_db.to_dicts()
+        #TODO: note for posterity, may need to change
         for record in extract_db:
             if record['IsNewsletter_right'] == True:
                 record['IsNewsletter'] = True

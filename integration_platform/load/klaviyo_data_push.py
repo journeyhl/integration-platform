@@ -15,6 +15,7 @@ class Load:
         bp = 'here'
 
 
+    #MARK: landing_loader
     def landing_loader(self, data_transformed: dict):
         ''':class:`~integration_platform.load.klaviyo_data_push.Load`.:meth:`~integration_platform.load.klaviyo_data_push.Load.landing_loader`
         ---
@@ -52,6 +53,7 @@ class Load:
 
 
 
+    #MARK: _load_customer_records_
     def _load_customer_records_(self, customer_records: list):
         ''':class:`~integration_platform.load.klaviyo_data_push.Load`.:meth:`~integration_platform.load.klaviyo_data_push.Load._load_customer_records_`
         ---
@@ -95,6 +97,8 @@ class Load:
         self.logger.info(f'Profiles updated: {updated}/{len(customer_records)}')
         self.logger.info(f'Profiles skipped: {len(customer_records)-len(updated_or_created)}/{len(customer_records)}')
         return updated_or_created
+
+    #MARK: _load_consent_updates_
     def _load_consent_updates_(self, consent_updates: dict):
         ''':class:`~integration_platform.load.klaviyo_data_push.Load`.:meth:`~integration_platform.load.klaviyo_data_push.Load._load_consent_updates_`
         ---

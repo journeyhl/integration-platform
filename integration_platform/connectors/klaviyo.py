@@ -195,6 +195,33 @@ class KlaviyoAPI:
     
     #MARK: subscribe_profiles
     def subscribe_profiles(self, payload: dict):
+        ''':class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.subscribe_profiles`
+        ---
+        
+        Bulk subscribes/consents all the profiles specified in *payload* with each's respective marketing config
+        
+        Parameters
+        ---
+        :param (*dict*) `payload`: profiles to send to klaviyo to consent/subscribe to notifications
+        
+                
+           ### ***Optional***
+        :param (*str = ''*) `log_prefix`: String to prepend to any logger outputs. Usually used when iterating, like `'keyvalue1, 1/150: '`, `'keyvalue2, 2/150: '` and so on 
+        
+        Returns
+        ---
+        :return `response` (requests.Response): response from Klaviyo API
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.load.klaviyo_data_push.Load`.:meth:`~integration_platform.load.klaviyo_data_push.Load._load_consent_updates_`
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI._post_data_`
+        '''        
         url = 'https://a.klaviyo.com/api/profile-subscription-bulk-create-jobs'
         response = self._post_data_(url=url, payload=payload)
         return response
@@ -232,6 +259,32 @@ class KlaviyoAPI:
         return parsed_response
 
     def _post_data_(self, url: str, payload: dict):
+        ''':class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI._post_data_`
+        ---
+        
+        Sends POST command to Klaviyo api with payload
+        
+        Parameters
+        ---
+        :param (*str*) `url`: url to send payload to
+        :param (*dict*) `payload`: data to send to Klaviyo API
+        
+        Returns
+        ---
+        :return `response` (requests.Reponse): Response from Klaviyo API POST operation
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.create_or_update_profile`
+        
+          - Creates or updates Klaviyo profile
+        
+         ### :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.subscribe_profiles`
+           
+          - Subscribes a group of klaviyo profiles
+        '''        
         pl = json.dumps(payload)
         response = requests.post(url=url, headers=self.headers, data=pl)
         t_response = response.text
