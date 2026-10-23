@@ -322,6 +322,7 @@ class KlaviyoAPI:
 
     #MARK: _set_mappings_
     def _set_mappings_(self):
+        #MARK: map_attributes_update
         self.map_attributes_update = {
             'id': 'ID',
             'phone_number': 'PhoneNumber',     # parsed via parse_phone
@@ -340,6 +341,8 @@ class KlaviyoAPI:
             'joined_group_at': 'JoinedGroupAt',
             'last_event_date': 'LastEventDate',
         }
+        
+        #MARK: map_attributes_create
         self.map_attributes_create = {
             'ID': 'id',
             'PhoneNumber': 'phone_number',
@@ -357,6 +360,7 @@ class KlaviyoAPI:
             'LastEventDate': 'last_event_date',
         }
 
+        #MARK: map_subscriptions_update
         self.map_subscriptions_update = {
             'email': {
                 'marketing': {
@@ -417,6 +421,7 @@ class KlaviyoAPI:
             },
         }
 
+        #MARK: map_location_create
         self.map_location_create = {
             'Address1': 'address1',
             'Address2': 'address2',
@@ -426,6 +431,7 @@ class KlaviyoAPI:
             'Zip': 'zip',
             
         }
+        #MARK: map_location_update
         self.map_location_update = {
             'address1': 'Address1',
             'address2': 'Address2',
@@ -434,7 +440,8 @@ class KlaviyoAPI:
             'region': 'State',
             'zip': 'Zip',
         }
-        
+
+        #MARK: map_properties_update
         self.map_properties_update = {
             'Accepts Marketing': 'AcceptsMarketing',
             'Shopify Tags': 'ShopifyTags',
@@ -533,6 +540,7 @@ class KlaviyoAPI:
             'utm_campaign': 'UTMCampaign', 'UTM Campaign': 'UTMCampaign',
             'utm_term': 'UTMTerm',       'UTM Term': 'UTMTerm',
         }
+        #MARK: map_properties_create
         self.map_properties_create = {
             'AcceptsMarketing': 'Accepts Marketing',
             'ShopifyTags': 'Shopify Tags',
