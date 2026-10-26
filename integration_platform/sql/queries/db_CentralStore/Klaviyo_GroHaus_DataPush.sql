@@ -60,7 +60,7 @@ with TopLevel as(
 		, pep.OkendoGivenName OkendoGivenName_email
 		, pep.Product Product_email
 		, pep.UTMContent UTMContent_email
-		, pep.UtmTerm UtmTerm_email
+		, pep.UtmTerm UTMTerm_email
 		, pep.Company Company_email
 		, pep.HubspotOriginalSource HubspotOriginalSource_email
 		, pep.HubspotOriginalSourceDrillDown1 HubspotOriginalSourceDrillDown1_email
@@ -205,7 +205,7 @@ with TopLevel as(
      , ppp.OkendoGivenName OkendoGivenName_phone
      , ppp.Product Product_phone
      , ppp.UTMContent UTMContent_phone
-     , ppp.UtmTerm UtmTerm_phone
+     , ppp.UtmTerm UTMTerm_phone
      , ppp.Company Company_phone
      , ppp.HubspotOriginalSource HubspotOriginalSource_phone
      , ppp.HubspotOriginalSourceDrillDown1 HubspotOriginalSourceDrillDown1_phone
@@ -301,7 +301,7 @@ with TopLevel as(
 	and c.Email is not null and right(c.Email, 8) != '@zap.com'
 	and (pe.Updated <= dateadd(hour, -6, getdate()) or pe.updated is null)
 	union
-	select distinct top 30 'Update' Action
+	select distinct 'Update' Action
 		, c.*
 		, pe.PhoneNumber PhoneNumber_email
 		, pe.Email Email_email
@@ -362,7 +362,7 @@ with TopLevel as(
 		, pep.OkendoGivenName OkendoGivenName_email
 		, pep.Product Product_email
 		, pep.UTMContent UTMContent_email
-		, pep.UtmTerm UtmTerm_email
+		, pep.UtmTerm UTMTerm_email
 		, pep.Company Company_email
 		, pep.HubspotOriginalSource HubspotOriginalSource_email
 		, pep.HubspotOriginalSourceDrillDown1 HubspotOriginalSourceDrillDown1_email
@@ -507,7 +507,7 @@ with TopLevel as(
      , ppp.OkendoGivenName OkendoGivenName_phone
      , ppp.Product Product_phone
      , ppp.UTMContent UTMContent_phone
-     , ppp.UtmTerm UtmTerm_phone
+     , ppp.UtmTerm UTMTerm_phone
      , ppp.Company Company_phone
      , ppp.HubspotOriginalSource HubspotOriginalSource_phone
      , ppp.HubspotOriginalSourceDrillDown1 HubspotOriginalSourceDrillDown1_phone
@@ -604,17 +604,20 @@ with TopLevel as(
 	and (pe.Updated <= dateadd(hour, -6, getdate()) or pe.updated is null)
 -- and ppp.Consent is not null and pes.Mkt_Email_Consent = 'SUBSCRIBED' and pes.Mkt_SMS_CanReceiveSMS = 1
 )
-select distinct t.*
+select distinct top 50 t.*
 	 , d2c_last.DatePlaced LastPurchaseDate
 	 , d2c_last.ItemClassDesc LastPurchaseItem
 	 , d2c_first.DatePlaced FirstPurchaseDate
 	 , d2c_first.ItemClassDesc FirstPurchaseItem
-	 , case when d2c_last.PartProdAccFee != 'No Orders' then d2c_last.OrdersAsc else 0 end Orders
-	 , coalesce(t.BillingAddress, t.ShippingAddress) AddressLine1
+	 , case when d2c_last.PartProdAccFee != 'No Orders' then d2c_last.OrdersAsc else 0 end NumberOfOrders
+	 , coalesce(t.BillingAddress, t.ShippingAddress) Address1
 	 , coalesce(t.BillingCity, t.ShippingCity) City
 	 , coalesce(t.BillingState, t.ShippingState) State
+	 , coalesce(t.BillingZip, t.ShippingZip) Zip
+	 , t.CompanyName Company
 	 
 from TopLevel t
 left join analytics.JHL_D2CCustomerOrderHistory d2c_last on t.PhoneNumberFmt = d2c_last.Phone and d2c_last.OrdersDesc_Phone = 1 and d2c_last.PartProdAccFee != 'No Orders'
 left join analytics.JHL_D2CCustomerOrderHistory d2c_first on t.PhoneNumberFmt = d2c_first.Phone and d2c_first.OrdersAsc_Phone = 1 and d2c_first.PartProdAccFee != 'No Orders'
 where t.Email != ''
+and d2c_last.DatePlaced is not null

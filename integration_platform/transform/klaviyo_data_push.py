@@ -482,7 +482,7 @@ class Transform:
                 '%Y-%m-%d %H:%M %p',     '%m-%d-%Y %H:%M %p',
                 '%Y/%m/%d %H:%M %p',     '%m/%d/%Y %H:%M %p',
                 '%Y-%m-%dT%H:%M:%S.%fZ', '%m-%d-%YT%H:%M:%S.%fZ',
-                '%m/%d/%Y',
+                '%m/%d/%Y', '%Y-%m-%d'
             ]
             for format in formats:
                 date_value = self.default_transformer.parse_date_str(date_str=klaviyo_date, tries=0, format=format)
@@ -646,6 +646,10 @@ class Transform:
         if isinstance(klaviyo_value, str) and isinstance(value, str):
             klaviyo_value = klaviyo_value.lower()
             value = value.lower()
+        if isinstance(value, (date, datetime)):
+            bp = 'here'
+            format = '%Y-%m-%d' if isinstance(value, date) else '%Y-%m-%dT%H:%M:%S.%fZ'
+            value = value.strftime(format)
         if klaviyo_value != value:
             if match_key == 'phone_number':
                 if klaviyo_value and value in klaviyo_value: #If the db's TFN value is within klaviyo's TFN value. (db doesn't have +1 and klaviyo does)

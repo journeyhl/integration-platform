@@ -443,6 +443,10 @@ class KlaviyoAPI:
 
         #MARK: map_properties_update
         self.map_properties_update = {
+            'FirstPurchaseDate': 'FirstPurchaseDate',
+            'FirstPurchaseItem': 'FirstPurchaseItem',
+            'LastPurchaseDate': 'LastPurchaseDate',
+            'LastPurchaseItem': 'LastPurchaseItem',
             'Accepts Marketing': 'AcceptsMarketing',
             'Shopify Tags': 'ShopifyTags',
             'Date Created': 'DateCreated',
@@ -464,6 +468,7 @@ class KlaviyoAPI:
             '$consent_form_version': 'ConsentFormVersion',
             'Expected Date Of Next Order': 'ExpectedDateOfNextOrder',
             'Shopping For': 'ShoppingFor',
+            'Shopping_For': 'ShoppingFor',
             'Mobility Issues?': 'MobilityIssues',
             'Features': 'Features',
             'Brand': 'Brand',
@@ -495,6 +500,7 @@ class KlaviyoAPI:
             'type_of_first_engagement': 'TypeOfFirstEngagement',
             'lead_source': 'LeadSource',
             'bread_finance_outcome': 'BreadFinanceOutcome',
+            'BREAD Finance Outcome': 'BreadFinanceOutcome',
             'shipping_state': 'ShippingState',
             'shipping_zip': 'ShippingZip',
             'text_opt_in': 'TextOptIn',
@@ -534,6 +540,7 @@ class KlaviyoAPI:
             'Email Content Preference': 'EmailContentPreference',
             'Primary Product User': 'PrimaryProductUser',
             'UTM Content': 'UTMContent',
+            'utm_content': 'UTMContent',
             # set in __do_utms__, each merges two source keys
             'utm_source': 'UTMSource',   'UTM Source': 'UTMSource',
             'utm_medium': 'UTMMedium',   'UTM Medium': 'UTMMedium',
@@ -542,6 +549,10 @@ class KlaviyoAPI:
         }
         #MARK: map_properties_create
         self.map_properties_create = {
+            'FirstPurchaseDate': 'FirstPurchaseDate',
+            'FirstPurchaseItem': 'FirstPurchaseItem',
+            'LastPurchaseDate': 'LastPurchaseDate',
+            'LastPurchaseItem': 'LastPurchaseItem',
             'AcceptsMarketing': 'Accepts Marketing',
             'ShopifyTags': 'Shopify Tags',
             'DateCreated': 'Date Created',
