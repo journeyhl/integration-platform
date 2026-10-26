@@ -1,5 +1,5 @@
 with TopLevel as(
-	select distinct top 10 'Create' Action
+	select distinct 'Create' Action
 		, c.*
 		, pe.PhoneNumber PhoneNumber_email
 		, pe.Email Email_email
@@ -298,8 +298,8 @@ with TopLevel as(
 	left join klaviyo.ProfileSubscriptions pps on pp.ID = pps.ID
 	where (pe.Email is null and pp.PhoneNumber is null and pp.RawPhoneNumber is null)
 	and c.Marketingcontactstatus in('Marketing Contact', 'true')
-	and c.Email is not null and right(c.Email, 8) != '@zap.com'
-	and (pe.Updated <= dateadd(hour, -6, getdate()) or pe.updated is null)
+	and c.Email is not null and right(c.Email, 8) != '@zap.com' and c.email != ''
+	-- and (pe.Updated <= dateadd(hour, -4, getdate()) or pe.updated is null)
 	union
 	select distinct 'Update' Action
 		, c.*
@@ -600,8 +600,8 @@ with TopLevel as(
 	left join klaviyo.ProfileSubscriptions pps on pp.ID = pps.ID
 	where (pe.Email is not null or pp.Email is not null)
 	and c.Marketingcontactstatus in('Marketing Contact', 'true')
-	and c.Email is not null and right(c.Email, 8) != '@zap.com'
-	and (pe.Updated <= dateadd(hour, -6, getdate()) or pe.updated is null)
+	and c.Email is not null and right(c.Email, 8) != '@zap.com' and c.email != ''
+	and (pe.Updated <= dateadd(hour, -4, getdate()) or pe.updated is null)
 -- and ppp.Consent is not null and pes.Mkt_Email_Consent = 'SUBSCRIBED' and pes.Mkt_SMS_CanReceiveSMS = 1
 )
 select distinct top 50 t.*
@@ -620,4 +620,5 @@ from TopLevel t
 left join analytics.JHL_D2CCustomerOrderHistory d2c_last on t.PhoneNumberFmt = d2c_last.Phone and d2c_last.OrdersDesc_Phone = 1 and d2c_last.PartProdAccFee != 'No Orders'
 left join analytics.JHL_D2CCustomerOrderHistory d2c_first on t.PhoneNumberFmt = d2c_first.Phone and d2c_first.OrdersAsc_Phone = 1 and d2c_first.PartProdAccFee != 'No Orders'
 where t.Email != ''
-and d2c_last.DatePlaced is not null
+-- and d2c_last.DatePlaced is not null
+order by LastActivityDate desc

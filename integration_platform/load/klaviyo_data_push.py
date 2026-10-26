@@ -139,7 +139,7 @@ class Load:
         }
         response = self.pipeline.klaviyo.subscribe_profiles(payload=payload)
         resp_str = f'{response.status_code} {response.text}'
-        if response.status_code == 200:
+        if response.status_code in [200, 202]:
             self.logger.info(f'{resp_str}')
         else:
             self.pipeline.klaviyo.helper.parse_errors(response=response)

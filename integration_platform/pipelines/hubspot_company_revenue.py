@@ -12,6 +12,7 @@ class HubspotCompanyRevenue(Pipeline):
         self.transformer = Transform(self)
 
     def extract(self):
+        # hubspot_extract = self.hubspot.search_companies()
         hubspot_extract = self.hubspot.retrieve_companies()        
         data_extract = {
             'hubspot_extract': hubspot_extract,
@@ -25,12 +26,11 @@ class HubspotCompanyRevenue(Pipeline):
     
     def load(self, data_transformed):
         '''Instead of posting to hubspot here, we did so in transform and upsert to sql here'''
-        self.centralstore.engine = self.centralstore._create_engine()
-        self.centralstore.raw_connection = self.centralstore.engine.raw_connection()
+        self.centralstore.reconnect()
         acu_companies = data_transformed['acu_companies']
         unmatched_companies = data_transformed['unmatched_companies']
-        self.centralstore.checked_upsert_paginated('hs.AcuCompanies', acu_companies)
-        self.centralstore.checked_upsert_paginated('hs.UnmatchedCompanies', unmatched_companies)
+        self.centralstore.merge_table_paginated(table_name='hs.AcuCompanies', data=acu_companies)
+        self.centralstore.merge_table_paginated(table_name='hs.UnmatchedCompanies', data=unmatched_companies)
         data_loaded = data_transformed
         return data_loaded
     

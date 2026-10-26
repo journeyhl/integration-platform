@@ -8,6 +8,7 @@ from integration_platform.config.settings import KLAYVIO
 from integration_platform.helpers.klaviyo_api_helper import KlaviyoAPIHelper
 import requests
 import json
+from decimal import Decimal
 
 class KlaviyoAPI:
     ''':class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`
@@ -285,12 +286,14 @@ class KlaviyoAPI:
            
           - Subscribes a group of klaviyo profiles
         '''        
-        pl = json.dumps(payload)
+        pl = json.dumps(payload, default=self._json_default_)
         response = requests.post(url=url, headers=self.headers, data=pl)
         t_response = response.text
         return response
 
-
+    def _json_default_(self, o):
+        if isinstance(o, Decimal):
+            return float(o)
     #MARK: __page__
     def __page__(self, parsed_response: dict):
         paging_links = parsed_response.get('links')

@@ -791,8 +791,14 @@ class HubSpotAPI:
         return results
 
 
+    # def search_companies(self):
+    #     bp = 'here'
+    #     object_type = 'Companies'
+    #     properties = ['name', 'phone', 'email']
+    #     results = list(self.search(object_type=object_type, filter_groups=[], properties=properties,))
+    #     bp = 'here'
 
-    
+
     #MARK: retrieve_companies    
     def retrieve_companies(self, limit: int = 100):
         ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.retrieve_companies`
@@ -832,8 +838,8 @@ class HubSpotAPI:
             body: dict[str, Any] = {
                 'properties': ['name', 'phone', 'email'],
                 'limit': limit,
-                'sorts': [{'propertyName': 'createdate', 'direction': 'DESCENDING'}],
-                # 'sorts': [{'propertyName': 'hs_lastmodifieddate', 'direction': 'DESCENDING'}],
+                # 'sorts': [{'propertyName': 'createdate', 'direction': 'DESCENDING'}],
+                'sorts': [{'propertyName': 'hs_lastmodifieddate', 'direction': 'DESCENDING'}],
                 'filterGroups': [],
             }
             if after:
