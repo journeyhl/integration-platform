@@ -200,6 +200,28 @@ class HubSpotAPI:
         return list_data
 
 
+
+    #MARK: get_contact_owners
+    def get_contact_owners(self):
+        url = "https://api.hubapi.com/crm/v3/owners?limit=100&archived=false"
+        after: str | None = None
+        rows = {}
+        while True:
+            params: dict[str, Any] = {'limit': 100}
+            if after:
+                params['after'] = after
+            data = self._request_('GET', url, params=params, path_as_url=True)
+            users = data['results']
+            
+            for row in data.get('results', []):
+                bp = 'here'
+                if rows.get(row['id']) == None:
+                    rows[row['id']] = row
+            after = data.get('paging', {}).get('next', {}).get('after')
+            if not after:
+                break
+        return rows
+
     #MARK: get_list_with_membership
     def get_list_with_membership(self, list_id: int, limit: int = 250):
         ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_list_with_membership`

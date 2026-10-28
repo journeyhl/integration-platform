@@ -1166,7 +1166,7 @@ def ucmi_hubspot(timer: af.TimerRequest):
     ''':func:`~function_app.ucmi_shopify`
     ---
     
-    Loads all Shopify Customers with their orders and addresses to db_CentralStore
+    Loads Hubspot Customers and data to db_CentralStore
 
     <hr>
     

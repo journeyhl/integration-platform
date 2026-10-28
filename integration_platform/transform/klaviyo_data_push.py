@@ -59,13 +59,64 @@ class Transform:
         ]
         extract_w_profiles = self._get_klaviyo_profiles_(data_extract=data_extract_dicts)
         customer_records = self._format_payloads_(extract_w_profiles=extract_w_profiles)
+        customer_records = self.consolidate_duplicates(customer_records=customer_records)
         consent = self._check_consent_(customer_records=customer_records)
-        consent_updates = self._compare_consent_(customer_records=customer_records)
+        consent_updates, historic_consent_updates, customer_records = self._compare_consent_(customer_records=customer_records)
         customers_and_subscriptions = {
             'customer_records': customer_records,
-            'consent_updates': consent_updates
+            'consent_updates': consent_updates,
+            'historic_consent_updates': historic_consent_updates
         }
         return customers_and_subscriptions
+
+    def consolidate_duplicates(self, customer_records: list[dict]) -> list[dict]:
+        ''':class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform.consolidate_duplicates`
+        ---
+        
+        Given the list of customer records, check to make sure that we only have one record per email
+        
+        Parameters
+        ---
+        :param (*list[dict]*) `customer_records`: list of customer_records with db data, fields_added, fields_changed, and payload
+        
+        Returns
+        ---
+        :return `variablename` (list[dict]): _description_
+        
+        <hr>
+        
+        Sets
+        ---
+        - #### ____replace_with_class_level_variable_pls____
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform.landing`
+        
+          - Called before checking consent data
+           
+        '''        
+        emails = {}
+        for record in customer_records:
+            email = record['db']['Email']
+            if emails.get(email):
+                if record['fields_added'] == emails[email]['fields_added'] and record['fields_changed'] == emails[email]['fields_changed'] :
+                    continue
+                elif not record['fields_added'] and not record['fields_changed']:
+                    continue
+                else:
+                    if not emails[email]['fields_added']:
+                        emails[email]['fields_added'] = record['fields_added']
+                    if not emails[email]['fields_changed']:
+                        emails[email]['fields_changed'] = record['fields_changed']
+                bp = 'here'
+            else:
+                emails[email] = record
+        customer_records = [value for k, value in emails.items()]
+        return customer_records
+        # test = pl.DataFrame(payloads, infer_schema_length=None)
 
     #MARK: _get_klaviyo_profiles_
     def _get_klaviyo_profiles_(self, data_extract: list[dict]):
@@ -685,6 +736,10 @@ class Transform:
             'AcceptsMarketing': None,
             'AcceptsMarketing_email': None,
             'AcceptsMarketing_phone': None,
+            'EmailLastUpdatedDatetime': None,
+            'EmailLastUpdatedBy': None,
+            'EmailCollection': None,
+            'PhoneOption': None,
         }
         for customer in customer_records:
             customer['db_consent'] = dict(consent_columns)
@@ -698,8 +753,11 @@ class Transform:
     def _compare_consent_(self, customer_records: list[dict]):
         bp = 'here'
         update_klaviyo = []
+        update_klaviyo_call_center_consent = []
         total = len(customer_records)
+        call_center_consent = False
         for i, customer in enumerate(customer_records):
+            customer['ConsentUpdate'] = None
             entries = 0
             self.current_customer_email = customer['db']['Email']
             self.current_prefix = f'{i+1}/{total}, {self.current_customer_email}: '
@@ -721,25 +779,35 @@ class Transform:
                 (db['Mkt_SMS_CanReceiveSMS_phone'] == True and db['Mkt_SMS_Consent_phone'] == 'SUBSCRIBED')
                 or
                 (db['Mkt_SMS_CanReceiveSMS_email'] == True and db['Mkt_SMS_Consent_email'] == 'SUBSCRIBED')
-
             )
 
 
             consent_header = self._format_consent_header_(customer=customer)
             if k_email_consent != db_email_consent:
+                customer['ConsentUpdate'] = 'Email'
                 self.logger.info(f'{self.current_prefix}Email consent will be updated')
                 consent_payload = self._format_consent_(consent_header=consent_header, email_sms='email')
                 entries+=1
             if k_sms_consent != db_sms_consent and not k_sms_consent:
+                customer['ConsentUpdate'] = 'SMS' if not customer['ConsentUpdate'] else 'Email & SMS'
                 self.logger.info(f'{self.current_prefix}SMS consent will be updated')
                 consent_payload = self._format_consent_(consent_header=consent_header, email_sms='sms')
                 bp = 'here'
                 entries+=1
+            db_email_consent_from_call_center = db['EmailOption']
             if entries >= 1:
                 update_klaviyo.append(consent_payload)
 
+            if db_email_consent_from_call_center and not k_email_consent:
+                consented_at = datetime.strftime(db['EmailLastUpdatedDatetime'] if db['EmailLastUpdatedDatetime'] else datetime.now(ZoneInfo('America/New_York')), '%Y-%m-%dT%H:%M:%SZ')
+                call_center_consent_payload = self._format_consent_(consent_header=consent_header, email_sms='email')
+                call_center_consent_payload['attributes']['subscriptions']['email']['marketing']['consented_at'] = consented_at
+                update_klaviyo_call_center_consent.append(call_center_consent_payload)
+                bp = 'here'
+
         consent_updates = {'profiles': {'data': update_klaviyo}}
-        return consent_updates
+        historic_consent_updates = {'profiles': {'data': update_klaviyo_call_center_consent}} 
+        return consent_updates, historic_consent_updates, customer_records
 
 
     #MARK: _format_consent_header_

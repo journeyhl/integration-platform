@@ -7,6 +7,7 @@ import time
 import polars as pl
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
+import json
 
 class Load:
     def __init__(self, pipeline: KlaviyoDataPush):
@@ -16,7 +17,7 @@ class Load:
 
 
     #MARK: landing_loader
-    def landing_loader(self, data_transformed: dict):
+    def landing_loader(self, data_transformed: dict) -> list[dict]:
         ''':class:`~integration_platform.load.klaviyo_data_push.Load`.:meth:`~integration_platform.load.klaviyo_data_push.Load.landing_loader`
         ---
         
@@ -28,7 +29,7 @@ class Load:
         
         Returns
         ---
-        :return `updated_or_created` (list): List of customer_records that received an update or had profiles created in Klaviyo
+        :return `db_logs` (list[dict]): List of customer_records to load to db with the last checked date and the data that was changed/added to load to db
         
         <hr>
         
@@ -49,9 +50,28 @@ class Load:
         bp = 'here'
         updated_or_created = self._load_customer_records_(customer_records=data_transformed['customer_records'])
         self._load_consent_updates_(consent_updates=data_transformed['consent_updates'])
-        return updated_or_created
+        self._load_consent_updates_(consent_updates=data_transformed['historic_consent_updates'], historical_import=True)
+        db_logs = self._log_loaded_records_(customer_records=data_transformed['customer_records'])
+        return db_logs
 
-
+    def _log_loaded_records_(self, customer_records: list):
+        db_logs = []
+        for record in customer_records:
+            bp = 'here'
+            fields_added = self.pipeline.default_transformer.clean_string(','.join(list(k for field in record['fields_added'] for k in field.keys()))) if record['fields_added'] else None
+            log_entry = {
+                'Email': record['db']['Email'],
+                'KlaviyoID': record['payload']['data'].get('id'),
+                'Action': record['action'],
+                'FieldsAdded': fields_added,
+                'FieldsChanged': None if not record['fields_changed'] else json.dumps(record['fields_changed']),
+                'SentUpdate': True if record['klaviyo_response'] in [200, 202] or record['ConsentUpdate'] != None else False,
+                'ConsentUpdate': record['ConsentUpdate'],
+                'LastChecked': datetime.now(ZoneInfo('America/New_York'))
+            }
+            bp = 'here'
+            db_logs.append(log_entry)
+        return db_logs
 
     #MARK: _load_customer_records_
     def _load_customer_records_(self, customer_records: list):
@@ -99,7 +119,7 @@ class Load:
         return updated_or_created
 
     #MARK: _load_consent_updates_
-    def _load_consent_updates_(self, consent_updates: dict):
+    def _load_consent_updates_(self, consent_updates: dict, historical_import: bool = False):
         ''':class:`~integration_platform.load.klaviyo_data_push.Load`.:meth:`~integration_platform.load.klaviyo_data_push.Load._load_consent_updates_`
         ---
         
@@ -125,7 +145,8 @@ class Load:
            
           - If error, generate logs here
         '''        
-        bp = 'here'
+        if historical_import:
+            self.logger.info(f'Executing historic consent update (EmailOption = `Opt-In` in ucmiraw.HubspotCustomers)')
         total = len(consent_updates['profiles']['data'])
         if total == 0:
             self.logger.warning(f'No profiles need consent updates, skipping...')
@@ -137,10 +158,13 @@ class Load:
                 'attributes': consent_updates,
             }
         }
+        if historical_import:
+            payload['data']['attributes']['historical_import'] = True
         response = self.pipeline.klaviyo.subscribe_profiles(payload=payload)
-        resp_str = f'{response.status_code} {response.text}'
-        if response.status_code in [200, 202]:
-            self.logger.info(f'{resp_str}')
+        if response.status_code == 200:
+            self.logger.info(f'{response.status_code} {response.text}')
+        elif response.status_code == 202:
+            self.logger.info(f'{response.status_code} {response.reason}')
         else:
             self.pipeline.klaviyo.helper.parse_errors(response=response)
         bp = 'here'

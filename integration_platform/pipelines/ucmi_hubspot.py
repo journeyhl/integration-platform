@@ -2,7 +2,7 @@ from integration_platform.pipelines import Pipeline
 from integration_platform.connectors import HubSpotAPI
 from integration_platform.transform.ucmi_hubspot_phase1 import Transform
 from integration_platform.transform.ucmi_hubspot_phase2 import TransformPhase2
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 
@@ -38,9 +38,22 @@ class UCMI_HubspotCustomers(Pipeline):
         self.transformer = TransformPhase2(self)
 
     def extract(self):
-        props = 'firstname,lastname,lead_source,email,phone,emailaddress,keycode,product,adddate,createdate,notes_last_updated,hubspot_owner_id,call_summary,hs_lead_status,hs_marketable_status,lead_source_date,intents_during_call,toll_free__,bps,unitsperorder,totalorders,revenueperorder,totalunits,revenue,last_five9_call_disposition,last_five9_call_at,acumatica_product_list,who_is_the_chair_for,notes_last_contacted,notes_next_activity_date,num_contacted_notes,hs_analytics_source,hs_latest_source,date_and_time_added_to_outbound_list,lead_grade,date_added_to_outbound_list,budget_range,created_on_weekend,kustomer_id,sold,date_became_the_warm_lead,s_call_summary,hs_createdate,hs_lastmodifieddate,acumatica_order_number_s_,acumatica_product_name,ai_agent,ai_weekly_review__contact_count,ai_weekly_review__generated_at,ai_weekly_review__html,ai_weekly_review__text,b2b_contact,billing_address,billing_city,billing_state,billing_zip,call_disposition,call_dispositions___five9,call_summary,call_transcript,company,contact_url_hs,country,createdate,date_became_the_dnc_lead_status,date_became_the_lead_exhausted_lead_status,date_became_the_new_lead_status,date_became_the_open_lead_lead_status,date_became_the_outbound_lead_status,date_became_the_reserved_lead_status,date_became_the_sold_lead_status,date_became_the_unqualified_lead_status,do_not_call,email_collection,email_option,first_conversion_date,first_conversion_event_name,firstname,hs_analytics_last_touch_converting_campaign,hs_analytics_num_page_views,hs_analytics_num_visits,hs_current_customer,hs_email_click,hs_email_delivered,hs_email_first_open_date,hs_email_last_send_date,hs_email_open,hs_email_optout,hs_email_optout_5436276,hs_email_optout_62421282,hs_email_optout_7434690,hs_email_optout_768616824,hs_email_replied,hs_email_sends_since_last_engagement,hs_emailconfirmationstatus,hs_lead_status,hs_linkedin_click_id,hs_marketable_status,hs_v2_date_entered_current_stage,hubspot_owner_id,inbound_call_disposition,intents_during_call,ip__ecomm_bridge__ecomm_synced,ip__ecomm_bridge__source_store_id,ip__shopify__accepts_marketing,ip__shopify__shopify_created_at,ip__shopify__verified_email,ip_country_code,ip_state,kustomer_id,kustomer_last_sync,kustomer_sync_error,kustomer_sync_needed,kustomer_sync_status,lastmodifieddate,lastname,lead_source,lead_source_date,notes_last_contacted,notes_last_updated,phone,recent_conversion_date,recent_conversion_event_name,shipping_address,shipping_city,shipping_state,shipping_zip,status,unsubscribe_to_mail,hs_createdate,hs_lastmodifieddate,hs_last_activity_date,hs_lead_source,hs_v2_date_entered_current_stage,hs_createdate,hs_lastmodifieddate,hs_task_last_contact_outreach,email_option'
-        data_extract = self.hubspot.get_list_with_membership_contact_details(list_id=3583, props=props) #Phone or Email Known - Recent
+        props = 'firstname,lastname,lead_source,email,phone,emailaddress,keycode,product,adddate,createdate,notes_last_updated,hubspot_owner_id,call_summary,hs_lead_status,hs_marketable_status,lead_source_date,intents_during_call,toll_free__,bps,unitsperorder,totalorders,revenueperorder,totalunits,revenue,last_five9_call_disposition,last_five9_call_at,acumatica_product_list,who_is_the_chair_for,notes_last_contacted,notes_next_activity_date,num_contacted_notes,hs_analytics_source,hs_latest_source,date_and_time_added_to_outbound_list,lead_grade,date_added_to_outbound_list,budget_range,created_on_weekend,kustomer_id,sold,date_became_the_warm_lead,s_call_summary,hs_createdate,hs_lastmodifieddate,acumatica_order_number_s_,acumatica_product_name,ai_agent,ai_weekly_review__contact_count,ai_weekly_review__generated_at,ai_weekly_review__html,ai_weekly_review__text,b2b_contact,billing_address,billing_city,billing_state,billing_zip,call_disposition,call_dispositions___five9,call_summary,call_transcript,company,contact_url_hs,country,createdate,date_became_the_dnc_lead_status,date_became_the_lead_exhausted_lead_status,date_became_the_new_lead_status,date_became_the_open_lead_lead_status,date_became_the_outbound_lead_status,date_became_the_reserved_lead_status,date_became_the_sold_lead_status,date_became_the_unqualified_lead_status,do_not_call,email_collection,email_option,first_conversion_date,first_conversion_event_name,firstname,hs_analytics_last_touch_converting_campaign,hs_analytics_num_page_views,hs_analytics_num_visits,hs_current_customer,hs_email_click,hs_email_delivered,hs_email_first_open_date,hs_email_last_send_date,hs_email_open,hs_email_optout,hs_email_optout_5436276,hs_email_optout_62421282,hs_email_optout_7434690,hs_email_optout_768616824,hs_email_replied,hs_email_sends_since_last_engagement,hs_emailconfirmationstatus,hs_lead_status,hs_linkedin_click_id,hs_marketable_status,hs_v2_date_entered_current_stage,hubspot_owner_id,inbound_call_disposition,intents_during_call,ip__ecomm_bridge__ecomm_synced,ip__ecomm_bridge__source_store_id,ip__shopify__accepts_marketing,ip__shopify__shopify_created_at,ip__shopify__verified_email,ip_country_code,ip_state,kustomer_id,kustomer_last_sync,kustomer_sync_error,kustomer_sync_needed,kustomer_sync_status,lastmodifieddate,lastname,lead_source,lead_source_date,notes_last_contacted,notes_last_updated,phone,recent_conversion_date,recent_conversion_event_name,shipping_address,shipping_city,shipping_state,shipping_zip,status,unsubscribe_to_mail,hs_createdate,hs_lastmodifieddate,hs_last_activity_date,hs_lead_source,hs_v2_date_entered_current_stage,hs_createdate,hs_lastmodifieddate,hs_task_last_contact_outreach,email_option,email_last_updated_by,email_last_updated_on_date,dfs_lead,phone_option,hs_merged_object_ids'
+        cutoff = str(int((datetime.now(ZoneInfo('America/New_York')) - timedelta(minutes=10)).timestamp() * 1000))
+        filter_groups = [
+            {"filters": [{"propertyName": "lastmodifieddate", "operator": "GTE", "value":cutoff}]}
+        ]
+        detailed_rows = self.hubspot.search_contacts(filter_groups=filter_groups, properties=props.split(','))
+        last_checked = datetime.now(ZoneInfo('America/New_York'))
+        # data_extract = {
+        #     'detailed_rows': detailed_rows,
+        #     'timestamp_extract': last_checked,
+        #     'LastChecked': last_checked,
+        #     'contact_owners': self.hubspot.get_contact_owners()
+        # }
+        data_extract = self.hubspot.get_list_with_membership_contact_details(list_id=3583, props=props) #Phone or Email Known - Activity since last week
         data_extract['LastChecked'] = datetime.now(ZoneInfo('America/New_York'))
+        data_extract['contact_owners'] = self.hubspot.get_contact_owners()
         return data_extract 
 
     def transform(self, data_extract):
@@ -49,7 +62,8 @@ class UCMI_HubspotCustomers(Pipeline):
     
     def load(self, data_transformed):
         self.centralstore.reconnect()
-        self.centralstore.merge_table_paginated(table_name='ucmiraw.HubspotCustomers', data=data_transformed, page_size=100)
+        self.centralstore.merge_table_paginated(table_name='ucmiraw.HubspotCustomers', data=data_transformed['formatted_rows'], page_size=100)
+        self.centralstore.merge_table_paginated(table_name='hs.ContactOwners', data=data_transformed['contact_owners'], page_size=100)
         return data_transformed
     
     def log_results(self, data_loaded):

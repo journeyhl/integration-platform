@@ -17,7 +17,39 @@ class TransformPhase2:
 
     def phase2_landing(self, data_extract: dict):
         detailed_rows = self._compress_rows_(data_extract=data_extract)
-        formatted_rows = [self._format_row_(row=row) for row in detailed_rows]
+        fmt_rows = [self._format_row_(row=row) for row in detailed_rows]
+        fmt_contact_owners = self._format_contact_owners_(contact_owners=data_extract['contact_owners'])
+        data_transformed = {
+            'formatted_rows': fmt_rows,
+            'contact_owners': fmt_contact_owners
+        }
+        return data_transformed
+
+    def _format_contact_owners_(self, contact_owners: dict):
+        fmt_rows = []
+        for id, row in contact_owners.items():
+            fmt_row = {
+                'ID': id,
+                'UserID': row['userId'],
+                'Email': row['email'],
+                'FirstName': row['firstName'],
+                'LastName': row['lastName']
+            }
+            fmt_rows.append(fmt_row)
+        return fmt_rows
+
+    def _join_contact_owners_(self, formatted_rows: list[dict], contact_owners: dict):
+        def check_and_add_key(row: dict, key):
+            if not row[key]:
+                return row
+            if contact_owners.get(row[key]):
+                owner_match = contact_owners['email']
+                row[key] = owner_match
+            return row
+        for row in formatted_rows :
+            row = check_and_add_key(row=row, key='EmailLastUpdatedBy')
+            row = check_and_add_key(row=row, key='ContactOwner')
+            bp = 'here'
         return formatted_rows
 
 
@@ -49,6 +81,13 @@ class TransformPhase2:
             'Marketingcontactstatus':                       row.get('hs_marketable_status'),
             'CreateDate':                                   self.pipeline.default_transformer.parse_date_str(date_str=row.get('createdate'), tries=0, str_descr='createdate'),
             'HubspotLink':                                  row.get('url'),
+            'AcceptsMarketing':                             row.get('ip__shopify__accepts_marketing') or row.get('accepts_marketing'),
+            'EmailCollection':                              row.get('email_collection'),
+            'EmailOption':                                  row.get('email_option'),
+            'EmailLastUpdatedBy':                           row.get('email_last_updated_by'),
+            'EmailLastUpdatedDatetime':                     self.pipeline.default_transformer.parse_date_str(date_str=row.get('email_last_updated_on_date'), tries=0),
+            'PhoneOption':                                  row.get('phone_option'),
+            'DFSLead':                                      True if row.get('dfs_lead') == 'true' else False,
             'AcumaticaOrderNumbers':                        row.get('acumatica_order_number_s_'),
             'BillingAddress':                               row.get('billing_address'),
             'BillingCity':                                  row.get('billing_city'),
@@ -105,7 +144,6 @@ class TransformPhase2:
             'Country':                                      row.get('country'),
             'Name':                                         ' '.join(n for n in (row.get('firstname'), row.get('lastname')) if n) or None,
             'PhoneNumber':                                  row.get('phone'),
-            'AcceptsMarketing':                             row.get('ip__shopify__accepts_marketing') or row.get('accepts_marketing'),
             'VerifiedEmail':                                row.get('ip__shopify__verified_email') or row.get('verified_email'),
             'LastTouchConvertingCampaign':                  row.get('hs_analytics_last_touch_converting_campaign'),
             'OptedOutOfEmail_OneToOne':                     row.get('hs_email_optout_5436276'),
@@ -135,8 +173,7 @@ class TransformPhase2:
             'B2BD2CContact':                                row.get('b2b_contact') or row.get('b2b_d2c_contact'),
             'AIAgent':                                      row.get('ai_agent'),
             'CustomerServiceCall':                          row.get('customer_service_call'),
-            'EmailCollection':                              row.get('email_collection'),
-            'EmailOption':                                  row.get('email_option'),
+            'MergedContactIDs':                             row.get('hs_merged_object_ids'),
             'LastChecked':                                  row['LastChecked'],
             'InsertedDT':                                   datetime.now(ZoneInfo('America/New_York')),
         }

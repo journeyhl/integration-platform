@@ -186,12 +186,15 @@ class DefaultTransformer:
         if phone_str == None or phone_str.strip() == '':
             return None
         phone_fmt = phone_str.replace('-', '').replace('(', '').replace(')', '').replace('+1', '').replace(' ', '').strip()
-        if len(phone_fmt) != 10:
+        phone_fmt_len = len(phone_fmt)
+        if phone_fmt_len != 10:
             copy_phone_fmt = phone_fmt
             self.logger.warning(f'{log_prefix}Unconventional Phone number length!')
             if phone_fmt[0] == '+':
                 phone_fmt = copy_phone_fmt[-10:]
                 country_code = copy_phone_fmt[:-10]
+            elif phone_fmt[0] == '1' and phone_fmt_len == 11:
+                phone_fmt = phone_fmt[1:]
             else:
                 self.logger.error(f"{log_prefix}Phone doesn't begin with '+', returning None...")
                 return None if return_option == 'none' else phone_fmt

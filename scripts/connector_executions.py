@@ -13,12 +13,8 @@ map = {
 }
 
 hs = HubSpotAPI(pipeline='.debug')
-test = hs._request_(method='get', path=f'/crm/v3/objects/{map['territories']}')
-t2 = hs.get_properties(object_type=map['territories'])
 
-bp = 'here'
-test2 = hs._request_(method='get', path=f'/crm/v3/objects/{map['zip_codes']}')
-
+test = hs.get_contact_owners()
 bp = 'here'
 
 

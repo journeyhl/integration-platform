@@ -1,4 +1,10 @@
-with TopLevel as(
+with DataPushLog as (
+	select Email
+	 , max(LastChecked) LastChecked
+from klaviyo.DataPushLog
+group by Email
+)
+, TopLevel as(
 	select distinct 'Create' Action
 		, c.*
 		, pe.PhoneNumber PhoneNumber_email
@@ -615,10 +621,12 @@ select distinct top 50 t.*
 	 , coalesce(t.BillingState, t.ShippingState) State
 	 , coalesce(t.BillingZip, t.ShippingZip) Zip
 	 , t.CompanyName Company
-	 
+	 , dpl.LastChecked DataLogLastChecked
 from TopLevel t
 left join analytics.JHL_D2CCustomerOrderHistory d2c_last on t.PhoneNumberFmt = d2c_last.Phone and d2c_last.OrdersDesc_Phone = 1 and d2c_last.PartProdAccFee != 'No Orders'
 left join analytics.JHL_D2CCustomerOrderHistory d2c_first on t.PhoneNumberFmt = d2c_first.Phone and d2c_first.OrdersAsc_Phone = 1 and d2c_first.PartProdAccFee != 'No Orders'
-where t.Email != ''
+left join DataPushLog dpl on t.Email = dpl.Email
+where t.Email != '' and (dpl.LastChecked <= dateadd(hour, -7, getdate()) or dpl.LastChecked is null)
 -- and d2c_last.DatePlaced is not null
+and t.EmailOption is not null
 order by LastActivityDate desc
