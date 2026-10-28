@@ -187,6 +187,8 @@ class DefaultTransformer:
             return None
         phone_fmt = phone_str.replace('-', '').replace('(', '').replace(')', '').replace('+1', '').replace(' ', '').strip()
         phone_fmt_len = len(phone_fmt)
+        if phone_fmt == None or phone_fmt.strip() == '':
+            return None
         if phone_fmt_len != 10:
             copy_phone_fmt = phone_fmt
             self.logger.warning(f'{log_prefix}Unconventional Phone number length!')
