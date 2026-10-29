@@ -42,6 +42,7 @@ from .hubspot_company_revenue import HubspotCompanyRevenue
 from .hubspot_property_update import HubspotPropertyUpdate
 from .hubspot_leads_to_dbc import HubspotLeadsToDbc
 from .klaviyo_newsletter import KlaviyoNewsletter
+from .klaviyo_data_push import KlaviyoDataPush
 
 from .criteo import Criteo
 from .hubspot_properties import HubSpotProperties

@@ -740,6 +740,10 @@ class Transform:
             'EmailLastUpdatedBy': None,
             'EmailCollection': None,
             'PhoneOption': None,
+            'Mkt_Email_ConsentTimestamp_phone': None,
+            'Mkt_Email_ConsentTimestamp_email': None,
+            'Mkt_SMS_ConsentTimestamp_phone': None,
+            'Mkt_SMS_ConsentTimestamp_email': None,
         }
         for customer in customer_records:
             customer['db_consent'] = dict(consent_columns)
@@ -799,7 +803,15 @@ class Transform:
                 update_klaviyo.append(consent_payload)
 
             if db_email_consent_from_call_center and not k_email_consent:
-                consented_at = datetime.strftime(db['EmailLastUpdatedDatetime'] if db['EmailLastUpdatedDatetime'] else datetime.now(ZoneInfo('America/New_York')), '%Y-%m-%dT%H:%M:%SZ')
+                db_consent_timestamp = db['Mkt_Email_ConsentTimestamp_email'] or db['Mkt_Email_ConsentTimestamp_phone'] 
+                if db['EmailLastUpdatedDatetime'] == None and db_consent_timestamp != None:
+                    continue
+                elif db['EmailLastUpdatedDatetime'] and db_consent_timestamp and db['EmailLastUpdatedDatetime'] <= db_consent_timestamp:
+                    continue
+                elif not db['EmailLastUpdatedDatetime'] and not db_consent_timestamp:
+                    consented_at = datetime.strftime(datetime.now(ZoneInfo('America/New_York')), '%Y-%m-%dT%H:%M:%SZ')
+                else:
+                    consented_at = datetime.strftime(db['EmailLastUpdatedDatetime'] , '%Y-%m-%dT%H:%M:%SZ')
                 call_center_consent_payload = self._format_consent_(consent_header=consent_header, email_sms='email')
                 call_center_consent_payload['attributes']['subscriptions']['email']['marketing']['consented_at'] = consented_at
                 update_klaviyo_call_center_consent.append(call_center_consent_payload)
