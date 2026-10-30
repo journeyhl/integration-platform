@@ -1185,6 +1185,37 @@ def ucmi_hubspot(timer: af.TimerRequest):
 
 
 
+#region                                                                 klaviyo_data_push
+#                               Loads customer/contact data and consent status to klaviyo
+#                                                                     1x/day (5:40am)
+@app.timer_trigger(
+    schedule = '40 5 * * *',
+    arg_name = 'timer',
+    run_on_startup = False
+)
+def klaviyo_data_push(timer: af.TimerRequest):
+    ''':func:`~function_app.klaviyo_data_push`
+    ---
+    
+    Loads customer data from db (originally from hubspot/klaviyo) to klaviyo and updates/creates profiles as needed. Updates marketing consent if neccessary
+
+    <hr>
+    
+    ### Source
+    UCMI.HubspotCustomers, klaviyo.ProfileHeader, klaviyo.ProfileProperties, klaviyo.ProfilesSubscriptions
+
+    ### Destination
+    Klaviyo
+    db_CentralStore
+    - klaviyo.DataPushLog
+
+    '''  
+    
+    from integration_platform.pipelines.klaviyo_data_push import KlaviyoDataPush
+    klaviyo = KlaviyoDataPush(function='klaviyo_data_push')
+    klaviyo.run()
+#endregion
+
 
 
 

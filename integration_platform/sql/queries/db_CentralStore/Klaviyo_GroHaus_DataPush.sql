@@ -610,7 +610,7 @@ group by Email
 	and (pe.Updated <= dateadd(hour, -4, getdate()) or pe.updated is null)
 -- and ppp.Consent is not null and pes.Mkt_Email_Consent = 'SUBSCRIBED' and pes.Mkt_SMS_CanReceiveSMS = 1
 )
-select distinct top 300 t.*
+select distinct top 500 t.*
 	 , d2c_last.DatePlaced LastPurchaseDate
 	 , d2c_last.ItemClassDesc LastPurchaseItem
 	 , d2c_first.DatePlaced FirstPurchaseDate
@@ -628,5 +628,5 @@ left join analytics.JHL_D2CCustomerOrderHistory d2c_first on t.PhoneNumberFmt = 
 left join DataPushLog dpl on t.Email = dpl.Email
 where t.Email != '' and (dpl.LastChecked <= dateadd(hour, -7, getdate()) or dpl.LastChecked is null)
 -- and d2c_last.DatePlaced is not null
-and t.EmailOption is not null
-order by LastActivityDate desc
+-- and t.EmailOption is not null
+order by DataLogLastChecked

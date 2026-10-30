@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 import json
 from typing import Literal
 import copy
+from decimal import Decimal
 class Transform:
     def __init__(self, pipeline: KlaviyoDataPush):
         self.pipeline = pipeline
@@ -600,6 +601,8 @@ class Transform:
          ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._compare_attr_prop_`
         '''
         self.logger.info(f'{self.current_prefix}{key}: Updating from {old_value if old_value and old_value != '' else 'blank'} to {db_value}')
+        if isinstance(db_value, Decimal):
+            db_value = float(db_value)
         self._updated.append({f'{attr_or_prop}.{key}': {'old': old_value, 'new': db_value}})
         if attr_or_prop == 'properties':
             payload['data']['attributes']['properties'][key] = [db_value] if was_list else db_value
