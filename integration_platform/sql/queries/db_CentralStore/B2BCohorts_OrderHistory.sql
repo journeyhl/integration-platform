@@ -9,7 +9,7 @@ with TopLevel as(
             when ic.ItemClass is null and OrderNumber is not null then 'Parts/Accessories' 
             when ic.ItemClass in ('Parts', 'Accessory', 'Fee') then 'Parts/Accessories' else ic.ItemClass end PartProdAccFee
 	 , s.DatePlaced
-     , datediff(day, s.DatePlaced, cast(dateadd(hour, -4, getdate()) as date)) DaysAgo
+     , datediff(day, s.DatePlaced, cast(dateadd(hour, -5, getdate()) as date)) DaysAgo
 	 , row_number() over(partition by c.CustomerID order by DatePlaced, OrderNumber) OrdersAsc
 	 , row_number() over(partition by c.CustomerID order by DatePlaced desc, OrderNumber desc) OrdersDesc
 	 , c.CreatedOn

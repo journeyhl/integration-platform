@@ -25,9 +25,9 @@ select sh.ShipmentNbr
      , cast(sh.FreightCost as decimal (18,2)) FreightCost
      , cast(k_wh.ValueNumeric as int) SenttoWH
      , cast(k_dt.ValueString as datetime) SentToWHDatetime
-	 , dateadd(hour, -4, sh.LastModifiedDateTime) LastModifiedDT
+	 , dateadd(hour, -5, sh.LastModifiedDateTime) LastModifiedDT
      , ltrim(rtrim(p.TrackNumber)) Tracking
-     , dateadd(hour, -4, p.CreatedDateTime) TrackingCreatedDate
+     , dateadd(hour, -5, p.CreatedDateTime) TrackingCreatedDate
      , coalesce(sc.Phone1, sc.Phone2) CustomerPhone
      , sc.Attention
      , rtrim(s.ShipVia) ShipVia
@@ -35,8 +35,8 @@ select sh.ShipmentNbr
      , p.ContentTypeDesc Courier
      , k_cc.ValueString CourierCode
      , k_cn.ValueString CourierName
-     , dateadd(hour, -4, sh.ConfirmedDateTime) ConfirmedDatetime
-     , dateadd(hour, -4, sh.CreatedDateTime) CreatedDatetime
+     , dateadd(hour, -5, sh.ConfirmedDateTime) ConfirmedDatetime
+     , dateadd(hour, -5, sh.CreatedDateTime) CreatedDatetime
 
      , p.[Description] PackageDescr
      , case when left(ltrim(rtrim(p.TrackNumber)), 1) = '9' 
@@ -74,9 +74,9 @@ left join SOShipmentKvExt k_cc on sh.CompanyID = k_cc.CompanyID and sh.NoteID = 
 left join SOShipmentKvExt k_cn on sh.CompanyID = k_cn.CompanyID and sh.NoteID = k_cn.RecordID and k_cn.FieldName = 'AttributeCOURNAME'
 left join JJStatusLookup jsh on sh.Status = jsh.CStatus and jsh.Tbl = 'SOShipment'
 where s.CompanyID = 2 
-and dateadd(hour, -4, sh.CreatedDatetime) >=  dateadd(day, -30, getdate())
--- and dateadd(hour, -4, sh.LastModifiedDateTime) >=  dateadd(day, -122, getdate())
--- and dateadd(hour, -4, s.LastModifiedDateTime) >=  dateadd(day, -1, getdate())
+and dateadd(hour, -5, sh.CreatedDatetime) >=  dateadd(day, -30, getdate())
+-- and dateadd(hour, -5, sh.LastModifiedDateTime) >=  dateadd(day, -122, getdate())
+-- and dateadd(hour, -5, s.LastModifiedDateTime) >=  dateadd(day, -1, getdate())
 -- and s.OrderNbr = 'PH145626'
 -- and s.LastModifiedDateTime >= cast(getdate()-30 as date)
 -- order by LastModifiedDT desc

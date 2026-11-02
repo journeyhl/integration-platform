@@ -21,7 +21,7 @@ select distinct rtrim(i.InventoryCD) InventoryCD
 	 , ix1.AlternateID VendorPartNumber
 	 , ix2.AlternateID UPC
 	 , ic.Descr ItemClassDesc
-	 , dateadd(hour, -4, i.LastModifiedDateTime) LastModifiedDT
+	 , dateadd(hour, -5, i.LastModifiedDateTime) LastModifiedDT
      , count(ix1.AlternateID) over(partition by InventoryCD) Distinct_VendorPartNumbers
 	 , i.StkItem
 	 , i.IsTemplate

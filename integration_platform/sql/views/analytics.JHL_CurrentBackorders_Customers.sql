@@ -2,7 +2,7 @@
 create view analytics.JHL_CurrentBackorders_Customers
 as
 with TopLevel as(
-	select datediff(day, dateadd(hour, -4, getdate()), DatePlaced) DaysOnBackorder
+	select datediff(day, dateadd(hour, -5, getdate()), DatePlaced) DaysOnBackorder
 		 , row_number() over(partition by OrderNumber, LineNbr, Date order by Timestamp desc) PITdesc
 		 , *
 	from acu.BackordersPointInTime

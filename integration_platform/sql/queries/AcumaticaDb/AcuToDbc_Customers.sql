@@ -28,9 +28,9 @@ select rtrim(b.AcctCD) CustomerID
 	 , b.AcctReferenceNbr CUSTEDP
 	 , rtrim(sp.SalespersonCD) SalesPersonID
 	 , sp.Descr SalesPersonName
-	 , dateadd(hour, -4, b.CreatedDateTime) CreatedOn
+	 , dateadd(hour, -5, b.CreatedDateTime) CreatedOn
 	 , uc.FullName CreatedBy
-	 , dateadd(hour, -4, b.LastModifiedDateTime) LastModifiedDT
+	 , dateadd(hour, -5, b.LastModifiedDateTime) LastModifiedDT
 	 , uc.Username CreatedByUser
 	 , um.Username LastModifiedByUser
 	 , um.FullName LastModifiedByName
@@ -51,7 +51,7 @@ left join Users uc on b.CompanyID = uc.CompanyID and b.CreatedByID = uc.PKID
 left join Users um on b.CompanyID = um.CompanyID and b.LastModifiedByID = um.PKID
 left join CSAnswers chs on b.CompanyID = chs.CompanyID and b.NoteID = chs.RefNoteID and chs.AttributeID = 'HUBSPOTID'
 where b.CompanyID = 2
-and dateadd(hour, -4, b.LastModifiedDateTime) >= dateadd(day, -1, getdate())
+and dateadd(hour, -5, b.LastModifiedDateTime) >= dateadd(day, -1, getdate())
 )
 select *
 from TopLevel

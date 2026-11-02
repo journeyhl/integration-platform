@@ -17,9 +17,9 @@ select rtrim(b.AcctCD) CustomerID
 	 , rtrim(sp.SalespersonCD) SalesPersonID
 	 , sp.Descr SalesPersonName
 	 , coalesce(cb2b.Phone2, cb2b.Phone3) Phone2
-	 , dateadd(hour, -4, b.CreatedDateTime) CreatedOn
+	 , dateadd(hour, -5, b.CreatedDateTime) CreatedOn
 	 , uc.FullName CreatedBy
-	 , dateadd(hour, -4, b.LastModifiedDateTime) LastModifiedDT
+	 , dateadd(hour, -5, b.LastModifiedDateTime) LastModifiedDT
 	 , uc.Username CreatedByUser
 	 , um.Username LastModifiedByUser
 	 , um.FullName LastModifiedByName

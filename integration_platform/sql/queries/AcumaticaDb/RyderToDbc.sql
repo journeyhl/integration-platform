@@ -32,7 +32,7 @@ left join SOShipmentKvExt shke on s.CompanyID = shke.CompanyID and sh.NoteID = s
 left join SOShipmentKvExt shkc on s.CompanyID = shkc.CompanyID and sh.NoteID = shkc.RecordID and shkc.FieldName = 'AttributeRYDERCHECK'
 where s.CompanyID = 2 
 and s.OrderType not in('QT', 'RA', 'RC', 'RR', 'RM')
-and dateadd(hour, -4, s.LastModifiedDateTime) >=  dateadd(day, -120, getdate())
+and dateadd(hour, -5, s.LastModifiedDateTime) >=  dateadd(day, -120, getdate())
 and shi.SiteCD = 'RLM NEJ HB'
 and shk.ValueNumeric = 1
 

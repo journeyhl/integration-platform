@@ -109,7 +109,7 @@ and s.Status = 'B'
 --and b.AcctCD in('')
 --and b.AcctName like '%%'
 --and c.CustomerClassID in('')
---and dateadd(hour, -4, s.LastModifiedDateTime) >=  dateadd(hour, -2, getdate())
+--and dateadd(hour, -5, s.LastModifiedDateTime) >=  dateadd(hour, -2, getdate())
 -- and s.OrderNbr = 'PH145626'
 -- and s.LastModifiedDateTime >= cast(getdate()-30 as date)
 -- order by LastModifiedDT desc

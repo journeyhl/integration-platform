@@ -2,6 +2,7 @@ from integration_platform.pipelines.base import Pipeline
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from integration_platform.connectors.klaviyo import KlaviyoAPI
+from integration_platform.connectors.hubspot_api import HubSpotAPI
 from integration_platform.transform.klaviyo_data_push import Transform
 from integration_platform.load.klaviyo_data_push import Load
 class KlaviyoDataPush(Pipeline):    
@@ -53,6 +54,7 @@ class KlaviyoDataPush(Pipeline):
         '''
         super().__init__('KlaviyoDataPush', function)
         self.klaviyo = KlaviyoAPI(self)
+        self.hubspot = HubSpotAPI(self)
         self.transformer = Transform(self)
         self.loader = Load(self)
 
