@@ -33,6 +33,8 @@ class Queries:
 class CentralStoreQueries(Queries):
     '''Queries to be executed within db_CentralStore'''
 
+    AdPortal_GenerateAdCode: Query
+    '''Used for adportal. Pulls largest adcode that hasnt been used'''
     backfill_PackageCouries: Query
     '''Used for backfilling couriers onto Acumatica packages with RedStag data'''
     ReturnsPendingReciept: Query
@@ -796,7 +798,7 @@ values ({', '.join(f'source.{column}' for column in sql_table['columns'])});
 
 
     #MARK: query_to_dataframe
-    def query_to_dataframe(self, query: Query):
+    def query_to_dataframe(self, query: Query, include_last_checked: bool = True):
         ''':class:`~integration_platform.connectors.sql.SQLConnector`.:meth:`~integration_platform.connectors.sql.SQLConnector.query_to_dataframe`
         ---
 
@@ -821,9 +823,11 @@ values ({', '.join(f'source.{column}' for column in sql_table['columns'])});
         self.logger.info(f'Running {query.name} query...')
         data = pl.read_database(str(query.query), self.engine, infer_schema_length = None)
         self.logger.info(f'{data.height} rows returned')
-        ts_extract = datetime.now(ZoneInfo(('America/New_York')))
-        data_extract = data.with_columns(pl.lit(value=ts_extract, dtype=pl.Datetime).alias('LastChecked'))
-        return data_extract
+        if include_last_checked:
+            ts_extract = datetime.now(ZoneInfo(('America/New_York')))
+            data_extract = data.with_columns(pl.lit(value=ts_extract, dtype=pl.Datetime).alias('LastChecked'))
+            return data_extract
+        return data
 
     #MARK: raw_execute
     def raw_execute(self, query: str):

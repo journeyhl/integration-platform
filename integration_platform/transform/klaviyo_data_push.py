@@ -58,9 +58,10 @@ class Transform:
             }
             for r in data_extract.to_dicts()
         ]
-        extract_w_profiles = self._get_klaviyo_profiles_(data_extract=data_extract_dicts)
-        customer_records = self._format_payloads_(extract_w_profiles=extract_w_profiles)
-        customer_records = self.consolidate_duplicates(customer_records=customer_records)
+        extract_w_klaviyo = self._get_klaviyo_profiles_(data_extract=data_extract_dicts)
+        extract_w_klaviyo_hubspot = self._get_hubspot_profiles_(extract_w_profiles=data_extract_dicts)
+        customer_records = self._format_payloads_(extract_w_profiles=extract_w_klaviyo_hubspot)
+        customer_records = self._consolidate_duplicates_(customer_records=customer_records)
         consent = self._check_consent_(customer_records=customer_records)
         consent_updates, historic_consent_updates, customer_records = self._compare_consent_(customer_records=customer_records)
         customers_and_subscriptions = {
@@ -70,8 +71,23 @@ class Transform:
         }
         return customers_and_subscriptions
 
-    def consolidate_duplicates(self, customer_records: list[dict]) -> list[dict]:
-        ''':class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform.consolidate_duplicates`
+
+    def _get_hubspot_profiles_(self, extract_w_profiles):
+        bp = 'here'
+        total = len(extract_w_profiles)
+        for i, customer in enumerate(extract_w_profiles):
+            self.pipeline.hubspot.prefix = f'{i+1}/{total}: ' 
+            bp = 'here'
+            if not customer['RecordID']:
+                customer['hubspot_profile'] = {}
+                continue
+            customer['hubspot_profile'] = self.pipeline.hubspot.get_contact_by_id(contact_id=customer['RecordID'], properties=self.pipeline.hubspot.contact_properties_v2)['properties']
+            bp = 'here'
+        return extract_w_profiles
+
+
+    def _consolidate_duplicates_(self, customer_records: list[dict]) -> list[dict]:
+        ''':class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._consolidate_duplicates_`
         ---
         
         Given the list of customer records, check to make sure that we only have one record per email
@@ -150,10 +166,12 @@ class Transform:
         
          ### :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.get_profiles`
         '''        
-        records = len(data_extract)
+        total = len(data_extract)
+        unformatted_responses = {}
         profile_extract = []
         for i, customer in enumerate(data_extract):
-            profiles = self.pipeline.klaviyo.get_profiles(filter=f'filter={customer['filter']}')
+            self.log_prefix = f'{i+1}/{total} ({customer['Email']}): '
+            profiles = self.pipeline.klaviyo.get_profiles(filter=f'filter={customer['filter']}', log_prefix=self.log_prefix)
             if profiles == []:
                 customer['Action'] = 'Create'
                 customer['klaviyo_profile'] = {}
@@ -207,6 +225,7 @@ class Transform:
             self.current_prefix = f'{i+1}/{total}, {self.current_customer_email}: '
             payload = self.pipeline.klaviyo.payload_profile if customer['Action'] == 'Create' else {'data': customer['klaviyo_profile']}
             customer_record = self.__format_payload__(action=customer['Action'], customer=customer, payload=payload)
+            customer_record['hubspot_response'] = customer['hubspot_profile']
             customer_records.append(customer_record)
         return customer_records
 
@@ -791,6 +810,11 @@ class Transform:
 
             consent_header = self._format_consent_header_(customer=customer)
             if k_email_consent != db_email_consent:
+                '''If Klaviyo'''
+                if klaviyo['email']['marketing']['consent'] != 'NEVER_SUBSCRIBED':
+                    bp = 'here'
+                    continue
+
                 customer['ConsentUpdate'] = 'Email'
                 self.logger.info(f'{self.current_prefix}Email consent will be updated')
                 consent_payload = self._format_consent_(consent_header=consent_header, email_sms='email')

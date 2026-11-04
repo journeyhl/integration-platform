@@ -50,7 +50,7 @@ class KlaviyoAPI:
 
 
     #MARK: get_profiles
-    def get_profiles(self, url: str = 'https://a.klaviyo.com/api/profiles', filter: str = '', params: str = 'page[size]=100'):
+    def get_profiles(self, url: str = 'https://a.klaviyo.com/api/profiles', filter: str = '', params: str = 'page[size]=100', log_prefix: str = ''):
         ''':class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.get_profiles`
         ---
         
@@ -83,7 +83,7 @@ class KlaviyoAPI:
         while True:
             parsed_response = self._get_data_(url=url, params=params) if not paged else self._get_data_(url=url)
             profiles.extend(parsed_response.get('data') or [])
-            self.logger.info(f'{len(profiles)} Profiles parsed successfully')
+            self.logger.info(f'{log_prefix}{len(profiles)} Profiles parsed successfully')
             keep_going, next_page = self.__page__(parsed_response=parsed_response)
             if not keep_going:# or len(profiles) > 1000:
                 break
@@ -298,7 +298,8 @@ class KlaviyoAPI:
     def __page__(self, parsed_response: dict):
         paging_links = parsed_response.get('links')
         if paging_links == None or paging_links['next'] == None:
-            self.logger.info(f'No more pages found')
+            if len(parsed_response['data']) > 1:
+                self.logger.info(f'No more pages found')
             return False, ''
         return True, parsed_response['links']['next']
 

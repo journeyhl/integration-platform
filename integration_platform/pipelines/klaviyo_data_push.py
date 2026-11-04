@@ -5,6 +5,7 @@ from integration_platform.connectors.klaviyo import KlaviyoAPI
 from integration_platform.connectors.hubspot_api import HubSpotAPI
 from integration_platform.transform.klaviyo_data_push import Transform
 from integration_platform.load.klaviyo_data_push import Load
+from integration_platform.load.klaviyo_data_push_post_load import PostLoad
 class KlaviyoDataPush(Pipeline):    
     def __init__(self, function: str):        
         ''':class:`~integration_platform.pipelines.klaviyo_data_push.KlaviyoDataPush`
@@ -57,6 +58,7 @@ class KlaviyoDataPush(Pipeline):
         self.hubspot = HubSpotAPI(self)
         self.transformer = Transform(self)
         self.loader = Load(self)
+        self.post_loader = PostLoad(self)
 
     def extract(self):
         self.ts_extract_s = datetime.now(ZoneInfo('America/New_York'))
