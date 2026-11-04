@@ -390,6 +390,58 @@ TABLES = {
             'LastModBy'
         ],
     },
+    'AdVersionDetails': {
+        'keys': [
+            'AdVersionID',
+        ],
+        'columns': [
+            'AdVersionID',
+            'PrimaryVersionName',
+            'SecondaryVersionName',
+            'Product',
+            'CreatedBy',
+            'LastModBy',
+        ],
+        'update_columns': [
+            'PrimaryVersionName',
+            'SecondaryVersionName',
+            'Product',
+            'CreatedBy',
+            'LastModBy',
+        ],
+    },
+    'AdSpend': {
+        'keys': [
+            'AdCode',
+            'SpendDate',
+        ],
+        'columns': [
+            'AdCode',
+            'SpendDate',
+            'Amount',
+            'Circulation',
+        ],
+        'update_columns': [
+            'Amount',
+            'Circulation',
+        ],
+    },
+    'AdPhone': {
+        'keys': [
+            'AdCode',
+            'StartDate'
+        ],
+        'columns': [
+            'AdCode',
+            'TFN',
+            'StartDate',
+        ],
+        'update_columns': [
+            'TFN',
+        ],
+    },
+    
+
     'criteo.campaign_performance_daily': {
         'keys': [
             'report_date',

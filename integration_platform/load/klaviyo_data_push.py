@@ -16,9 +16,9 @@ class Load:
         bp = 'here'
 
 
-    #MARK: landing_loader
-    def landing_loader(self, data_transformed: dict) -> list[dict]:
-        ''':class:`~integration_platform.load.klaviyo_data_push.Load`.:meth:`~integration_platform.load.klaviyo_data_push.Load.landing_loader`
+    #MARK: landing
+    def landing(self, data_transformed: dict) -> list[dict]:
+        ''':class:`~integration_platform.load.klaviyo_data_push.Load`.:meth:`~integration_platform.load.klaviyo_data_push.Load.landing`
         ---
         
         Landing method for Load class of :class:`~integration_platform.pipelines.klaviyo_data_push.KlaviyoDataPush`
@@ -86,7 +86,7 @@ class Load:
         
         ## Upstream Calls (Methods/Functions Called by)
         
-         ### :class:`~integration_platform.load.klaviyo_data_push.Load`.:meth:`~integration_platform.load.klaviyo_data_push.Load.landing_loader`
+         ### :class:`~integration_platform.load.klaviyo_data_push.Load`.:meth:`~integration_platform.load.klaviyo_data_push.Load.landing`
         
         ## Downstream Calls (Methods/Functions called)
         
@@ -133,7 +133,7 @@ class Load:
         
         ## Upstream Calls (Methods/Functions Called by)
         
-         ### :class:`~integration_platform.load.klaviyo_data_push.Load`.:meth:`~integration_platform.load.klaviyo_data_push.Load.landing_loader`
+         ### :class:`~integration_platform.load.klaviyo_data_push.Load`.:meth:`~integration_platform.load.klaviyo_data_push.Load.landing`
         
         ## Downstream Calls (Methods/Functions called)
         

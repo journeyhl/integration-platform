@@ -71,7 +71,8 @@ class KlaviyoDataPush(Pipeline):
         return data_transformed
 
     def load(self, data_transformed):
-        loaded_to_klaviyo = self.loader.landing_loader(data_transformed=data_transformed)
+        loaded_to_klaviyo = self.loader.landing(data_transformed=data_transformed)
+        self.post_loader.landing(data_transformed=data_transformed)
         self.centralstore.merge_table_paginated(table_name='klaviyo.DataPushLog', data=loaded_to_klaviyo)
         return data_transformed
 

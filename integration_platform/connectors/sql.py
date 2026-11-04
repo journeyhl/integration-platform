@@ -33,6 +33,7 @@ class Queries:
 class CentralStoreQueries(Queries):
     '''Queries to be executed within db_CentralStore'''
 
+    AdPortal_TFNOptions: Query
     AdPortal_GenerateAdCode: Query
     '''Used for adportal. Pulls largest adcode that hasnt been used'''
     backfill_PackageCouries: Query

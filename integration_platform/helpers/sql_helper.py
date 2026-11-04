@@ -27,6 +27,13 @@ class SQLHelper():
 
 
     
+    def add_to_list(self, ldata: list, additions: dict[str, Any]):
+        for row in ldata:
+            for key, value in additions.items():
+                row[key] = value
+                bp = 'here'
+        return ldata
+        
     def dataframe_to_sql_table(self, df: pl.DataFrame):
         ''':class:`~SQLHelper`.:meth:`~dataframe_to_sql_table`
         ---
