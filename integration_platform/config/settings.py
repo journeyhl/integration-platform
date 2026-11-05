@@ -5407,6 +5407,24 @@ TABLES = {
             'LastName',
         ],
     },
+    'klaviyo.EmailSuppressions': {
+        'keys': [
+            'ID',
+            'Timestamp',
+        ],
+        'columns': [
+            'ID',
+            'Reason',
+            'Timestamp',
+            'InsertedDT',
+            'LastChecked',
+        ],
+        'update_columns': [
+            'Reason',
+            'LastChecked',
+        ],
+    },
+    
     
     
 }

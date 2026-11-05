@@ -26,9 +26,11 @@ class Transform:
     def _final_tuning_(self, data_extract, data_transformed):
         now = datetime.now(tz=ZoneInfo('America/New_York'))                
         add_to_list = {'InsertedDT': now, 'LastChecked': data_extract['LastChecked'], 'IsNewsletter': data_extract['is_newsletter']}
+        data_transformed['klaviyo.EmailSuppressions'] = self.email_suppressions
         self.pipeline.default_loader.add_to_list(ldata=data_transformed['klaviyo.ProfileHeader'], additions=add_to_list)
         self.pipeline.default_loader.add_to_list(ldata=data_transformed['klaviyo.ProfileProperties'], additions=add_to_list)
         self.pipeline.default_loader.add_to_list(ldata=data_transformed['klaviyo.ProfileSubscriptions'], additions=add_to_list)
+        self.pipeline.default_loader.add_to_list(ldata=data_transformed['klaviyo.EmailSuppressions'], additions=add_to_list)
 
         for row in data_transformed['klaviyo.ProfileProperties']:
             for k, v in row.items():
@@ -78,6 +80,7 @@ class Transform:
         bp = 'here'
         # self._distinct_properties_(profiles=profiles)
         total = len(profiles)
+        self.email_suppressions = []
         headers = []
         parsed_properties = []
         parsed_subscriptions = []
@@ -87,6 +90,7 @@ class Transform:
                     'id': p['id'],
                     **p['attributes']
                 }
+            self.ID = p['id']
             self.log_prefix = f'{i+1}/{total}: ' 
             bp = 'here'
             profile_header = self._profile_header_(profile=p)
@@ -201,8 +205,8 @@ class Transform:
             'Brand': props.get('Brand'),
             'VeteranStatus': props.get('Veteran_Status'),
             'Birthday': self._date_formatter_(date_str=props.get('Birthday'), key='Birthday'),
-            'Clicks': self.default_transformer.string_to_int(int_str=props.get('clicks')),
-            'Opens': self.default_transformer.string_to_int(int_str=props.get('Opens')),
+            'Clicks': self.default_transformer.string_to_int(int_str=props.get('clicks')) if isinstance(props.get('clicks'), str) else props.get('clicks'),
+            'Opens': self.default_transformer.string_to_int(int_str=props.get('Opens')) if isinstance(props.get('Opens'), str) else props.get('Opens'),
             'FullName': props.get('Full Name'),
             'CustomerID': props.get('Customer ID'),
             'MothersDayOptOut': props.get('mothers_day_opt_out'),
@@ -363,10 +367,22 @@ class Transform:
         
          ### :class:`~integration_platform.transform.klaviyo_newsletter.Transform`.:meth:`~integration_platform.transform.klaviyo_newsletter.Transform._parse_subscriptions_`
         '''    
-        if len(emails['marketing']['suppression']) > 1:
+        if len(emails['marketing']['suppression']) >= 1:
             bp = 'here'
-        if len(emails['marketing']['list_suppressions']) > 1:
+            for suppression in emails['marketing']['suppression']:
+                self.email_suppressions.append({
+                    'ID': self.ID,
+                    'Reason': suppression['reason'],
+                    'Timestamp': self.default_transformer.parse_date_str(suppression['timestamp'], tries=0, format='%Y-%m-%dT%H:%M:%S.%f', offset=True)
+                })
+        if len(emails['marketing']['list_suppressions']) >= 1:
             bp = 'here'
+            for suppression in emails['marketing']['list_suppressions']:
+                self.email_suppressions.append({
+                    'ID': self.ID,
+                    'Reason': suppression['reason'],
+                    'Timestamp': self.default_transformer.parse_date_str(suppression['timestamp'], tries=0, format='%Y-%m-%dT%H:%M:%S.%f', offset=True)
+                })
         email_subs = {
             'Mkt_Email_CanReceiveEmail': emails['marketing']['can_receive_email_marketing'],
             'Mkt_Email_Consent': emails['marketing']['consent'],

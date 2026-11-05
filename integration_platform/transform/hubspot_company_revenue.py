@@ -21,11 +21,11 @@ class Transform:
         self.hubspot_extract = data_extract['hubspot_extract']
         self.revenue_extract = data_extract['revenue_extract']
         self.hs_total = len(self.hubspot_extract)
-        data_transformed = self._main_iterator()
+        data_transformed = self._main_iterator_()
         return data_transformed
 
 
-    def _main_iterator(self):
+    def _main_iterator_(self):
         for i, company in enumerate(self.hubspot_extract):
             self.prefix = f'{i+1}/{self.hs_total}, {company['name']}: '
             company['phone_match'] = False
@@ -82,7 +82,7 @@ class Transform:
         return data_transformed
 
 
-
+    #MARK: 
     def _find_matches(self, company: dict):
         '''`_find_matches`(self, company: *dict*, ):
         ---

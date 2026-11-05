@@ -612,7 +612,7 @@ group by Email
 	-- and (pe.Updated <= dateadd(hour, -5, getdate()) or pe.updated is null)
 -- and ppp.Consent is not null and pes.Mkt_Email_Consent = 'SUBSCRIBED' and pes.Mkt_SMS_CanReceiveSMS = 1
 )
-select distinct top 20 t.*
+select distinct top 10 t.*
 	 , d2c_last.DatePlaced LastPurchaseDate
 	 , d2c_last.ItemClassDesc LastPurchaseItem
 	 , d2c_first.DatePlaced FirstPurchaseDate

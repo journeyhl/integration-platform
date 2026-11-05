@@ -82,7 +82,9 @@ class KlaviyoNewsletter(Pipeline):
     def load(self, data_transformed):
         self.centralstore.reconnect()
         for i, (table, rows) in enumerate(data_transformed.items()):
-            bp = 'here'
+            if len(rows) == 0:
+                self.logger.info(f'No rows to merge into {table}, skipping...')
+                continue
             self.centralstore.merge_table_paginated(table_name=table, data=rows, page_size=100)
         return data_transformed
 

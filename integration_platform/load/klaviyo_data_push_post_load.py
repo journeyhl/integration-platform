@@ -29,6 +29,16 @@ class PostLoad:
             klaviyo = customer['klaviyo_response']['data']['attributes']
             hubspot = customer['hubspot_response']
             bp = 'here'
+
+            map_hs = {
+                'AcceptsMarketing': hubspot.get('ip__shopify__accepts_marketing') or hubspot.get('accepts_marketing'),
+                'MailUnsubscribe': hubspot.get('unsubscribe_to_mail'),
+            }
+            map_klaviyo = {
+                'AcceptsMarketing': klaviyo['properties'].get('Accepts Marketing'),
+            }
+
+
             for k, v in klaviyo.items():
                 print_dict_items(k=k, v=v, prefix='klaviyo')
             bp = 'here'
