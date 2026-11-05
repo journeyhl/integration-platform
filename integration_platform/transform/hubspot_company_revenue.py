@@ -5,6 +5,7 @@ if TYPE_CHECKING:
 import logging
 import polars as pl
 import json
+from datetime import datetime
 class Transform:
     def __init__(self, pipeline: HubspotCompanyRevenue):
         self.pipeline = pipeline
@@ -61,6 +62,9 @@ class Transform:
                 company = self._update_payload(company)
                 bp = 'here'
             company['CustomerIDs'] = [c['CustomerID'] for c in company['distinct_matches']]
+            for match in company['distinct_matches']:
+                if isinstance(match['LastChecked'], datetime):
+                    match['LastChecked'] = match['LastChecked'].strftime('%Y-%m-%dT%H:%M:%SZ')
             db_row = {
                 **db_row,
                 'acuCustomerIDs': json.dumps(company['CustomerIDs']),
