@@ -607,12 +607,12 @@ group by Email
 	left join klaviyo.ProfileProperties ppp on pp.ID = ppp.ID
 	left join klaviyo.ProfileSubscriptions pps on pp.ID = pps.ID
 	where (pe.Email is not null or pp.Email is not null)
-	and c.Marketingcontactstatus in('Marketing Contact', 'true')
+	-- and c.Marketingcontactstatus in('Marketing Contact', 'true')
 	and c.Email is not null and right(c.Email, 8) != '@zap.com' and c.email != ''
 	-- and (pe.Updated <= dateadd(hour, -5, getdate()) or pe.updated is null)
 -- and ppp.Consent is not null and pes.Mkt_Email_Consent = 'SUBSCRIBED' and pes.Mkt_SMS_CanReceiveSMS = 1
 )
-select distinct top 100 t.*
+select distinct top 20 t.*
 	 , d2c_last.DatePlaced LastPurchaseDate
 	 , d2c_last.ItemClassDesc LastPurchaseItem
 	 , d2c_first.DatePlaced FirstPurchaseDate
@@ -630,5 +630,5 @@ left join analytics.JHL_D2CCustomerOrderHistory d2c_first on t.PhoneNumberFmt = 
 left join DataPushLog dpl on t.Email = dpl.Email
 where t.Email != '' --and (dpl.LastChecked <= dateadd(hour, -7, getdate()) or dpl.LastChecked is null)
 -- and d2c_last.DatePlaced is not null
-and coalesce(t.Mkt_Email_ConsentTimestamp_email, t.Mkt_Email_ConsentTimestamp_phone) is not null
+-- and coalesce(t.Mkt_Email_ConsentTimestamp_email, t.Mkt_Email_ConsentTimestamp_phone) is not null
 order by DataLogLastChecked

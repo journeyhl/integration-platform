@@ -8,7 +8,7 @@ import polars as pl
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 import json
-
+from typing import Literal
 class Load:
     def __init__(self, pipeline: KlaviyoDataPush):
         self.pipeline = pipeline
@@ -47,8 +47,8 @@ class Load:
            
           - Sends consent/subscription updates to Klaviyo in bulk. If no updates to be made, doesn't send anything
         '''        
-        bp = 'here'
-        updated_or_created = self._load_customer_records_(customer_records=data_transformed['customer_records'])
+        bp = 'here' #change below line to both when done
+        updated_or_created = self._load_customer_records_(customer_records=data_transformed['customer_records'], create_update_both='Update')
         self._load_consent_updates_(consent_updates=data_transformed['consent_updates'])
         self._load_consent_updates_(consent_updates=data_transformed['historic_consent_updates'], historical_import=True)
         db_logs = self._log_loaded_records_(customer_records=data_transformed['customer_records'])
@@ -74,7 +74,7 @@ class Load:
         return db_logs
 
     #MARK: _load_customer_records_
-    def _load_customer_records_(self, customer_records: list):
+    def _load_customer_records_(self, customer_records: list, create_update_both: Literal['Create', 'Update', 'Both'] = 'Both'):
         ''':class:`~integration_platform.load.klaviyo_data_push.Load`.:meth:`~integration_platform.load.klaviyo_data_push.Load._load_customer_records_`
         ---
         
@@ -83,6 +83,10 @@ class Load:
         Parameters
         ---
         :param (*list*) `customer_records`: list of customer dicts containing payloads to send to klaviyo among additional details
+        
+                
+           ### ***Optional***
+        :param (*Literal = ['Create', 'Update', 'Both']*) `create_update_both`: If we want to exclusively create or update records, or if we should do all records<br>*Default = `Both`*
         
         ## Upstream Calls (Methods/Functions Called by)
         
@@ -97,9 +101,16 @@ class Load:
         created = 0
         updated = 0
         updated_or_created = [customer for customer in customer_records if customer['fields_added'] or customer['fields_changed']]
+        total = len(updated_or_created)
         self.logger.info(f'{len(customer_records) - len(updated_or_created)} records will be skipped as no updates were found to be needed')
+        if create_update_both != 'Both':
+            updated_or_created = [customer for customer in updated_or_created if customer['action'] == create_update_both]
+            self.logger.info(f'Only {create_update_both[:-1]}ing, {total - len(updated_or_created)} additional records filtered out')
+        bp = 'here'
         total = len(updated_or_created)
         for i, customer_record in enumerate(updated_or_created):
+            if customer_record['action'] == 'Create':
+                continue
             prepend = f'{customer_record['action'][:-1]}ing'
             self.logger.info(f'{prepend} profile {i+1}/{total}... {customer_record['db']['Email']}{f' (https://www.klaviyo.com/profile/{customer_record['payload']['data']['id']})' if customer_record['action'] == 'Update' else ''}')
             response = self.pipeline.klaviyo.create_or_update_profile(payload=customer_record['payload'])

@@ -228,7 +228,8 @@ class DefaultTransformer:
                 date = self.parse_date_str(date_str=f'{date_str}Z{offset_hr_str}', tries=tries, offset=offset_hr_str!='', log_prefix=log_prefix, str_descr=str_descr)
         # self.logger.info(f'{log_prefix}Parsed date successfully!')
         if not date:
-            self.logger.info(f"Couldn't parse date! {date_str} {f': {str_descr}' if str_descr != '' else ''}'")
+            bp = 'dont log anything here for now'
+            # self.logger.info(f"Couldn't parse date! {date_str} {f': {str_descr}' if str_descr != '' else ''}'")
         self.__distinct_date_format_check__(date_str=date_str, format=format, parse_result='success' if date else 'error')
         return date
 
