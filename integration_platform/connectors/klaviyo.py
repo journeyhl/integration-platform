@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING,  Any, Iterator
 if TYPE_CHECKING:
     from integration_platform.pipelines.klaviyo_newsletter import KlaviyoNewsletter
     from integration_platform.pipelines.klaviyo_data_push import KlaviyoDataPush
+    from integration_platform.pipelines.klaviyo_writeback_hubspot import KlaviyoWritebackHubspot
 import logging
 from integration_platform.config.settings import KLAYVIO
 from integration_platform.helpers.klaviyo_api_helper import KlaviyoAPIHelper
@@ -28,7 +29,7 @@ class KlaviyoAPI:
     - ## :meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.__page__`
     - ## :meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI._set_fields_`
     '''
-    def __init__(self, pipeline: KlaviyoNewsletter | KlaviyoDataPush) -> None:
+    def __init__(self, pipeline: KlaviyoNewsletter | KlaviyoDataPush | KlaviyoWritebackHubspot) -> None:
         self.pipeline = pipeline
         if type(pipeline) == str:
             self.logger = logging.getLogger(f'{pipeline}.KlaviyoAPI')

@@ -73,19 +73,6 @@ class Transform:
         return customers_and_subscriptions
 
 
-    def _get_hubspot_profiles_(self, extract_w_profiles):
-        bp = 'here'
-        total = len(extract_w_profiles)
-        for i, customer in enumerate(extract_w_profiles):
-            self.pipeline.hubspot.prefix = f'{i+1}/{total}: ' 
-            bp = 'here'
-            if not customer['RecordID']:
-                customer['hubspot_profile'] = {}
-                continue
-            customer['hubspot_profile'] = self.pipeline.hubspot.get_contact_by_id(contact_id=customer['RecordID'], properties=self.pipeline.hubspot.contact_properties_v2)['properties']
-            bp = 'here'
-        return extract_w_profiles
-
 
     def _consolidate_duplicates_(self, customer_records: list[dict]) -> list[dict]:
         ''':class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._consolidate_duplicates_`

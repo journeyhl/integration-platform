@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING,  Any, Iterator
 if TYPE_CHECKING:
-    from integration_platform.pipelines import HubspotSnapshot, HubSpotProperties, HubspotContacts, HubspotCompanyRevenue, HubspotPropertyUpdate, HubspotLeadsToDbc, UCMI_HubspotCustomers, B2BZipCodes, KlaviyoDataPush
+    from integration_platform.pipelines import HubspotSnapshot, HubSpotProperties, HubspotContacts, HubspotCompanyRevenue, HubspotPropertyUpdate, HubspotLeadsToDbc, UCMI_HubspotCustomers, B2BZipCodes, KlaviyoWritebackHubspot
     from integration_platform.pipelines.archive.ucmi_hubspot_excel import UCMI_HubspotCustomersExcel
 from integration_platform.config.settings import HUBSPOT
 from datetime import datetime, timezone, timedelta
@@ -13,7 +13,7 @@ from typing import Literal
 
 
 class HubSpotAPI:
-    def __init__(self, pipeline: HubspotSnapshot | HubSpotProperties | HubspotContacts | HubspotCompanyRevenue | HubspotPropertyUpdate | HubspotLeadsToDbc | UCMI_HubspotCustomers | B2BZipCodes | UCMI_HubspotCustomersExcel | KlaviyoDataPush | str):
+    def __init__(self, pipeline: HubspotSnapshot | HubSpotProperties | HubspotContacts | HubspotCompanyRevenue | HubspotPropertyUpdate | HubspotLeadsToDbc | UCMI_HubspotCustomers | B2BZipCodes | UCMI_HubspotCustomersExcel | KlaviyoWritebackHubspot | str):
         self.pipeline = pipeline
         if type(pipeline) == str:
             self.logger = logging.getLogger(f'{pipeline}.HubSpotAPI')

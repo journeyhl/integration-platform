@@ -43,6 +43,7 @@ from .hubspot_property_update import HubspotPropertyUpdate
 from .hubspot_leads_to_dbc import HubspotLeadsToDbc
 from .klaviyo_newsletter import KlaviyoNewsletter
 from .klaviyo_data_push import KlaviyoDataPush
+from .klaviyo_writeback_hubspot import KlaviyoWritebackHubspot
 
 from .criteo import Criteo
 from .hubspot_properties import HubSpotProperties
