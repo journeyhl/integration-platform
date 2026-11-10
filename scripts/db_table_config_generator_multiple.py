@@ -61,8 +61,9 @@ elif db_input.lower() == acudb[0:input_len].lower():
 
 db = SQLConnector('config-generator', db)
 tables = [
+    'ucmiraw.Customers_Acu'
     # 'AdDetails',
-    'klaviyo.EmailSuppressions'
+    # 'klaviyo.EmailSuppressions'
     # 'hs.ContactOwners'
     # 'shop.Customers',
     # 'shop.CustomerOrders',

@@ -298,6 +298,8 @@ class KlaviyoAPI:
     def __page__(self, parsed_response: dict):
         paging_links = parsed_response.get('links')
         if paging_links == None or paging_links['next'] == None:
+            if not parsed_response.get('data') and parsed_response.get('errors'):
+                return False, ''
             if len(parsed_response['data']) > 1:
                 self.logger.info(f'No more pages found')
             return False, ''

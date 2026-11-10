@@ -296,6 +296,10 @@ group by Email
 	 , pps.Mkt_Push_CanReceivePush Mkt_Push_CanReceivePush_phone
 , pps.Mkt_Push_Consent Mkt_Push_Consent_phone
 , pps.Mkt_Push_ConsentTimestamp Mkt_Push_ConsentTimestamp_phone
+, ese.Timestamp SuppressionReason_email
+, ese.Timestamp SuppressionTimestamp_email
+, esp.Reason SuppressionReason_phone
+, esp.Timestamp SuppressionTimestamp_phone
 	from ucmiraw.HubspotCustomers c
 	left join klaviyo.ProfileHeader pe on c.Email = pe.Email
 	left join klaviyo.ProfileProperties pep on pe.ID = pep.ID
@@ -303,10 +307,11 @@ group by Email
 	left join klaviyo.ProfileHeader pp on c.PhoneNumberFmt = pp.PhoneNumber or c.PhoneNumber = pp.RawPhoneNumber
 	left join klaviyo.ProfileProperties ppp on pp.ID = ppp.ID
 	left join klaviyo.ProfileSubscriptions pps on pp.ID = pps.ID
+	left join klaviyo.EmailSuppressions ese on pe.ID = ese.ID
+	left join klaviyo.EmailSuppressions esp on pp.ID = esp.ID
 	where (pe.Email is null and pp.PhoneNumber is null and pp.RawPhoneNumber is null)
 	and c.Marketingcontactstatus in('Marketing Contact', 'true')
 	and c.Email is not null and right(c.Email, 8) != '@zap.com' and c.email != ''
-	-- and (pe.Updated <= dateadd(hour, -5, getdate()) or pe.updated is null)
 	union
 	select distinct 'Update' Action
 		, c.*
@@ -599,6 +604,10 @@ group by Email
 	 , pps.Mkt_Push_CanReceivePush Mkt_Push_CanReceivePush_phone
 , pps.Mkt_Push_Consent Mkt_Push_Consent_phone
 , pps.Mkt_Push_ConsentTimestamp Mkt_Push_ConsentTimestamp_phone
+, ese.Timestamp SuppressionReason_email
+, ese.Timestamp SuppressionTimestamp_email
+, esp.Reason SuppressionReason_phone
+, esp.Timestamp SuppressionTimestamp_phone
 	from ucmiraw.HubspotCustomers c
 	left join klaviyo.ProfileHeader pe on c.Email = pe.Email
 	left join klaviyo.ProfileProperties pep on pe.ID = pep.ID
@@ -606,13 +615,14 @@ group by Email
 	left join klaviyo.ProfileHeader pp on c.PhoneNumberFmt = pp.PhoneNumber
 	left join klaviyo.ProfileProperties ppp on pp.ID = ppp.ID
 	left join klaviyo.ProfileSubscriptions pps on pp.ID = pps.ID
+	left join klaviyo.EmailSuppressions ese on pe.ID = ese.ID
+	left join klaviyo.EmailSuppressions esp on pp.ID = esp.ID
 	where (pe.Email is not null or pp.Email is not null)
-	-- and c.Marketingcontactstatus in('Marketing Contact', 'true')
+	and c.Marketingcontactstatus in('Marketing Contact', 'true')
 	and c.Email is not null and right(c.Email, 8) != '@zap.com' and c.email != ''
-	-- and (pe.Updated <= dateadd(hour, -5, getdate()) or pe.updated is null)
 -- and ppp.Consent is not null and pes.Mkt_Email_Consent = 'SUBSCRIBED' and pes.Mkt_SMS_CanReceiveSMS = 1
 )
-select distinct top 10 t.*
+select distinct top 1000 t.*
 	 , d2c_last.DatePlaced LastPurchaseDate
 	 , d2c_last.ItemClassDesc LastPurchaseItem
 	 , d2c_first.DatePlaced FirstPurchaseDate
@@ -628,7 +638,8 @@ from TopLevel t
 left join analytics.JHL_D2CCustomerOrderHistory d2c_last on t.PhoneNumberFmt = d2c_last.Phone and d2c_last.OrdersDesc_Phone = 1 and d2c_last.PartProdAccFee != 'No Orders'
 left join analytics.JHL_D2CCustomerOrderHistory d2c_first on t.PhoneNumberFmt = d2c_first.Phone and d2c_first.OrdersAsc_Phone = 1 and d2c_first.PartProdAccFee != 'No Orders'
 left join DataPushLog dpl on t.Email = dpl.Email
-where t.Email != '' --and (dpl.LastChecked <= dateadd(hour, -7, getdate()) or dpl.LastChecked is null)
+where t.Email != '' and (dpl.LastChecked <= dateadd(hour, -7, getdate()) or dpl.LastChecked is null)
 -- and d2c_last.DatePlaced is not null
 -- and coalesce(t.Mkt_Email_ConsentTimestamp_email, t.Mkt_Email_ConsentTimestamp_phone) is not null
-order by DataLogLastChecked
+-- and dpl.LastChecked is null
+order by LastModifiedDate desc

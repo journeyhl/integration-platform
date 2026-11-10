@@ -48,7 +48,7 @@ class Load:
           - Sends consent/subscription updates to Klaviyo in bulk. If no updates to be made, doesn't send anything
         '''        
         bp = 'here' #change below line to both when done
-        updated_or_created = self._load_customer_records_(customer_records=data_transformed['customer_records'], create_update_both='Update')
+        updated_or_created = self._load_customer_records_(customer_records=data_transformed['customer_records'], create_update_both='Both')
         self._load_consent_updates_(consent_updates=data_transformed['consent_updates'])
         self._load_consent_updates_(consent_updates=data_transformed['historic_consent_updates'], historical_import=True)
         db_logs = self._log_loaded_records_(customer_records=data_transformed['customer_records'])
@@ -109,8 +109,6 @@ class Load:
         bp = 'here'
         total = len(updated_or_created)
         for i, customer_record in enumerate(updated_or_created):
-            if customer_record['action'] == 'Create':
-                continue
             prepend = f'{customer_record['action'][:-1]}ing'
             self.logger.info(f'{prepend} profile {i+1}/{total}... {customer_record['db']['Email']}{f' (https://www.klaviyo.com/profile/{customer_record['payload']['data']['id']})' if customer_record['action'] == 'Update' else ''}')
             response = self.pipeline.klaviyo.create_or_update_profile(payload=customer_record['payload'])

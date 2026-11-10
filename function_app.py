@@ -1217,7 +1217,15 @@ def klaviyo_data_push(timer: af.TimerRequest):
 #endregion
 
 
-
+@app.timer_trigger(
+    schedule='40 4 * * *',
+    arg_name='timer',
+    run_on_startup = False
+)
+def ucmi_acumatica_customers(timer: af.TimerRequest):
+    from integration_platform.pipelines.ucmi_acumatica import UCMI_AcumaticaCustomers
+    ucmi_acumatica = UCMI_AcumaticaCustomers(function='ucmi_acumatica_customers')
+    ucmi_acumatica.run()
 
 
 

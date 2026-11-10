@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 import json
 from typing import Literal
 import copy
+from urllib.parse import quote
 from decimal import Decimal
 class Transform:
     def __init__(self, pipeline: KlaviyoDataPush):
@@ -51,16 +52,16 @@ class Transform:
           - Drives transformation of payloads to send back to klaviyo
         '''        
         bp = 'here'
-        data_extract_dicts = [
-            {
-                **r,
-                'filter': f"equals(email,'{r['Email']}')",
-            }
-            for r in data_extract.to_dicts()
+        emails = list(dict.fromkeys(e for e in data_extract['Email'].to_list() if e))
+        filter_chunks = [
+            'filter=' + quote('any(email,[' + ','.join(f'"{e}"' for e in emails[i:i+100]) + '])', safe='')
+            for i in range(0, len(emails), 100)
         ]
-        extract_w_klaviyo = self._get_klaviyo_profiles_(data_extract=data_extract_dicts)
-        extract_w_klaviyo_hubspot = self._get_hubspot_profiles_(extract_w_profiles=data_extract_dicts)
-        customer_records = self._format_payloads_(extract_w_profiles=extract_w_klaviyo_hubspot)
+
+        extract_w_klaviyo = self._get_klaviyo_profiles_(data_extract=data_extract.to_dicts(), filter_chunks=filter_chunks)
+        # extract_w_klaviyo_hubspot = self._get_hubspot_profiles_(extract_w_profiles=data_extract_dicts)
+        # customer_records = self._format_payloads_(extract_w_profiles=extract_w_klaviyo_hubspot)
+        customer_records = self._format_payloads_(extract_w_profiles=extract_w_klaviyo)
         customer_records = self._consolidate_duplicates_(customer_records=customer_records)
         consent = self._check_consent_(customer_records=customer_records)
         consent_updates, historic_consent_updates, customer_records = self._compare_consent_(customer_records=customer_records)
@@ -136,7 +137,7 @@ class Transform:
         # test = pl.DataFrame(payloads, infer_schema_length=None)
 
     #MARK: _get_klaviyo_profiles_
-    def _get_klaviyo_profiles_(self, data_extract: list[dict]):
+    def _get_klaviyo_profiles_(self, data_extract: list[dict], filter_chunks: list):
         ''':class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._get_klaviyo_profiles_`
         ---
         
@@ -167,18 +168,26 @@ class Transform:
          ### :class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI.get_profiles`
         '''        
         total = len(data_extract)
-        unformatted_responses = {}
         profile_extract = []
-        for i, customer in enumerate(data_extract):
-            self.log_prefix = f'{i+1}/{total} ({customer['Email']}): '
-            profiles = self.pipeline.klaviyo.get_profiles(filter=f'filter={customer['filter']}', log_prefix=self.log_prefix)
-            if profiles == []:
+        profiles_by_email = {}
+        not_found = 0
+        for n, chunk in enumerate(filter_chunks):
+            profiles = self.pipeline.klaviyo.get_profiles(filter=chunk, log_prefix=f'chunk {n+1}/{len(filter_chunks)}: ')
+            for p in profiles:
+                email = (p.get('attributes') or {}).get('email')
+                if email:
+                    profiles_by_email.setdefault(email.lower(), p)
+        for customer in data_extract:
+            profile = profiles_by_email.get((customer['Email'] or '').lower())
+            if profile:
+                customer['Action'] = 'Update'
+                customer['klaviyo_profile'] = copy.deepcopy(profile)
+            else:
                 customer['Action'] = 'Create'
                 customer['klaviyo_profile'] = {}
-            else:                
-                customer['Action'] = 'Update'
-                customer['klaviyo_profile'] = profiles[0] 
+                not_found += 1
             profile_extract.append(customer)
+        self.logger.warning(f"{not_found} profiles weren't found and are set to be created.")
         return profile_extract
 
 
@@ -225,7 +234,7 @@ class Transform:
             self.current_prefix = f'{i+1}/{total}, {self.current_customer_email}: '
             payload = self.pipeline.klaviyo.payload_profile if customer['Action'] == 'Create' else {'data': customer['klaviyo_profile']}
             customer_record = self.__format_payload__(action=customer['Action'], customer=customer, payload=payload)
-            customer_record['hubspot_response'] = customer['hubspot_profile']
+            # customer_record['hubspot_response'] = customer['hubspot_profile']
             customer_records.append(customer_record)
         return customer_records
 
@@ -766,6 +775,10 @@ class Transform:
             'Mkt_Email_ConsentTimestamp_email': None,
             'Mkt_SMS_ConsentTimestamp_phone': None,
             'Mkt_SMS_ConsentTimestamp_email': None,
+            'SuppressionReason_email': None,
+            'SuppressionTimestamp_email': None,
+            'SuppressionReason_phone': None,
+            'SuppressionTimestamp_phone': None
         }
         for customer in customer_records:
             customer['db_consent'] = dict(consent_columns)
@@ -792,11 +805,11 @@ class Transform:
             klaviyo = customer['klaviyo_response']['data']['attributes']['subscriptions']
             db = customer['db_consent']
 
-            k_email_consent = klaviyo['email']['marketing']['can_receive_email_marketing'] == True and klaviyo['email']['marketing']['consent'] == 'SUBSCRIBED'
+            k_email_consent = klaviyo['email']['marketing']['can_receive_email_marketing'] == True and klaviyo['email']['marketing']['consent'] == 'SUBSCRIBED' and klaviyo['email']['marketing']['suppression'] == []
             db_email_consent = (
-                (db['Mkt_Email_Consent_phone'] == 'SUBSCRIBED' and db['Mkt_Email_CanReceiveEmail_phone'] == True)
+                (db['Mkt_Email_Consent_phone'] == 'SUBSCRIBED' and db['Mkt_Email_CanReceiveEmail_phone'] == True and not db['SuppressionReason_phone'])
                 or
-                (db['Mkt_Email_Consent_email'] == 'SUBSCRIBED' and db['Mkt_Email_CanReceiveEmail_email'] == True)
+                (db['Mkt_Email_Consent_email'] == 'SUBSCRIBED' and db['Mkt_Email_CanReceiveEmail_email'] == True and not db['SuppressionReason_email'])
             )
 
             k_sms_consent = klaviyo['sms']['marketing']['can_receive_sms_marketing'] == True and klaviyo['sms']['marketing']['consent'] == 'SUBSCRIBED'

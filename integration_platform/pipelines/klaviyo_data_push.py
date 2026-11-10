@@ -6,6 +6,8 @@ from integration_platform.connectors.hubspot_api import HubSpotAPI
 from integration_platform.transform.klaviyo_data_push import Transform
 from integration_platform.load.klaviyo_data_push import Load
 from integration_platform.load.klaviyo_data_push_post_load import PostLoad
+import polars as pl
+
 class KlaviyoDataPush(Pipeline):    
     def __init__(self, function: str):        
         ''':class:`~integration_platform.pipelines.klaviyo_data_push.KlaviyoDataPush`
@@ -55,7 +57,7 @@ class KlaviyoDataPush(Pipeline):
         '''
         super().__init__('KlaviyoDataPush', function)
         self.klaviyo = KlaviyoAPI(self)
-        self.hubspot = HubSpotAPI(self)
+        # self.hubspot = HubSpotAPI(self)
         self.transformer = Transform(self)
         self.loader = Load(self)
         self.post_loader = PostLoad(self)
@@ -66,13 +68,18 @@ class KlaviyoDataPush(Pipeline):
         self.ts_extract_f = datetime.now(ZoneInfo('America/New_York'))
         return data_extract
 
-    def transform(self, data_extract):
+    def transform(self, data_extract: pl.DataFrame):
+        if data_extract.height == 0:
+            return []
         data_transformed = self.transformer.landing(data_extract=data_extract)
         return data_transformed
 
     def load(self, data_transformed):
-        self.post_loader.landing(data_transformed=data_transformed)
+        if data_transformed == []:
+            return []
+        # self.post_loader.landing(data_transformed=data_transformed)
         loaded_to_klaviyo = self.loader.landing(data_transformed=data_transformed)
+        self.centralstore.reconnect()
         self.centralstore.merge_table_paginated(table_name='klaviyo.DataPushLog', data=loaded_to_klaviyo)
         return data_transformed
 
