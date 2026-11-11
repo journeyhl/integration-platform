@@ -37,7 +37,10 @@ class AcuAPILoader:
     def __update_ship_sep_or_wh__(self, data: dict, status: str):
         for i, order in enumerate(data['Orders']):
             prefix = f'{i+1}/{data['OrderCount']} {status} orders: '
-            self.logger.info(f'{prefix}{order['OrderNbr']}')
+            self.logger.info(f'{prefix}{order['OrderNbr']}') 
+            if order['OrderType'] == 'RO' and order['ChairRemovalWH'] != order['OrderLineWH'] and not order['ShipSeparately'] and order['ShipComplete'] == 'C':
+                self.logger.info(f'{prefix}{order['OrderNbr']} skipped.')
+                continue
             if status != 'On Hold':
                 hold_payload = self.pipeline.acu_api.helper.format_put_on_hold(order=order)
                 self.pipeline.acu_api.order_do_action(order_data=order, payload=hold_payload, action='PutOrderOnHold')

@@ -576,6 +576,9 @@ class HubSpotAPI:
             if after:
                 body['after'] = after
             data = self._request_('POST', path, json=body)
+            if data == {}:
+                self.logger.info(f'No records found!')
+                return
             full_total = data['total']
             if total == 0:
                 self.logger.info(f'{full_total} records found')

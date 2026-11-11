@@ -155,3 +155,4 @@ inner join klaviyo.ProfileSubscriptions s on h.ID = s.ID
 left join klaviyo.EmailSuppressions es on h.ID = es.ID
 left join analytics.JHL_D2CCustomerOrderHistory d2c_last on h.PhoneNumber = d2c_last.Phone and d2c_last.OrdersDesc_Phone = 1 and d2c_last.PartProdAccFee != 'No Orders'
 left join analytics.JHL_D2CCustomerOrderHistory d2c_first on h.PhoneNumber = d2c_first.Phone and d2c_first.OrdersAsc_Phone = 1 and d2c_first.PartProdAccFee != 'No Orders'
+where HubspotRecordID is not null

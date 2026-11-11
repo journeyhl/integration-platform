@@ -2,7 +2,7 @@ from integration_platform.pipelines import Pipeline
 from integration_platform.transform.klaviyo_writeback_hubspot import Transform
 from integration_platform.connectors.hubspot_api import HubSpotAPI
 from integration_platform.connectors.klaviyo import KlaviyoAPI
-
+from integration_platform.helpers.klaviyo_writeback_hubspot import KlaviyoHubspotComparer
 
 
 class KlaviyoWritebackHubspot(Pipeline):
@@ -11,6 +11,7 @@ class KlaviyoWritebackHubspot(Pipeline):
         self.hubspot = HubSpotAPI(self)
         self.klaviyo = KlaviyoAPI(self)
         self.transformer = Transform(self)
+        self.comparer = KlaviyoHubspotComparer(self)
 
     def extract(self):
         contacts = self.centralstore.query_to_dataframe(query=self.centralstore.queries.KlaviyoWritebackHubspot)
