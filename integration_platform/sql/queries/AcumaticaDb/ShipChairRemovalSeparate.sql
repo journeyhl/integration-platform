@@ -14,6 +14,7 @@ select s.OrderType
 	 , s.Status AcuStatus
 	 , s.ShipSeparately
 	 , rtrim(b.AcctCD) AcctCD
+	 , s.ShipComplete
 from SOOrder s
 inner join SOLine l on s.CompanyID = l.CompanyID and s.OrderNbr = l.OrderNbr and s.OrderType = l.OrderType and s.CustomerID = l.CustomerID
 left join INSite si on s.CompanyID = si.CompanyID and l.SiteID = si.SiteID /*Warehouse joined on SOLine*/
@@ -37,6 +38,6 @@ select s.*
      , t.OrderLineWH ChairRemovalWH
 from SecondLevel s
 inner join TopLevel t on s.OrderNbr = t.OrderNbr and s.LineNbr != t.LineNbr and t.InventoryCD = '27222'
-where (t.OrderLineWH != s.OrderLineWH or s.ShipSeparately = 1)
+where (t.OrderLineWH != s.OrderLineWH or s.ShipSeparately = 1 or s.ShipComplete != 'C')
 --ShipSeperately needs to be flipped to 0 as a result of this process.
 --and AcuStatus = 'N'

@@ -57,7 +57,6 @@ class Transform:
             'filter=' + quote('any(email,[' + ','.join(f'"{e}"' for e in emails[i:i+100]) + '])', safe='')
             for i in range(0, len(emails), 100)
         ]
-
         extract_w_klaviyo = self._get_klaviyo_profiles_(data_extract=data_extract.to_dicts(), filter_chunks=filter_chunks)
         # extract_w_klaviyo_hubspot = self._get_hubspot_profiles_(extract_w_profiles=data_extract_dicts)
         # customer_records = self._format_payloads_(extract_w_profiles=extract_w_klaviyo_hubspot)
@@ -157,6 +156,7 @@ class Transform:
         total = len(data_extract)
         profile_extract = []
         profiles_by_email = {}
+        self.logger.info('Beginning profile extraction')
         not_found = 0
         for n, chunk in enumerate(filter_chunks):
             profiles = self.pipeline.klaviyo.get_profiles(filter=chunk, log_prefix=f'chunk {n+1}/{len(filter_chunks)}: ')
@@ -425,6 +425,9 @@ class Transform:
                             db_value = f'{'+1' if db_value[:2] != '+1' else ''}{db_value.replace('-', '')}'
                             if value != db_value:
                                 bp = 'here'
+                        elif isinstance(db_value, bool) and value.lower() in['true', 'false']:
+                            payload = self._add_profile_datapoint_(payload=payload, attr_or_prop=attr_or_prop, was_list=was_list, key=key, db_value=db_value, old_value=value)
+
                         elif isinstance(db_value, int):
                             if self.default_transformer.string_to_int(value) == db_value:
                                 payload = self._add_profile_datapoint_(payload=payload, attr_or_prop=attr_or_prop, was_list=was_list, key=key, db_value=db_value, old_value=value)

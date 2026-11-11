@@ -334,7 +334,7 @@ class AcumaticaAPI:
             self.helper.format_data_log_entry(entity=data_log['Entity'], key_value=data_log['Entity'], operation=data_log['Entity'], payload=data_log['Payload'], response=response_str, tstamp=datetime.now(ZoneInfo('America/New_York')), options='append')
             bp = 'here'
 
-        elif descr in ['Ship Separately', 'Update Warehouse']:
+        elif descr in ['Ship Separately', 'Update Warehouse', 'Ship Complete']:
             try:
                 json_response = response.json()
                 if json_response.get('error') != None:

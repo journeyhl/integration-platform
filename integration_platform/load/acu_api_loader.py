@@ -28,6 +28,7 @@ class AcuAPILoader:
             self.logger.info(f'{data['OrderCount']} order(s) in {status} status')
             if status in('Risk Hold', 'Open', 'Awaiting Payment', 'On Hold'):
                 data = self.__update_ship_sep_or_wh__(data=data, status=status)
+                bp = 'here'
 
 
 
@@ -52,6 +53,10 @@ class AcuAPILoader:
             if order['ShipSeparately']:
                 ship_sep_payload, data_log = self.pipeline.acu_api.helper.format_ship_separately(order=order)
                 self.pipeline.acu_api.target_api(endpoint='/SalesOrder?$expand=ShippingSettings', payload_data={'target_api_update_payload': ship_sep_payload, 'acu_api_data_log': data_log}, operation='put', descr='Ship Separately')
+            if order['ShipComplete'] != 'C':
+                ship_complete_payload, data_log = self.pipeline.acu_api.helper.format_ship_complete(order=order)
+                self.pipeline.acu_api.target_api(endpoint='/SalesOrder?$expand=ShippingSettings', payload_data={'target_api_update_payload': ship_complete_payload, 'acu_api_data_log': data_log}, operation='put', descr='Ship Complete')
+                bp = 'here'
             time.sleep(5)
             self.pipeline.acu_api.order_remove_hold(order)
             bp = 'here'

@@ -557,7 +557,30 @@ class AcumaticaAPIHelper:
         }
         dl_entry = self._format_pre_response_data_log_entry_(entity='SalesOrder', key_value=order['OrderNbr'], operation=f"PUT - Updating {order['OrderNbr']}'s Ship Separately value to False", payload=ship_sep_payload)
         return ship_sep_payload, dl_entry
-    
+
+
+    #MARK: _format_ship_complete_
+    def format_ship_complete(self, order: dict):
+        bp = 'here'
+        self.logger.info(f"Updating Shipping Rule to Ship Complete!")
+        ship_complete_payload = {
+            "OrderType": 
+            {
+                "value": order['OrderType']
+            },
+            "OrderNbr": 
+            {
+                "value": order['OrderNbr']
+            },
+            'ShippingSettings':{
+                "ShippingRule":{
+                    "value": 'Ship Complete'
+                }                
+            }
+        }
+        dl_entry = self._format_pre_response_data_log_entry_(entity='SalesOrder', key_value=order['OrderNbr'], operation=f"PUT - Updating {order['OrderNbr']}'s Ship Separately value to False", payload=ship_complete_payload)
+        return ship_complete_payload, dl_entry
+
 
     def _format_pre_response_data_log_entry_(self, entity: str, key_value: str, operation: str, payload: dict = {}):
         data_log_entry = {
