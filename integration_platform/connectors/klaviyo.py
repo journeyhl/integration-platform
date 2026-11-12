@@ -548,11 +548,11 @@ class KlaviyoAPI:
             'Primary Product User': 'PrimaryProductUser',
             'UTM Content': 'UTMContent',
             'utm_content': 'UTMContent',
+            'utm_source': 'UTMSource',      'UTM Source': 'UTMSource',
+            'utm_medium': 'UTMMedium',      'UTM Medium': 'UTMMedium',
+            'utm_campaign': 'UTMCampaign',  'UTM Campaign': 'UTMCampaign',
+            'utm_term': 'UTMTerm',          'UTM Term': 'UTMTerm',
             # set in __do_utms__, each merges two source keys
-            'utm_source': 'UTMSource',   'UTM Source': 'UTMSource',
-            'utm_medium': 'UTMMedium',   'UTM Medium': 'UTMMedium',
-            'utm_campaign': 'UTMCampaign', 'UTM Campaign': 'UTMCampaign',
-            'utm_term': 'UTMTerm',       'UTM Term': 'UTMTerm',
         }
         #MARK: map_properties_create
         self.map_properties_create = {

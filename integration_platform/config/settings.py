@@ -1110,6 +1110,8 @@ TABLES = {
             'HubspotDefined',
             'CreatedAt',
             'UpdatedAt',
+            'InsertedDT',
+            'LastChecked'
         ],
         'update_columns': [
             'otName',
@@ -1127,6 +1129,7 @@ TABLES = {
             'HubspotDefined',
             'CreatedAt',
             'UpdatedAt',
+            'LastChecked'
         ],
     },
     #MARK: acu.PhoneRevByMonth
