@@ -6,7 +6,7 @@ properties = {
     'FirstPurchaseItem':                    None,
     'LastPurchaseDate':                     'last_order_date',
     'LastPurchaseItem':                     None,
-    'Accepts Marketing':                    'ip__shopify__accepts_marketing',
+    'Accepts Marketing':                    ['ip__shopify__accepts_marketing', 'hs_marketable_status'],
     'Shopify Tags':                         'ip__shopify__tags',
     'Date Created':                         'createdate',
     'Last Mailed Date':                     'hs_email_last_send_date',
@@ -210,8 +210,8 @@ hubspot_db_keys_klaviyo_values = {
     'UTMMedium': 'utm_medium',     # or 'UTM Medium'
     'UTMCampaign': 'utm_campaign', # or 'UTM Campaign'
     'UTMTerm': 'utm_term',         # or 'UTM Term'
-}
 
+}
 
 db_keys_hs_values = {
             'RecordID':                                     'id',

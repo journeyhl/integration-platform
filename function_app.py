@@ -1148,7 +1148,7 @@ def ucmi_shopify(timer: af.TimerRequest):
     - shop.CustomerAddresses
     '''  
     from integration_platform.pipelines.ucmi_shopify import UCMI_ShopifyCustomers
-    shopify = UCMI_ShopifyCustomers(function='ucmi_shopify')
+    shopify = UCMI_ShopifyCustomers(function='ucmi_shopify') #UCMI_ShopifyCustomers
     shopify.run()
 #endregion
 
@@ -1179,7 +1179,7 @@ def ucmi_hubspot(timer: af.TimerRequest):
     '''  
     
     from integration_platform.pipelines.ucmi_hubspot import UCMI_HubspotCustomers
-    hubspot = UCMI_HubspotCustomers(function='ucmi_hubspot')
+    hubspot = UCMI_HubspotCustomers(function='ucmi_hubspot') #UCMI_HubspotCustomers
     hubspot.run()
 #endregion
 
@@ -1212,20 +1212,24 @@ def klaviyo_data_push(timer: af.TimerRequest):
     '''  
     
     from integration_platform.pipelines.klaviyo_data_push import KlaviyoDataPush
-    klaviyo = KlaviyoDataPush(function='klaviyo_data_push')
+    klaviyo = KlaviyoDataPush(function='klaviyo_data_push') #KlaviyoDataPush
     klaviyo.run()
 #endregion
 
 
+#region                                                        ucmi_acumatica_customers
+#                                               Loads Acumatica customers to ucmi table
+#                                                                        1x/day (4:40am)
 @app.timer_trigger(
-    schedule='40 4 * * *',
+    schedule = '40 4 * * *',
     arg_name='timer',
     run_on_startup = False
 )
 def ucmi_acumatica_customers(timer: af.TimerRequest):
     from integration_platform.pipelines.ucmi_acumatica import UCMI_AcumaticaCustomers
-    ucmi_acumatica = UCMI_AcumaticaCustomers(function='ucmi_acumatica_customers')
+    ucmi_acumatica = UCMI_AcumaticaCustomers(function='ucmi_acumatica_customers') #UCMI_AcumaticaCustomers
     ucmi_acumatica.run()
+#endregion
 
 
 

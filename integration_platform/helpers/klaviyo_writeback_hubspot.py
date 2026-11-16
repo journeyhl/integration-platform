@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from requests import Response
 import polars as pl
-from integration_platform.config.klaviyo_hubspot_map import properties
+from integration_platform.config.klaviyo_hubspot_map import properties as property_map
 
 
 class KlaviyoHubspotComparer:
@@ -48,49 +48,71 @@ class KlaviyoHubspotComparer:
             klaviyo_properties = profile['klaviyo']['properties']
             klaviyo_subscriptions = profile['klaviyo']['subscriptions']
 
-            diff_attributes = self._compare_attributes_(h=hubspot, k=klaviyo_attributes)
-            diff_location = self._compare_location_(h=hubspot, k=klaviyo_location)
-            diff_properties = self._compare_properties_(h=hubspot, k=klaviyo_properties)
-            diff_subscriptions = self._compare_subscriptions_(h=hubspot, k=klaviyo_subscriptions)
-            bp = 'here'
-        bp = 'here'
+            profile['diffs'] = {
+                'attributes': self._compare_attributes_(h=hubspot, k=klaviyo_attributes),
+                'location': self._compare_location_(h=hubspot, k=klaviyo_location),
+                'properties': self._compare_properties_(h=hubspot, k=klaviyo_properties),
+                'subscriptions': self._compare_subscriptions_(h=hubspot, k=klaviyo_subscriptions),
+            }
+        return contact_profiles
 
 
-
+    #MARK: 
     def _compare_attributes_(self, h: dict, k: dict):
         bp = 'here'
         attributes = {
-            'email': self._entry_formatter_(kvalue=k['email'], hvalue=h['email']),
-            'first_name': self._entry_formatter_(k['first_name'], h['firstname']),
-            'last_name': self._entry_formatter_(k['last_name'], h['lastname']),
-            'phone_number': self._entry_formatter_(k['phone_number'], h['phone'])
+            'email': self._entry_formatter_(kvalue=k['email'], hvalue=h['email'], kkey='email', hkey='email'),
+            'first_name': self._entry_formatter_(kvalue=k['first_name'], hvalue=h['firstname'], kkey='first_name', hkey='firstname'),
+            'last_name': self._entry_formatter_(kvalue=k['last_name'], hvalue=h['lastname'], kkey='last_name', hkey='lastname'),
+            'phone_number': self._entry_formatter_(kvalue=k['phone_number'], hvalue=h['phone'], kkey='phone_number', hkey='phone'),
         }
         return attributes
 
+    #MARK: _compare_location_
     def _compare_location_(self, h: dict, k: dict):
         location = {
-            'address1': self._entry_formatter_(kvalue=k['address1'], hvalue=h.get('shipping_address') or h.get('billing_address')),
+            'address1': self._entry_formatter_(kvalue=k['address1'], hvalue=h.get('shipping_address') or h.get('billing_address'), kkey='address1', hkey='shipping_address//billing_address'),
             # 'address2': self._entry_formatter_(kvalue=k['address2'], hvalue=h['shipping_'] or h['billing_']),
-            'city': self._entry_formatter_(kvalue=k['city'], hvalue=h.get('shipping_city') or h.get('billing_city')),
-            'country': self._entry_formatter_(kvalue=k['country'], hvalue=h['country']),
-            'region': self._entry_formatter_(kvalue=k['region'], hvalue=h.get('shipping_state') or h.get('billing_state')),
-            'zip': self._entry_formatter_(kvalue=k['zip'], hvalue=h.get('shipping_zip') or h.get('billing_zip')),
+            'city': self._entry_formatter_(kvalue=k['city'], hvalue=h.get('shipping_city') or h.get('billing_city'), kkey='city', hkey='shipping_city//billing_city'),
+            'country': self._entry_formatter_(kvalue=k['country'], hvalue=h['country'], kkey='country', hkey='country'),
+            'region': self._entry_formatter_(kvalue=k['region'], hvalue=h.get('shipping_state') or h.get('billing_state'), kkey='region', hkey='shipping_state//billing_state'),
+            'zip': self._entry_formatter_(kvalue=k['zip'], hvalue=h.get('shipping_zip') or h.get('billing_zip'), kkey='zip', hkey='shipping_zip//billing_zip'),
             # 'ip': self._entry_formatter_(kvalue=k['ip'], hvalue=h.get('shipping_city') or h.get('billing_city')),
         }
-        bp = 'here'
+        return location
     
+    #MARK: _compare_properties_
     def _compare_properties_(self, h: dict, k: dict):
-        properties = {
-
-        }
+        properties = {}
+        map = property_map
+        for kk, hk in map.items():
+            if k.get(kk):
+                if isinstance(hk, list):
+                    for hkey in hk:
+                        prop = self._entry_formatter_(k[kk], h.get(hkey), kkey=kk, hkey=hkey)
+                        if prop['hubspot'] != None:
+                            properties[kk] = prop
+                            break
+                        bp = 'here'
+                else:
+                    properties[kk] = self._entry_formatter_(k[kk], h.get(hk), kkey=kk, hkey=hk)
         bp = 'here'
+        return properties
 
+    #MARK: _compare_subscriptions_
     def _compare_subscriptions_(self, h: dict, k: dict):
         subscriptions = {
-
+            'email':
+            {
+                # 'can_receive_marketing': 
+            }
         }
         bp = 'here'
+        return subscriptions
 
-    def _entry_formatter_(self, kvalue, hvalue):
-        entry = {'klaviyo': kvalue, 'hubspot': hvalue}
+    #MARK: 
+    def _entry_formatter_(self, kvalue, hvalue, kkey, hkey):
+        entry = {'klaviyo': kvalue, 'hubspot': hvalue, 'update_hubspot': True, 'klaviyo_key': kkey, 'hubspot_key': hkey}
+        if kvalue == hvalue:
+            entry['update_hubspot'] = False
         return entry

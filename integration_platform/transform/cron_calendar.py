@@ -19,7 +19,7 @@ class Transform:
 
 
     def _parse_file_(self, data_extract):
-        lines = data_extract.split('\n')
+        raw_lines = data_extract.split('\n')
         lines = [line.strip().replace(
                     '(timer: af.TimerRequest):', ''
                 ).replace(
@@ -31,7 +31,7 @@ class Transform:
                 ).replace(
                     '",', ''
                 )
-        for line in lines if 'schedule = ' in line or ('def' in line and '(timer: af.TimerRequest)' in line)]
+        for line in raw_lines if 'schedule = ' in line or ('def' in line and '(timer: af.TimerRequest)' in line)]
         bp = 'here'
         schedule = {}
         sch_str = ''

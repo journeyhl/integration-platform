@@ -52,6 +52,8 @@ where s.CompanyID = 2 and
 left(isi.SiteCD, 7) = 'RedStag' and sl.OrigOrderType != 'RC'
 and s.Status not in('C', 'L', 'F', 'I')
 and k.ValueNumeric = 0
+and i.InventoryCD != '27222'
+-- and ShipVia != 'NONSTOCK'
 -- s.ShipmentNbr = '077252' and sl.LineNbr = 1		--This line is to send one offs
 -- and s.ShipmentNbr != '083252'
 order by ShipmentNbr, LineNumber
