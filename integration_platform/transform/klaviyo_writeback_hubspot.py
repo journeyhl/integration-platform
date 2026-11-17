@@ -14,9 +14,8 @@ class Transform:
     def landing(self, data_extract):
         self._parse_merged_contacts_(merged_contacts=data_extract['merged_contacts'])
         contact_profiles = self._get_profiles_(extract=data_extract['contacts'])
-        self.pipeline.comparer.landing(contact_profiles=contact_profiles)
-        bp = 'here'
-
+        contact_profiles = self.pipeline.comparer.landing(contact_profiles=contact_profiles)
+        return contact_profiles
 
 
     
@@ -109,13 +108,7 @@ class Transform:
         
         ## Upstream Calls (Methods/Functions Called by)
         
-         ### _______replace_me_______
-        
-          - Description
-        
-         ### _______replace_me_______
-           
-          - Description
+         ### :class:`~integration_platform.transform.klaviyo_writeback_hubspot.Transform`.:meth:`~integration_platform.transform.klaviyo_writeback_hubspot.Transform._get_profiles_`
         
         ## Downstream Calls (Methods/Functions called)
         
@@ -124,16 +117,8 @@ class Transform:
           - If we don't have a HubspotRecordID, search by eamil
         
          ### :class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.get_object_by_id`
-           
-          - Description
-        
-         ### _______replace_me_______
-           
-          - Description
-        
-         ### _______replace_me_______
-           
-          - Description
+         #         
+         ### :class:`~integration_platform.transform.klaviyo_writeback_hubspot.Transform`.:meth:`~integration_platform.transform.klaviyo_writeback_hubspot.Transform._condense_hubspot_response_`
         '''        
         if not contact['HubspotRecordID']:
             filter = [{"filters": [{"propertyName": "email", "operator": "eq", "value": contact['Email']}]}]
