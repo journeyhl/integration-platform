@@ -63,16 +63,27 @@ class Transform:
         customer_records = self._format_payloads_(extract_w_profiles=extract_w_klaviyo)
         customer_records = self._consolidate_duplicates_(customer_records=customer_records)
         consent = self._check_consent_(customer_records=customer_records)
-        consent_updates, historic_consent_updates, customer_records = self._compare_consent_(customer_records=customer_records)
+        consent_updates, historic_consent_updates, add_to_newsletter, customer_records = self._compare_consent_(customer_records=customer_records)
+        db_newsletter_rows = self._format_newsletter_db_rows_(add_to_newsletter=add_to_newsletter)
         customers_and_subscriptions = {
             'customer_records': customer_records,
             'consent_updates': consent_updates,
-            'historic_consent_updates': historic_consent_updates
+            'historic_consent_updates': historic_consent_updates,
+            'add_to_newsletter': add_to_newsletter,
+            'db_newsletter_rows': db_newsletter_rows
         }
         return customers_and_subscriptions
 
-
-
+    #MARK: _format_newsletter_db_rows_
+    def _format_newsletter_db_rows_(self, add_to_newsletter):
+        timestamp = datetime.now(ZoneInfo('America/New_York'))
+        bp = 'here'
+        if add_to_newsletter['data'] == []:
+            return []
+        db_newsletter_rows = [{**row, 'Timestamp': timestamp} for row in add_to_newsletter['data']]
+        return db_newsletter_rows
+    
+    #MARK: _consolidate_duplicates_
     def _consolidate_duplicates_(self, customer_records: list[dict]) -> list[dict]:
         ''':class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._consolidate_duplicates_`
         ---
@@ -783,6 +794,7 @@ class Transform:
         bp = 'here'
         update_klaviyo = []
         update_klaviyo_call_center_consent = []
+        add_to_newsletter = {'data':[]}
         total = len(customer_records)
         call_center_consent = False
         for i, customer in enumerate(customer_records):
@@ -821,6 +833,7 @@ class Transform:
                 customer['ConsentUpdate'] = 'Email'
                 self.logger.info(f'{self.current_prefix}Email consent will be updated')
                 consent_payload = self._format_consent_(consent_header=consent_header, email_sms='email')
+                add_to_newsletter['data'].append({'type': 'profile', 'id': customer['payload']['data']['id']})
                 entries+=1
             if k_sms_consent != db_sms_consent and not k_sms_consent:
                 customer['ConsentUpdate'] = 'SMS' if not customer['ConsentUpdate'] else 'Email & SMS'
@@ -845,11 +858,12 @@ class Transform:
                 call_center_consent_payload = self._format_consent_(consent_header=consent_header, email_sms='email')
                 call_center_consent_payload['attributes']['subscriptions']['email']['marketing']['consented_at'] = consented_at
                 update_klaviyo_call_center_consent.append(call_center_consent_payload)
+                add_to_newsletter['data'].append({'type': 'profile', 'id': customer['payload']['data']['id']})
                 bp = 'here'
 
         consent_updates = {'profiles': {'data': update_klaviyo}}
-        historic_consent_updates = {'profiles': {'data': update_klaviyo_call_center_consent}} 
-        return consent_updates, historic_consent_updates, customer_records
+        historic_consent_updates = {'profiles': {'data': update_klaviyo_call_center_consent}}
+        return consent_updates, historic_consent_updates, add_to_newsletter, customer_records
 
 
     #MARK: _format_consent_header_

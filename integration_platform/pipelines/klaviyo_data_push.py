@@ -81,6 +81,10 @@ class KlaviyoDataPush(Pipeline):
         loaded_to_klaviyo = self.loader.landing(data_transformed=data_transformed)
         self.centralstore.reconnect()
         self.centralstore.merge_table_paginated(table_name='klaviyo.DataPushLog', data=loaded_to_klaviyo)
+        if data_transformed['db_newsletter_rows'] != []:
+            self.centralstore.merge_table_paginated(table_name='klaviyo.NewsletterAdditions', data=data_transformed['db_newsletter_rows'])
+        else:
+            self.logger.info(f'No contacts were added to Newsletter')
         return data_transformed
 
     def log_results(self, data_loaded):

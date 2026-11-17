@@ -227,7 +227,13 @@ class KlaviyoAPI:
         url = 'https://a.klaviyo.com/api/profile-subscription-bulk-create-jobs'
         response = self._post_data_(url=url, payload=payload)
         return response
-    
+
+    #MARK: add_profiles_to_list 
+    def add_profiles_to_list(self, payload: dict, list_id: str = 'Rz3G6F'):
+        url = f'https://a.klaviyo.com/api/lists/{list_id}/relationships/profiles'
+        response = self._post_data_(url, payload=payload)
+        return response
+
     #MARK: _get_data_
     def _get_data_(self, url: str, params: str = ''):
         ''':class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI._get_data_`
@@ -260,6 +266,7 @@ class KlaviyoAPI:
         parsed_response = self.helper.parse_response(response=response, url=url)
         return parsed_response
 
+    #MARK _post_data_
     def _post_data_(self, url: str, payload: dict):
         ''':class:`~integration_platform.connectors.klaviyo.KlaviyoAPI`.:meth:`~integration_platform.connectors.klaviyo.KlaviyoAPI._post_data_`
         ---

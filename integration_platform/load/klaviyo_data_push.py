@@ -51,6 +51,7 @@ class Load:
         updated_or_created = self._load_customer_records_(customer_records=data_transformed['customer_records'], create_update_both='Both')
         self._load_consent_updates_(consent_updates=data_transformed['consent_updates'])
         self._load_consent_updates_(consent_updates=data_transformed['historic_consent_updates'], historical_import=True)
+        self._add_to_newsletter_(data_transformed['add_to_newsletter'])
         db_logs = self._log_loaded_records_(customer_records=data_transformed['customer_records'])
         return db_logs
 
@@ -176,4 +177,14 @@ class Load:
             self.logger.info(f'{response.status_code} {response.reason}')
         else:
             self.pipeline.klaviyo.helper.parse_errors(response=response)
+        bp = 'here'
+
+
+    def _add_to_newsletter_(self, payload_profiles_to_add):
+        bp = 'here'
+        total = len(payload_profiles_to_add['data'])
+        if total == 0:
+            self.logger.warning(f'No profiles to add to Newsletter, skipping...')
+            return
+        addition = self.pipeline.klaviyo.add_profiles_to_list(payload=payload_profiles_to_add)
         bp = 'here'

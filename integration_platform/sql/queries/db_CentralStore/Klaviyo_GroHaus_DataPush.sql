@@ -642,4 +642,4 @@ where t.Email != '' and (dpl.LastChecked <= dateadd(hour, -7, getdate()) or dpl.
 -- and d2c_last.DatePlaced is not null
 -- and coalesce(t.Mkt_Email_ConsentTimestamp_email, t.Mkt_Email_ConsentTimestamp_phone) is not null
 -- and dpl.LastChecked is null
-order by LastModifiedDate desc
+order by LastModifiedDate desc, dpl.LastChecked
