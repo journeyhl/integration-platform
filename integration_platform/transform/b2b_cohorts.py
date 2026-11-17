@@ -30,8 +30,8 @@ class Transform:
         pass
 
     #MARK: landing
-    def landing(self, data_extract: dict[str, list[dict]]):
-        order_history = data_extract['customer_order_history']
+    def landing(self, data_extract):
+        order_history = data_extract['customer_order_history'].to_dicts()
         bp = 'here'
         self.logger.info(f'Iterating through order history query')
         self.now = datetime.now(ZoneInfo('America/New_York')).date()
