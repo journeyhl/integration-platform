@@ -6,7 +6,7 @@ select distinct c.CustomerID
 	 , case when i.ItemClassDesc like '%Product%' or i.ItemClassDesc like '% Kits' or i.ItemClassDesc = 'UPwalker' then 'Products'
 			when i.ItemClassDesc like '%Part%' or i.ItemClassDesc = 'Misc. Other' then 'Parts'
 			when i.ItemClassDesc in('Sleep & Comfort', 'Warranties') then 'Parts'
-			else null
+			else 'N/A'
 	   end Item
 	 , s.DatePlaced
 	 , row_number() over(partition by s.CustomerID order by DatePlaced, OrderNumber) EarliestFirst

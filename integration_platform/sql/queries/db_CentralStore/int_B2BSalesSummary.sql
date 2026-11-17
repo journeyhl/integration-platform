@@ -119,7 +119,7 @@ group by t.Salesperson
 )
 
 , FinalLevel as(
-select Salesperson
+select case when Salesperson is null then 'None' else Salesperson end Salesperson
      , FinPeriod
      , count(distinct OrderNbr) Orders
      , sum(Total_Qty) UnitsSold
@@ -137,7 +137,7 @@ select 'Total' Total
      , cast(sum(case when s.Shipped = 1 then s.Total_Revenue else 0 end) as decimal(18,2)) Shipped
      , 1 FinPeriodTotal
 from SecondLevel s
-group by s.FinPeriod, DatePlaced
+group by s.FinPeriod
 )
-select *
+select distinct *
 from FinalLevel
