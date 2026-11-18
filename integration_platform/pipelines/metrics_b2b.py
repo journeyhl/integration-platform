@@ -29,15 +29,27 @@ class B2BMetrics(Pipeline):
     
     def load(self, data_transformed):
         bp = 'here'
-        
+        now = datetime.now(ZoneInfo('America/New_York'))
         frame_count = len(data_transformed)
+        for key in data_transformed:
+            print(key)
+        bp = 'here'
         for i, (table, data) in enumerate(data_transformed.items()):
+            if i < 4:
+                continue
             prefix = f'{i+1}/{frame_count}: '
-            self.logger.info(f'{prefix}Deleting {data.height} rows from {table}...')
-            self.centralstore.raw_execute(f'delete from {table}')
-            self.logger.info(f'{prefix}Inserting {data.height} rows to {table}...')
-            bp = 'here'
-            self.centralstore.insert_df(df_data_loaded=data, table_name=table)
+            db_data = data.to_dicts()
+            if table in['analytics.JHL_B2BRevenueByCustomer', 'analytics.JHL_B2BRevenueByCustomerType']:
+                db_data = self.centralstore.sql_helper.add_to_list(ldata=db_data, additions = {'InsertedDT': now, 'LastChecked': now})
+            else:
+                db_data = self.centralstore.sql_helper.add_to_list(ldata=db_data, additions={'InsertedDT': now})
+            #TODO: left off on analytics.int_B2BCustomerAgeCategory
+            self.centralstore.merge_table_paginated(table_name=table, data=db_data)
+            # self.logger.info(f'{prefix}Deleting {data.height} rows from {table}...')
+            # self.centralstore.raw_execute(f'delete from {table}')
+            # self.logger.info(f'{prefix}Inserting {data.height} rows to {table}...')
+            # bp = 'here'
+            # self.centralstore.insert_df(df_data_loaded=data, table_name=table)
             bp = 'here'
 
         # for table_name, data in data_transformed['upsert'].items():
