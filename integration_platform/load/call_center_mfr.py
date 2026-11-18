@@ -77,9 +77,13 @@ class Load:
             tbl_len = len(table['data'])
             if tbl_len >= 1000:
                 bp = 'here'
-                # table = self.filter_to_recent_rows(table)
+                table = self.filter_to_recent_rows(table)
             total_rows += len(table)
-            self.pipeline.centralstore.checked_upsert_paginated(table_name=table['table_name'], data=table['data'])
+            if i == 0:
+                self.pipeline.centralstore.checked_upsert_paginated(table_name=table['table_name'], data=table['data'])
+            else:
+                self.pipeline.centralstore.merge_table_paginated(table_name=table['table_name'], data=table['data'])
+            
             bp = 'here'
         self.logger.info(f'Upsert sequence complete! {total_rows} upserted to {dict_count} tables')
 
