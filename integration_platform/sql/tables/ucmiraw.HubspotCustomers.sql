@@ -31,6 +31,7 @@ begin
     EmailLastUpdatedBy varchar(155),
     EmailLastUpdatedDatetime datetime,
     PhoneOption varchar(10),
+    Product varchar(105),
     DFSLead bit,
     AcumaticaOrderNumbers varchar(255),
     BillingAddress varchar(155),

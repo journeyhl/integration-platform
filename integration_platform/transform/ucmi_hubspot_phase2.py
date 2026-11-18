@@ -87,6 +87,7 @@ class TransformPhase2:
             'EmailLastUpdatedBy':                           row.get('email_last_updated_by'),
             'EmailLastUpdatedDatetime':                     self.pipeline.default_transformer.parse_date_str(date_str=row.get('email_last_updated_on_date'), tries=0),
             'PhoneOption':                                  row.get('phone_option'),
+            'Product':                                      row.get('product'),
             'DFSLead':                                      True if row.get('dfs_lead') == 'true' else False,
             'AcumaticaOrderNumbers':                        row.get('acumatica_order_number_s_'),
             'BillingAddress':                               row.get('billing_address'),
