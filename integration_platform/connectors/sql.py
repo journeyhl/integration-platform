@@ -32,7 +32,8 @@ class Queries:
 #region CentralStoreQueries
 class CentralStoreQueries(Queries):
     '''Queries to be executed within db_CentralStore'''
-
+    AdPortal_AdCategories: Query
+    AdPortal_AdDetailsDropdown: Query
     KlaviyoWritebackHubspot: Query
     AdPortal_TFNOptions: Query
     AdPortal_GenerateAdCode: Query
