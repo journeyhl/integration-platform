@@ -80,7 +80,7 @@ class Transform:
         bp = 'here'
         if add_to_newsletter['data'] == []:
             return []
-        db_newsletter_rows = [{**row, 'Timestamp': timestamp} for row in add_to_newsletter['data']]
+        db_newsletter_rows = [{'ID': row['id'], 'Timestamp': timestamp} for row in add_to_newsletter['data']]
         return db_newsletter_rows
     
     #MARK: _consolidate_duplicates_
