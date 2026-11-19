@@ -7,6 +7,7 @@ select a.AccountCD
 			when a.type = 'E' then 'Expense'
 		else null end Type
 	 , s.SubCD
+	 , rtrim(l.LedgerCD) LedgerCD
 	 , concat(left(s.SubCD, 3),  '-', left(right(s.SubCD, 5), 3), '-', right(s.SubCD, 2)) Sub
 	 , a.Description
 	 , g.FinPeriodID
@@ -21,11 +22,13 @@ from GLHistory g
 inner join Account a on g.CompanyID = a.CompanyID and g.AccountID = a.AccountID
 inner join Sub s on g.CompanyID = s.CompanyID and g.SubID = s.SubID
 inner join FinPeriod f on g.CompanyID = f.CompanyID and g.FinPeriodID = f.FinPeriodID and f.OrganizationID = 2
+inner join Ledger l on g.CompanyID = l.CompanyID and g.LedgerID = l.LedgerID
 where g.CompanyID = 2
 and (g.CuryFinBegBalance != 0 or g.CuryFinYtdBalance != 0)
-and f.StartDate >= dateadd(month, -6, getdate())
+-- and f.StartDate >= dateadd(month, -6, getdate())
 )
-select t.AccountCD
+select LedgerCD
+	 , t.AccountCD
 	 , t.Type
 	 , t.Sub
 	 , t.Description

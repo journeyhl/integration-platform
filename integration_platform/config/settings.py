@@ -1597,12 +1597,14 @@ TABLES = {
     #MARK: acu.TrialBalance
     'acu.TrialBalance': {
         'keys': [
+            'LedgerCD',
             'AccountCD',
             'Type',
             'Sub',
             'FinPeriod',
         ],
         'columns': [
+            'LedgerCD',
             'AccountCD',
             'Type',
             'Sub',
