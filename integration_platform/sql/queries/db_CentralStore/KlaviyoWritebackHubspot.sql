@@ -1,4 +1,4 @@
-select top 30 h.ID
+select top 10 h.ID
       ,h.PhoneNumber
       ,h.Email
       ,h.FirstName

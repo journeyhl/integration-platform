@@ -638,7 +638,7 @@ from TopLevel t
 left join analytics.JHL_D2CCustomerOrderHistory d2c_last on t.PhoneNumberFmt = d2c_last.Phone and d2c_last.OrdersDesc_Phone = 1 and d2c_last.PartProdAccFee != 'No Orders'
 left join analytics.JHL_D2CCustomerOrderHistory d2c_first on t.PhoneNumberFmt = d2c_first.Phone and d2c_first.OrdersAsc_Phone = 1 and d2c_first.PartProdAccFee != 'No Orders'
 left join DataPushLog dpl on t.Email = dpl.Email
-where t.Email != '' and (dpl.LastChecked <= dateadd(hour, -7, getdate()) or dpl.LastChecked is null)
+where t.Email != '' --and (dpl.LastChecked <= dateadd(hour, -7, getdate()) or dpl.LastChecked is null)
 -- and d2c_last.DatePlaced is not null
 -- and coalesce(t.Mkt_Email_ConsentTimestamp_email, t.Mkt_Email_ConsentTimestamp_phone) is not null
 -- and dpl.LastChecked is null

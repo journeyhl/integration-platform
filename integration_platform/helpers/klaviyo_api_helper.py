@@ -6,7 +6,7 @@ if TYPE_CHECKING:
 import logging
 import requests
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from zoneinfo import ZoneInfo
 from requests import Response
 import polars as pl
@@ -148,25 +148,72 @@ class KlaviyoAPIHelper:
             self.logger.warning(f'Error! {error.get('detail')}')
         return
 
-    mapping = {
-
-'phone_number': 'PhoneNumber',
-'email': 'Email',
-'first_name': 'FirstName',
-'last_name': 'LastName',
-'joined_group_at': 'JoinedGroupAt',
-'last_event_date': 'LastEventDate',
-'organization': 'Organization',
-'created': 'Created',
-'updated': 'Updated',
-'title': 'Title',
-'external_id': 'ExternalId',
-'locale': 'Locale',
-'image': 'Image',
-
-    'predictive_analytics': 'PredictiveAnalytics',
-    'properties': 'Properties',
-    'subscriptions': 'Subscriptions',
-    'location': 'Location',
-
-    }
+    #MARK: _parse_and_compare_dates_
+    def __parse_and_compare_dates__(self, klaviyo_date: str) -> datetime | None:
+        ''':class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform.__parse_and_compare_dates__`
+        ---
+        
+        Handles the date parsing of different formatted dates from klaviyo
+        
+        Parameters
+        ---
+        :param (*str*) `klaviyo_date`: klavio date as string
+        
+        Returns
+        ---
+        :return `date_value` (datetime | None): klaviyo date value, datetime if parsaed successfully, None if not
+        
+        <hr>
+        
+        ## Upstream Calls (Methods/Functions Called by)
+        
+         ### :class:`~integration_platform.transform.klaviyo_data_push.Transform`.:meth:`~integration_platform.transform.klaviyo_data_push.Transform._compare_attributes_properties_dates_`
+        
+        ## Downstream Calls (Methods/Functions called)
+        
+         ### :class:`~integration_platform.transform.default_transformer.DefaultTransformer`.:meth:`~integration_platform.transform.default_transformer.DefaultTransformer.parse_date_str`
+        '''
+        def retry(date_str):
+            formats = [
+                '%Y/%m/%dT%H:%M:%SZ',    '%m/%d/%YT%H:%M:%SZ',
+                '%Y/%m/%d %H:%M',        '%m/%d/%Y %H:%M',
+                '%Y-%m-%d %H:%M',        '%m-%d-%Y %H:%M',
+                '%Y-%m-%d %H:%M %p',     '%m-%d-%Y %H:%M %p',
+                '%Y/%m/%d %H:%M %p',     '%m/%d/%Y %H:%M %p',
+                '%Y-%m-%dT%H:%M:%S.%fZ', '%m-%d-%YT%H:%M:%S.%fZ',
+                '%m/%d/%Y', '%Y-%m-%d'
+            ]
+            for format in formats:
+                date_value = self.pipeline.default_transformer.parse_date_str(date_str=klaviyo_date, tries=0, format=format)
+                if date_value:
+                    return date_value
+            return date_value
+        kdate_len = len(klaviyo_date)
+        kdate_dash = klaviyo_date.find('-')
+        kdate_slash = klaviyo_date.find('/')
+        kdate_plus = klaviyo_date.find('+')
+        kdate_T = klaviyo_date.find('T')
+        kdate_Z = klaviyo_date.find('Z')
+        kdate_space = klaviyo_date.find(' ')
+        d_or_s = '-' if kdate_dash != -1 and kdate_slash == -1 else '/'
+        if kdate_dash == 2 or kdate_slash == 2:
+            datepart = f'%m{d_or_s}%d{d_or_s}%Y'
+        else:
+            datepart = f'%Y{d_or_s}%m{d_or_s}%d'
+        date_value = self.pipeline.default_transformer.parse_date_str(date_str=klaviyo_date, tries=0)
+        if kdate_space != -1:
+            date_value = self.pipeline.default_transformer.parse_date_str(date_str=klaviyo_date, tries=0, format=f'{datepart} %H:%M')
+        elif kdate_len in [25, 26]:
+            z = '' if kdate_len == 25 else 'Z'
+            date_value = self.pipeline.default_transformer.parse_date_str(date_str=klaviyo_date, tries=0, format=f'{datepart}T%H:%M:%S{z}', offset=True)
+        elif kdate_len == 10:
+            date_value = self.pipeline.default_transformer.parse_date_str(date_str=klaviyo_date, tries=0, format=datepart)
+        if ' AM' in klaviyo_date or ' PM' in klaviyo_date:
+            fmt = f'{datepart} %H:%M %p'
+            date_value = self.pipeline.default_transformer.parse_date_str(date_str=klaviyo_date, tries=0, format=fmt)
+            bp = 'here'
+        if isinstance(date_value, date):
+            date_value = datetime(year=date_value.year, month=date_value.month, day=date_value.day)
+        if not date_value:
+            date_value = retry(date_str=klaviyo_date)
+        return date_value

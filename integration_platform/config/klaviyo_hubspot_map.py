@@ -2,10 +2,10 @@
 #   hubspot_db_keys_klaviyo_values (DB key -> Klaviyo) + db_keys_hs_values (DB key -> HubSpot)
 # None = no DB key / HubSpot property currently linked to this Klaviyo property.
 properties = {
-    'FirstPurchaseDate':                    None,
-    'FirstPurchaseItem':                    None,
+    'FirstPurchaseDate':                    'FirstPurchaseDate',
+    'FirstPurchaseItem':                    'FirstPurchaseItem',
     'LastPurchaseDate':                     'last_order_date',
-    'LastPurchaseItem':                     None,
+    'LastPurchaseItem':                     'LastPurchaseItem',
     'Accepts Marketing':                    ['ip__shopify__accepts_marketing', 'hs_marketable_status'],
     'Shopify Tags':                         'ip__shopify__tags',
     'Date Created':                         'createdate',
