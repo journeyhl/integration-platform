@@ -219,7 +219,7 @@ class Transform:
             'Coupon': props.get('coupon'),
             'OkendoFamilyName': props.get('Okendo Family Name'),
             'OkendoGivenName': props.get('Okendo Given Name'),
-            'Product': props.get('Product'),
+            'Product': self.default_transformer.clean_string(props.get('Product') or props.get('product')),
             'Source': props.get('source'),
             'Company': props.get('company'),
             'HubspotOriginalSource': props.get('hubspot_original_source'),
