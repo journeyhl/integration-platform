@@ -44,7 +44,7 @@ class B2BCohortsLinkToAcu(Pipeline):
     
     def load(self, data_transformed):
         if len(data_transformed) > 0:
-            self.acudb.checked_upsert_paginated('CSAnswers', data_transformed)
+            self.acudb.merge_table_paginated('CSAnswers', data_transformed)
         else:
             self.logger.info(f'No rows to upsert')
         return data_transformed
