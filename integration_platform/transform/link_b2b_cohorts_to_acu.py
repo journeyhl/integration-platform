@@ -61,12 +61,12 @@ class Transform:
                 },
                 {
                     'AttributeID': 'MONTHSPROD',
-                    'Value': row['MonthsSinceProduct'],
+                    'Value': str(row['MonthsSinceProduct']),
                     'NoteID': row['MonthsSinceProductNoteID']
                 },
                 {
                     'AttributeID': 'MONTHSPA',
-                    'Value': row['MonthsSincePA'],
+                    'Value': str(row['MonthsSincePA']),
                     'NoteID': row['MonthsSincePANoteID']
                 }
             ] if entry['Value'] != None

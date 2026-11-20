@@ -38,8 +38,8 @@ class B2BCohorts(Pipeline):
         now =  datetime.now(ZoneInfo('America/New_York'))
         b2b_customer_cohorts = self.default_loader.add_to_list(data_transformed, {'InsertedDT': now, 'LastChecked': now})
         b2b_customer_cohort_snapshot = self.default_loader.add_to_list(data_transformed, {'Timestamp': now})
-        self.centralstore.checked_upsert_paginated('analytics.JHL_B2BCustomerCohorts', data_transformed, page_size= 100)
-        self.centralstore.checked_upsert_paginated('analytics.JHL_B2BCustomerCohort_Snapshot', data_transformed, page_size= 100)
+        self.centralstore.merge_table_paginated('analytics.JHL_B2BCustomerCohorts', data_transformed, page_size= 100)
+        self.centralstore.merge_table_paginated('analytics.JHL_B2BCustomerCohort_Snapshot', data_transformed, page_size= 100)
         return data_transformed
     
     def log_results(self, data_loaded):
