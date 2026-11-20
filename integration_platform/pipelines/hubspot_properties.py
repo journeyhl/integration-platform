@@ -61,6 +61,7 @@ class HubSpotProperties(Pipeline):
                 'Calculated': item['calculated'],
                 'Archived': item.get('archived'),
                 'Hidden': item['hidden'],
+                'ReadOnly': item['modificationMetadata']['readOnlyValue'],
                 'HubspotDefined': item.get('hubspotDefined'),
                 'CreatedAt': item.get('createdAt'),
                 'UpdatedAt': item.get('updatedAt'),

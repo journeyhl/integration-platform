@@ -1040,6 +1040,7 @@ class HubSpotAPI:
             self.logger.error(f"Error! Failed to update {object_id}. {e}\n{logging_browser_link}")
         try:
             jresponse = response.json()
+            self.logger.info(f'Successfully updated {object_id}!')
         except Exception as e:
             self.logger.error(f"Error! Couldn't parse response from hubspot api when updating {object_id}. {e}\n{logging_browser_link}")
         bp = 'here'
