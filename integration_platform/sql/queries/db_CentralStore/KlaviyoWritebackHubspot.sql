@@ -1,4 +1,9 @@
-select top 10 h.ID
+with Logs as(
+select RecordID, max(Timestamp) Timestamp
+from hs.KlaviyoHubspotWritebackLog
+group by RecordID
+)
+select top 100 h.ID
       ,h.PhoneNumber
       ,h.Email
       ,h.FirstName
@@ -149,10 +154,13 @@ select top 10 h.ID
 	 , d2c_first.DatePlaced FirstPurchaseDate
 	 , d2c_first.ItemClassDesc FirstPurchaseItem
 	 , case when d2c_last.PartProdAccFee != 'No Orders' then d2c_last.OrdersAsc else 0 end NumberOfOrders
+   , l.Timestamp LogTimestamp
 from klaviyo.ProfileHeader h
 inner join klaviyo.ProfileProperties p on h.ID = p.ID
 inner join klaviyo.ProfileSubscriptions s on h.ID = s.ID
 left join klaviyo.EmailSuppressions es on h.ID = es.ID
 left join analytics.JHL_D2CCustomerOrderHistory d2c_last on h.PhoneNumber = d2c_last.Phone and d2c_last.OrdersDesc_Phone = 1 and d2c_last.PartProdAccFee != 'No Orders'
 left join analytics.JHL_D2CCustomerOrderHistory d2c_first on h.PhoneNumber = d2c_first.Phone and d2c_first.OrdersAsc_Phone = 1 and d2c_first.PartProdAccFee != 'No Orders'
+left join Logs l on p.HubspotRecordID = l.RecordID
 where HubspotRecordID is not null
+and (l.RecordID is null or l.Timestamp <= dateadd(hour, -7, getdate()))

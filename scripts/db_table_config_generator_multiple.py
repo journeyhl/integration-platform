@@ -61,14 +61,14 @@ elif db_input.lower() == acudb[0:input_len].lower():
 
 db = SQLConnector('config-generator', db)
 tables = [
-    
+    'hs.KlaviyoHubspotWritebackLog'
 # 'analytics.raw_B2BSalesSummary',
 # 'analytics.int_B2BSalesSummary',
 # 'analytics.int_B2BCustomerOrderHistory',
 
 # 'analytics.int_B2BCustomerAgeCategory',
-'analytics.JHL_B2BRevenueByCustomer',
-'analytics.JHL_B2BRevenueByCustomerType',
+# 'analytics.JHL_B2BRevenueByCustomer',
+# 'analytics.JHL_B2BRevenueByCustomerType',
 
 
 

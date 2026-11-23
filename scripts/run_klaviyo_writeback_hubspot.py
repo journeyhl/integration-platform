@@ -7,3 +7,11 @@ writeback = KlaviyoWritebackHubspot('.debug')
 writeback.run()
 
 bp = 'here'
+
+
+
+#Run order
+
+  #UCMI
+  #Klaviyo Data push
+  #Klaviyo Writeback Hubspot

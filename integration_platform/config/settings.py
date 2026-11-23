@@ -5879,8 +5879,21 @@ TABLES = {
             'AverageOrderValue',
             'LastChecked',
         ],
+    },    
+    'hs.KlaviyoHubspotWritebackLog': {
+        'keys': [
+            'RecordID',
+            'Timestamp',
+        ],
+        'columns': [
+            'RecordID',
+            'Payload',
+            'Timestamp',
+        ],
+        'update_columns': [
+            'Payload',
+        ],
     },
-    
     
     
     

@@ -122,7 +122,7 @@ class Transform:
         '''        
         if not contact['HubspotRecordID']:
             filter = [{"filters": [{"propertyName": "email", "operator": "eq", "value": contact['Email']}]}]
-            profile = self.pipeline.hubspot.search_contacts(filter_groups=filter, properties=self.pipeline.hubspot.contact_properties_v2.split(','))
+            profile = self.pipeline.hubspot.search_contacts(filter_groups=filter, properties=['self.pipeline.hubspot.contact_properties_v2.split(',')'])
             bp = 'here'
         else:
             profile = self.pipeline.hubspot.get_object_by_id(object_id=contact['HubspotRecordID'],object_type='contact', props=self.pipeline.hubspot.contact_properties_v2)

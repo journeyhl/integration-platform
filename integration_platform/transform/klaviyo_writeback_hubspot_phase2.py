@@ -14,7 +14,7 @@ class TransformPhase2:
 
     #MARK: landing
     def landing(self, data_transformed: list):
-        bp = 'here'
+        no_update = []
         self.prelim_contacts_needing_update = {}
         total = len(data_transformed)
         for i, contact in enumerate(data_transformed):
@@ -30,9 +30,11 @@ class TransformPhase2:
             change_list = self._format_for_hubspot_(values=change_list)
             if change_list != []:
                 final_contacts_needing_update[hubspot_id] = change_list
+            else: 
+                no_update.append({'RecordID': hubspot_id, 'Payload': None})
             bp = 'here'
         bp = 'here'
-        return final_contacts_needing_update
+        return final_contacts_needing_update, no_update
 
     #MARK: _filter_no_updates_
     def _filter_no_updates_(self, contact: dict):
@@ -58,7 +60,7 @@ class TransformPhase2:
          ### :class:`~integration_platform.transform.klaviyo_writeback_hubspot_phase2.TransformPhase2`.:meth:`~integration_platform.transform.klaviyo_writeback_hubspot_phase2.TransformPhase2.landing`
         '''        
         updates = []
-        if contact['hubspot'] == {}:
+        if contact['hubspot'] == {} or not contact.get('diffs'):
             return
         for key, properties in contact['diffs'].items():
             bp = 'here'

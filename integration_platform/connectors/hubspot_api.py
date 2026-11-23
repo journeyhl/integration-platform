@@ -1011,7 +1011,7 @@ class HubSpotAPI:
 
 
     #MARK: update_object_by_id
-    def update_object_by_id(self, object_type: Literal['contacts', 'companies'], object_id, property_payload: dict):
+    def update_object_by_id(self, object_type: Literal['contacts', 'companies'], object_id, property_payload: dict, log_prefix: str = ''):
         ''':class:`~integration_platform.connectors.hubspot_api.HubSpotAPI`.:meth:`~integration_platform.connectors.hubspot_api.HubSpotAPI.update_object_by_id`
         ---
         
@@ -1037,12 +1037,12 @@ class HubSpotAPI:
         try:
             response = self.session.patch(url, json=property_payload)
         except Exception as e:
-            self.logger.error(f"Error! Failed to update {object_id}. {e}\n{logging_browser_link}")
+            self.logger.error(f"{log_prefix}Error! Failed to update {object_id}. {e}\n{logging_browser_link}")
         try:
             jresponse = response.json()
-            self.logger.info(f'Successfully updated {object_id}!')
+            self.logger.info(f'{log_prefix}Successfully updated {object_id}!')
         except Exception as e:
-            self.logger.error(f"Error! Couldn't parse response from hubspot api when updating {object_id}. {e}\n{logging_browser_link}")
+            self.logger.error(f"{log_prefix}Error! Couldn't parse response from hubspot api when updating {object_id}. {e}\n{logging_browser_link}")
         bp = 'here'
 
     #MARK: update_property_options

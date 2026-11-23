@@ -39,6 +39,9 @@ class KlaviyoHubspotComparer:
             if profile['hubspot'] == {}:
                 self.logger.info(f'{self.prefix}No hubspot profile found, skipping')
                 continue
+            if profile['klaviyo'] == {}:
+                self.logger.info(f'{self.prefix}No Klaviyo profile found, skipping')
+                continue
             self.hubspot_id = profile['hubspot']['id']
             self.klaviyo_id = profile['klaviyo']['id']
             bp = 'here'
