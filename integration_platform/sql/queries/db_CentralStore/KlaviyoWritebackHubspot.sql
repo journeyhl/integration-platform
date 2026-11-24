@@ -164,3 +164,4 @@ left join analytics.JHL_D2CCustomerOrderHistory d2c_first on h.PhoneNumber = d2c
 left join Logs l on p.HubspotRecordID = l.RecordID
 where HubspotRecordID is not null
 and (l.RecordID is null or l.Timestamp <= dateadd(hour, -7, getdate()))
+order by l.Timestamp

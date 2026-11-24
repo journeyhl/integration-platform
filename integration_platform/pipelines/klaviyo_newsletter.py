@@ -54,7 +54,7 @@ class KlaviyoNewsletter(Pipeline):
         self.transformer = Transform(self)
         self.is_newsletter = is_newsletter
         self.filter_if_not_newsletter = filter_if_not_newsletter
-        self.cutoff = datetime.now(ZoneInfo('America/New_York')) - timedelta(days=14)
+        self.cutoff = datetime.now(ZoneInfo('America/New_York')) - timedelta(days=2)
         self.cutoff_str = self.cutoff.strftime('%Y-%m-%dT%H:%M:%SZ')
 
     def extract(self):
